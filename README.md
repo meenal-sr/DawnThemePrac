@@ -52,4 +52,3 @@ TypeScript build with tree-shaking (app code + node_modules).
 
 - **NOTES.md** and **ARCHITECTURE.md** — how the build and tree-shaking are wired.
 - **AWESOME.md** — when you change the existing build system, use it to update this TS build (checklist and mapping).
-- Build may emit both `common-import.css` and `common-imports.css` (plugin requests); use `common-imports.css` in the theme. The former is in `.gitignore`.

@@ -51,8 +51,6 @@ module.exports = {
       StyleComponents: path.resolve(__dirname, 'scss/components'),
       TsComponents: path.resolve(__dirname, 'ts/components'),
       SvelteComponents: path.resolve(__dirname, 'src/svelte'),
-      'scss/sections/common-import.scss': path.resolve(__dirname, 'scss/sections/common-imports.scss'),
-      'scss/sections/common-imports.scss': path.resolve(__dirname, 'scss/sections/common-imports.scss'),
     },
   },
   module: {

@@ -7,4 +7,3 @@ package-lock.json
 .env.local
 *.log
 .cache
-assets/common-import.css

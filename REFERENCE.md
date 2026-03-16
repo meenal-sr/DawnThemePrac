@@ -28,7 +28,7 @@ Side-by-side of the main theme (New-theme) and the TypeScript setup (Module upda
 | ---------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Entry**              | `...scssEntryPoint`, `...jsEntryPoints`                          | Same + **`...tsEntryPoints`** from `src/sections/**/*.{ts,tsx}` (one truth, no fallback) |
 | **Resolve extensions** | `.js`, `.jsx`, `.json`                                           | + **`.ts`, `.tsx`**                                                                                                                        |
-| **Aliases**            | `StyleComponents`, `JsComponents`                                | Same + **SvelteComponents** (→ `src/svelte`) + **scss/sections/common-import(s).scss** → `common-imports.scss` (for plugin resolution) |
+| **Aliases**            | `StyleComponents`, `JsComponents`                                | Same + **SvelteComponents** (→ `src/svelte`) |
 | **JS rule**            | `(js\|jsx)$` → babel-loader                                      | `(js\|jsx\|ts\|tsx)$` → babel-loader                                                                                                       |
 | **Output**             | `assets/`, `[name].js`, `[name].js?[chunkhash]`                  | Same                                                                                                                                       |
 | **Optimization**       | Separate blocks for dev and prod (same shape)                    | Same (separate dev/prod blocks; dev adds `devtool: false` + shell plugin)                                                                  |
@@ -84,7 +84,7 @@ Side-by-side of the main theme (New-theme) and the TypeScript setup (Module upda
 | **JS/TS entry dirs**  | `js/sections/**/*.js`                        | `js/sections/**/*.js` + **`src/sections/**/*.{ts,tsx}`**                                                                                  |
 | **Component aliases** | `js/components`, `scss/components`           | Same + **`src/svelte`** (SvelteComponents)                                                                                                |
 | **SCSS**              | `scss/sections/*.scss` (e.g. common-imports) | Same; Tailwind in `common-imports.scss`                                                                                                   |
-| **Output**            | `assets/` (JS, CSS, shared, vendors)         | Same; extra **`common-import.css`** (ignored in git, use `common-imports.css`)                                                            |
+| **Output**            | `assets/` (JS, CSS, shared, vendors)         | Same                                                                                                       |
 | **TypeScript**        | —                                            | **`src/`** (index, sections, lib, components, svelte); **`tsconfig.json`** (noEmit, paths); **`dist/`** only for `yarn emit-declarations` |
 
 ---
@@ -92,7 +92,7 @@ Side-by-side of the main theme (New-theme) and the TypeScript setup (Module upda
 ## 8. Config files only in Module update
 
 - **tsconfig.json** — strict TS, path aliases, `noEmit: true`; declarations via `yarn emit-declarations`.
-- **.gitignore** — `assets/common-import.css`, `.env`, etc.
+- **.gitignore** — `.env`, etc.
 
 ---
 
@@ -130,12 +130,12 @@ These differences are needed to support TypeScript and your tree-shaking setup. 
 |------|--------------------|
 | **Entry** | `...tsEntryPoints` from `src/sections/**/*.{ts,tsx}` is required so TS section files are entry points. |
 | **resolve.extensions** | `.ts`, `.tsx` must be present so webpack resolves TypeScript files. |
-| **resolve.alias** | `SvelteComponents` → `src/svelte` and `scss/sections/common-import(s).scss` → `common-imports.scss` are for TS/svelte and plugin (e.g. Flowbite) resolution; keep. |
+| **resolve.alias** | `SvelteComponents` → `src/svelte` for TS/svelte resolution; keep. |
 | **JS rule** | `test: /\.(js\|jsx\|ts\|tsx)$/` and babel-loader are required to compile TS/TSX. |
 | **Babel** | `@babel/preset-typescript` is required for TypeScript. |
 | **package.json** | `typecheck`, `emit-declarations`; `@babel/runtime`; `@babel/preset-typescript`, `typescript` in devDependencies; optional `engines`/`browserslist` for consistency. |
 | **Tailwind content** | `./src/**/*.{ts,tsx,js,jsx}` is needed so Tailwind sees classes in TS/TSX. |
-| **Config only in Module update** | `tsconfig.json` (type-check, paths, noEmit); `.gitignore` for `assets/common-import.css`, etc. |
+| **Config only in Module update** | `tsconfig.json` (type-check, paths, noEmit); `.gitignore` for `.env`, etc. |
 | **Source layout** | `src/` (sections, lib, components, svelte) and optional `dist/` for declarations. |
 
 ### Minimal changes to “be the same as New-theme” where possible
