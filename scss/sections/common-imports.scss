@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Skip to main content link - hidden by default, visible on focus
+// Styled like secondary button with teal background
+.skip-link {
+  @apply tw-inline-flex tw-items-center tw-justify-center  tw-mt-1 tw-ml-1 tw-rounded-full tw-px-4 tw-py-2 tw-bg-ah-teal tw-text-white tw-font-bold tw-transition-colors tw-duration-300 tw-no-underline tw-text-sm tw-min-h-[36px] tw-min-w-[80px];
+  position: absolute;
+  top: -9999px;
+  left: 0;
+  z-index: 10000;
+  clip: rect(0, 0, 0, 0);
+
+  &:focus-visible {
+    top: 0;
+    clip: auto;
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  &:hover {
+    @apply tw-bg-[#358282];
+  }
+}
+// Same as New-theme: uncomment when adding these files/deps
+// @import './header.scss';
+// @import 'animate.css';
+// @import 'swiper/swiper-bundle.css';
+// @import '../snippets/carousel-wrapper.scss';
+// @import 'video.js/dist/video-js.css';
+// @import '@videojs/themes/dist/forest/index.css';
+// @import './page-product-services.scss';
+// @import './content-card.scss';
+
+// Container
+.section-wide {
+  @media (min-width: 1200px){
+    &--right {
+      padding-right: 0 !important;
+    }
+    &--left {
+      padding-left: 0 !important;
+    }
+  }
+}
+
+.section-container {
+  @apply tw-w-full tw-max-w-[2100px] tw-mx-auto tw-px-5 md:tw-px-16;
+}
+
+.section-container-table {
+  @apply tw-w-full tw-max-w-[2100px] tw-mx-auto tw-pl-5 md:tw-px-16;
+}
+
+.section-padding-top {
+  @apply tw-pt-11 md:tw-pt-24;
+}
+
+.section-padding-bottom {
+  @apply tw-pb-11 md:tw-pb-24;
+}
+
+@media (min-width: 2100px) {
+  .section-container-wide {
+    @apply tw-w-full  tw-mx-auto;
+    max-width: calc(2100px - 128px);
+   }
+}
+
+// Swiper styles (same as New-theme)
+carousel-swiper {
+  height: 100%;
+  display: block;
+
+  .swiper {
+    height: 100%;
+  }
+
+  &[class*="carousel__scroll"] {
+    height: auto;
+
+    .carousel__swiper {
+      height: auto;
+    }
+
+    .swiper-wrapper {
+      height: auto !important;
+    }
+  }
+}
+
+.swiper-wide .swiper {
+  @media(max-width: 1200px){
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
+.carousel-progress {
+  max-width: calc(100% - 40px);
+  margin-left: auto;
+  margin-right: auto;
+
+  @media (min-width: 1024px) {
+    max-width: calc(2100px - 128px);
+  }
+}
+
+// Swiper navigation button accessibility styles (same as New-theme)
+.carousel__nav-button,
+.swiper-button-prev,
+.swiper-button-next {
+  &:focus-visible {
+    outline: 2px solid #092846;
+    outline-offset: 2px;
+    border-radius: 50%;
+  }
+
+  &[disabled],
+  &.swiper-button-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+
+    &:focus-visible {
+      outline: 2px solid #092846;
+      outline-offset: 2px;
+      opacity: 0.5;
+    }
+  }
+
+  &[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Video player (same as New-theme)
+video-player {
+  display: block;
+  height: 100%;
+  video {
+    object-fit: cover;
+  }
+  preload {
+    height: 100%;
+  }
+}
+
+.vjs-poster img{
+  object-fit: cover;
+}
+
+.vjs-big-play-button {
+  display: none !important;
+}
+
+.table-header__color-scheme-secondary {
+    color: #092846;
+    background: #FFF;
+}
+.table-header__color-scheme-primary {
+    background: #092846;
+    color: #FFF;
+}
+
+@layer base {
+  .rich-text ul,
+  .rich-text ol {
+    list-style: revert;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+  .rich-text li {
+    margin: 0.25rem 0;
+  }
+}
+
+.banner__container-wide {
+  @apply tw-w-full  tw-mx-auto;
+  max-width: calc(2100px - 128px);
+}
+
+.swiper-button-prev:after,.swiper-button-next:after {
+  content: "";
+  display: none !important;
+}
