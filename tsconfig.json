@@ -21,7 +21,7 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "JsComponents/*": ["js/components/*"],
+      "TsComponents/*": ["ts/components/*"],
       "StyleComponents/*": ["scss/components/*"],
       "SvelteComponents/*": ["src/svelte/*"]
     }

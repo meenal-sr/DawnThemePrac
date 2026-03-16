@@ -1,12 +1,13 @@
 const glob = require('glob');
 const path = require('path');
+const { exec } = require('child_process');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 
-const mode = process.env.NODE_ENV === 'development' ? 'development' : 'production';
-const stats = mode === 'development' ? 'errors-only' : { children: false };
+const mode = 'production';
+const stats = { children: false };
 require('dotenv').config();
 const storeUrl = process.env.STORE_URL;
 const themeId = process.env.THEME_ID;
@@ -16,27 +17,39 @@ const scssEntryPoint = glob.sync('./scss/sections/**.scss').reduce((acc, p) => {
   return acc;
 }, {});
 
-const jsEntryPoints = glob.sync('./js/sections/**/**.js').reduce((acc, p) => {
-  acc[p.replace(/^.*[\\\/]/, '').replace('.js', '')] = p;
+// TS-only entry points (no JS); one bundle per file in ts/sections
+const tsEntryPoints = glob.sync('./ts/sections/**/*.{ts,tsx}').reduce((acc, p) => {
+  const key = p.replace(/^.*[\\\/]/, '').replace(/\.(ts|tsx)$/, '');
+  acc[key] = p.startsWith('.') ? p : `./${p}`;
   return acc;
 }, {});
 
-const tsEntryPoints = glob.sync('./src/sections/**/*.{ts,tsx}').reduce((acc, filePath) => {
-  acc[filePath.replace(/^.*[\\\/]/, '').replace(/\.(ts|tsx)$/, '')] = filePath;
-  return acc;
-}, {});
+const entry = { ...scssEntryPoint, ...tsEntryPoints };
 
-const entry = { ...scssEntryPoint, ...jsEntryPoints, ...tsEntryPoints };
+function playFailSoundPlugin() {
+  const errorSound = path.resolve(__dirname, 'sounds/fahhhhh.mp3');
+  return {
+    apply(compiler) {
+      compiler.hooks.done.tap('PlayFailSound', (stats) => {
+        if (stats.hasErrors() && process.platform === 'darwin') {
+          exec(`afplay "${errorSound}"`, () => {});
+        }
+      });
+    },
+  };
+}
 
 module.exports = {
   mode,
   stats,
+  context: __dirname,
   entry,
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    preferRelative: true,
     alias: {
       StyleComponents: path.resolve(__dirname, 'scss/components'),
-      JsComponents: path.resolve(__dirname, 'js/components'),
+      TsComponents: path.resolve(__dirname, 'ts/components'),
       SvelteComponents: path.resolve(__dirname, 'src/svelte'),
       'scss/sections/common-import.scss': path.resolve(__dirname, 'scss/sections/common-imports.scss'),
       'scss/sections/common-imports.scss': path.resolve(__dirname, 'scss/sections/common-imports.scss'),
@@ -45,7 +58,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|ts|tsx)$/,
+        test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
       },
@@ -62,6 +75,7 @@ module.exports = {
             loader: 'sass-loader',
             options: {
               sourceMap: true,
+              api: 'modern',
               implementation: require('sass'),
             },
           },
@@ -80,6 +94,7 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: './[name].css',
     }),
+    playFailSoundPlugin(),
   ],
 };
 

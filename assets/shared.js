@@ -1,10 +1,7 @@
 "use strict";
-(self["webpackChunkmodule_update"] = self["webpackChunkmodule_update"] || []).push([["shared"],{
+(self["webpackChunkmodule_update"] = self["webpackChunkmodule_update"] || []).push([[804],{
 
-/***/ "./scss/sections/common-imports.scss":
-/*!*******************************************!*\
-  !*** ./scss/sections/common-imports.scss ***!
-  \*******************************************/
+/***/ 180:
 /***/ (function() {
 
 // extracted by mini-css-extract-plugin
