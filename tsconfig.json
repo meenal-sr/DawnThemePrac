@@ -3,7 +3,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "DOM"],
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -11,21 +11,16 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "outDir": "./assets",
+    "rootDir": "./ts",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "noEmit": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "baseUrl": ".",
-    "paths": {
-      "TsComponents/*": ["ts/components/*"],
-      "StyleComponents/*": ["scss/components/*"],
-      "SvelteComponents/*": ["src/svelte/*"]
-    }
+    "baseUrl": "."
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["ts/**/*"],
+  "exclude": ["node_modules", "assets"]
 }

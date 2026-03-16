@@ -3,10 +3,13 @@ const path = require('path');
 const { exec } = require('child_process');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
+const ESLintPlugin = require('eslint-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-const mode = 'production';
+const mode = 'development';
 const stats = { children: false };
 require('dotenv').config();
 const storeUrl = process.env.STORE_URL;
@@ -17,14 +20,19 @@ const scssEntryPoint = glob.sync('./scss/sections/**.scss').reduce((acc, p) => {
   return acc;
 }, {});
 
-// TS-only entry points (no JS); one bundle per file in ts/sections
 const tsEntryPoints = glob.sync('./ts/sections/**/*.{ts,tsx}').reduce((acc, p) => {
   const key = p.replace(/^.*[\\\/]/, '').replace(/\.(ts|tsx)$/, '');
   acc[key] = p.startsWith('.') ? p : `./${p}`;
   return acc;
 }, {});
 
-const entry = { ...scssEntryPoint, ...tsEntryPoints };
+const jsEntryPoints = glob.sync('./js/sections/**/*.{js,jsx}').reduce((acc, p) => {
+  const key = p.replace(/^.*[\\\/]/, '').replace(/\.(js|jsx)$/, '');
+  acc[key] = p.startsWith('.') ? p : `./${p}`;
+  return acc;
+}, {});
+
+const entry = { ...scssEntryPoint, ...tsEntryPoints, ...jsEntryPoints };
 
 function playFailSoundPlugin() {
   const errorSound = path.resolve(__dirname, 'sounds/fahhhhh.mp3');
@@ -49,14 +57,13 @@ module.exports = {
     preferRelative: true,
     alias: {
       StyleComponents: path.resolve(__dirname, 'scss/components'),
-      TsComponents: path.resolve(__dirname, 'ts/components'),
-      SvelteComponents: path.resolve(__dirname, 'src/svelte'),
+      TsComponents: path.resolve(__dirname, 'ts/components')
     },
   },
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/,
+        test: /\.(ts|tsx|js|jsx)$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
       },
@@ -85,83 +92,67 @@ module.exports = {
     clean: false,
     filename: './[name].js',
     path: path.resolve(__dirname, 'assets'),
-    chunkFilename: './[name].js?[chunkhash]',
+    chunkFilename: (pathData) => {
+      const name = pathData.chunk?.name;
+      if (name === 'shared') return './[name].js';
+      return './[name].[contenthash].js';
+    },
+  },
+  devtool: 'source-map',
+  optimization: {
+    usedExports: true,
+    splitChunks: {
+      chunks: 'all',
+      usedExports: true,
+      cacheGroups: {
+        default: false,
+        Vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          type: /javascript/,
+          enforce: true,
+        },
+        common: {
+          chunks: 'all',
+          minChunks: 2,
+          name: 'shared',
+          priority: -20,
+          minSize: 0,
+          type: /javascript/,
+        },
+      },
+    },
+    minimize: true,
+    minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
   },
   plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      async: false,
+      typescript: { configFile: path.join(__dirname, 'tsconfig.json') },
+      issue: { exclude: [{ origin: 'eslint', severity: 'warning' }] },
+    }),
     new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
       filename: './[name].css',
     }),
+    new ESLintPlugin({
+      context: path.join(__dirname, 'ts'),
+      extensions: ['ts', 'tsx'],
+      failOnError: true,
+      eslintPath: 'eslint/use-at-your-own-risk',
+      overrideConfigFile: path.join(__dirname, '.eslintrc.cjs'),
+    }),
     playFailSoundPlugin(),
   ],
 };
-
-if (mode === 'development') {
-  module.exports.devtool = false;
-  module.exports.optimization = {
-    usedExports: true,
-    splitChunks: {
-      chunks: 'all',
-      usedExports: true,
-      cacheGroups: {
-        default: false,
-        Vendors: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          type: /javascript/,
-          enforce: true,
-        },
-        common: {
-          chunks: 'all',
-          minChunks: 2,
-          name: 'shared',
-          priority: -20,
-          minSize: 0,
-          type: /javascript/,
-        },
-      },
+module.exports.plugins.push(
+  new WebpackShellPluginNext({
+    onBuildStart: {
+      scripts: ['echo Webpack build in progress...🛠'],
     },
-    minimize: true,
-    minimizer: [new CssMinimizerPlugin()],
-  };
-  module.exports.plugins.push(
-    new WebpackShellPluginNext({
-      onBuildStart: {
-        scripts: ['echo Webpack build in progress...🛠'],
-      },
-      onBuildEnd: {
-        scripts: ['echo Build Complete 📦', `shopify theme dev --theme-editor-sync -s ${storeUrl} -t ${themeId}`],
-        parallel: true,
-      },
-    })
-  );
-}
-
-if (mode === 'production') {
-  module.exports.optimization = {
-    usedExports: true,
-    splitChunks: {
-      chunks: 'all',
-      usedExports: true,
-      cacheGroups: {
-        default: false,
-        Vendors: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          type: /javascript/,
-          enforce: true,
-        },
-        common: {
-          chunks: 'all',
-          minChunks: 2,
-          name: 'shared',
-          priority: -20,
-          minSize: 0,
-          type: /javascript/,
-        },
-      },
+    onBuildEnd: {
+      scripts: ['echo Build Complete 📦', `shopify theme dev --theme-editor-sync -s ${storeUrl} -t ${themeId}`],
+      parallel: true,
     },
-    minimize: true,
-    minimizer: [new CssMinimizerPlugin()],
-  };
-}
+  })
+);
