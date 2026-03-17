@@ -1,20 +1,19 @@
-# moduleUpdate
+# Module update
 
 TypeScript build with tree-shaking (app code + node_modules).
 
-# Global Variables
+## Global variables & paths
 
-- use **JsComponents/** for `src/components`
-- use **SvelteComponents/** for `src/svelte`
-- use **StyleComponents/** for `scss/components`
-- use **src/sections/** for TS/TSX entry points (one bundle per file); same pattern as **js/sections/** for JS
-- use **assets/** for build output (`[name].js`, `vendors.js`, `shared.js`, `[name].css`)
+- **TsComponents/** → `ts/components`
+- **StyleComponents/** → `scss/components`
+- **ts/sections/** — TS/TSX entry points (one bundle per file); **js/sections/** — optional JS/JSX entries
+- **assets/** — build output (`[name].js`, `vendors.js`, `shared.js`, `[name].css`)
 
-# Shopify theme folders
+## Shopify theme folders
 
 | Folder | Purpose |
 |--------|--------|
-| **assets** | Theme assets; webpack outputs built JS and CSS here (same as main theme). |
+| **assets** | Theme assets; webpack outputs built JS and CSS here. |
 | **blocks** | Theme app blocks (JSON). |
 | **config** | `settings_schema.json`, `settings_data.json`. |
 | **layout** | Layout files (e.g. `theme.liquid`). |
@@ -22,33 +21,33 @@ TypeScript build with tree-shaking (app code + node_modules).
 | **sections** | Theme sections (`.liquid` + `.json`). |
 | **snippets** | Reusable Liquid snippets. |
 | **templates** | Theme templates (e.g. `index.json`, `page.json`). |
-| **js** | JS entry points or legacy scripts (source in `src/`). |
-| **scss** | SCSS (e.g. `scss/sections/`, `scss/components/`). Tailwind in `common-imports.scss` → `assets/common-imports.css`. |
-| **src** | TypeScript/JS source (`index.ts`, `sections/`, `components/`). |
+| **ts** | TypeScript source: `ts/sections/` (entries), `ts/components/` (TsComponents alias). |
+| **js** | Optional JS/JSX section entries (`js/sections/`). |
+| **scss** | SCSS: `scss/sections/` (e.g. `common-imports.scss` → `assets/common-imports.css`), `scss/components/` (StyleComponents). |
 
-# How to get started ?
+## How to get started
 
-- Clone or move this repo into your project (or use it standalone)
-- Install yarn through homebrew [Install Yarn](https://formulae.brew.sh/formula/yarn/).
-- Follow this doc to Install asdf & add asdf into your terminal [asdf doc](https://asdf-vm.com/guide/getting-started.html)
-- run `asdf install`
-- run `yarn`
-- Once all packages are installed, run `yarn build` for a production build or `yarn start` for watch mode
-- For type-check only, run `yarn typecheck`
-
+1. Clone or move this repo; install [Yarn](https://formulae.brew.sh/formula/yarn/) and [asdf](https://asdf-vm.com/guide/getting-started.html) if needed.
+2. Run `asdf install` then `yarn`.
+3. Copy `.env` from `sampleenv` and set `STORE_URL` and `THEME_ID` for Shopify.
+4. **`yarn start`** — type-check + webpack watch (development).
+5. **`yarn deploy`** — production webpack build then `shopify theme push`.
+6. **`yarn typecheck`** — TypeScript type-check only.
+7. **`yarn lint`** — ESLint on `ts/`.
 
 ## Config files
 
 | File | Purpose |
 |------|--------|
 | **yarn.lock** | Lockfile (use `yarn`, not npm). |
-| **package-lock.json** | Ignored; do not commit. |
+| **webpack.config.js** | Entry (scss + ts/sections + js/sections), Babel, SCSS, ForkTsChecker, ESLint, output to `assets/`. |
+| **tsconfig.json** | TypeScript: `rootDir` `ts/`, type-check, optional `yarn emit-declarations`. |
+| **.babelrc** | Babel: preset-env, preset-react, preset-typescript, transform-runtime. |
+| **.eslintrc.cjs** | ESLint for `ts/` (used in webpack build). |
 | **postcss.config.js** | PostCSS: tailwindcss, postcss-preset-env (autoprefixer). |
-| **tailwind.config.js** | Tailwind content paths (sections, snippets, src, etc.) and theme. |
-| **.babelrc** | Babel presets/plugins for JS/TS (preset-env, preset-react, preset-typescript). |
-| **tsconfig.json** | TypeScript type-check and path aliases (`yarn typecheck`). |
+| **tailwind.config.js** | Tailwind content paths and theme. |
 
-## Note
+## More docs
 
-- **NOTES.md** and **ARCHITECTURE.md** — how the build and tree-shaking are wired.
-- **AWESOME.md** — when you change the existing build system, use it to update this TS build (checklist and mapping).
+- **ARCHITECTURE.md** — project layout, build pipeline, tree-shaking, scripts.
+- **REFERENCE.md** — comparison with New-theme, deep dives (tree-shaking, adding aliases).
