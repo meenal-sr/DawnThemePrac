@@ -26,13 +26,13 @@ Side-by-side of the main theme (New-theme) and the TypeScript setup (Module upda
 
 | Area                   | New-theme                                                        | Module update                                                                                                                              |
 | ---------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Entry**              | `...scssEntryPoint`, `...jsEntryPoints`                          | Same + **`...tsEntryPoints`** from `src/sections/**/*.{ts,tsx}` (one truth, no fallback) |
+| **Entry**              | `...scssEntryPoint`, `...jsEntryPoints`                          | Same + **`...tsEntryPoints`** from `ts/sections/**/*.{ts,tsx}` (one bundle per section file) |
 | **Resolve extensions** | `.js`, `.jsx`, `.json`                                           | + **`.ts`, `.tsx`**                                                                                                                        |
-| **Aliases**            | `StyleComponents`, `JsComponents`                                | Same + **SvelteComponents** (→ `src/svelte`) |
+| **Aliases**            | `StyleComponents`, `JsComponents`                                | **StyleComponents** (→ `scss/components`), **TsComponents** (→ `ts/components`) |
 | **JS rule**            | `(js\|jsx)$` → babel-loader                                      | `(js\|jsx\|ts\|tsx)$` → babel-loader                                                                                                       |
 | **Output**             | `assets/`, `[name].js`, `[name].js?[chunkhash]`                  | Same                                                                                                                                       |
-| **Optimization**       | Separate blocks for dev and prod (same shape)                    | Same (separate dev/prod blocks; dev adds `devtool: false` + shell plugin)                                                                  |
-| **Plugins**            | RemoveEmptyScripts, MiniCssExtract, (dev) WebpackShellPluginNext | Same                                                                                                                                       |
+| **Optimization**       | Separate blocks for dev and prod (same shape)                    | usedExports, splitChunks (Vendors + common), Terser + CssMinimizer                                                                          |
+| **Plugins**            | RemoveEmptyScripts, MiniCssExtract, (dev) WebpackShellPluginNext | Same + **ForkTsCheckerWebpackPlugin**, **ESLintPlugin** (ts/), **playFailSoundPlugin**                                                      |
 
 ---
 
@@ -70,8 +70,8 @@ Side-by-side of the main theme (New-theme) and the TypeScript setup (Module upda
 |                     | New-theme                                                                            | Module update                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
 | **main**            | `webpack.config.js`                                                                  | `assets/main.js`                                                                                                   |
-| **Scripts**         | build, start, deploy, shopify:push/pull + **Playwright tests**                       | build, start, deploy, shopify:push/pull + **typecheck**, **emit-declarations**                                     |
-| **sideEffects**     | `*.css`, `*.scss`, `*.vue`                                                           | Same                                                                                                               |
+| **Scripts**         | build, start, deploy, shopify:push/pull + **Playwright tests**                       | **start** (tsc + webpack --watch), **deploy** (webpack && shopify theme push), **typecheck**, **lint**, **emit-declarations** |
+| **sideEffects**     | `*.css`, `*.scss`, `*.vue`                                                           | **`*.scss`** only                                                                                                 |
 | **Dependencies**    | Theme/runtime (React, Swiper, etc.)                                                  | **@babel/runtime** only                                                                                            |
 | **DevDependencies** | Babel (no TS), webpack, sass, postcss, tailwind, flowbite, glob ^7, Playwright, etc. | Babel + **preset-typescript**, webpack, sass, postcss, tailwind, flowbite, **typescript**, glob ^11, no Playwright |
 
@@ -81,26 +81,27 @@ Side-by-side of the main theme (New-theme) and the TypeScript setup (Module upda
 
 |                       | New-theme                                    | Module update                                                                                                                             |
 | --------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **JS/TS entry dirs**  | `js/sections/**/*.js`                        | `js/sections/**/*.js` + **`src/sections/**/*.{ts,tsx}`**                                                                                  |
-| **Component aliases** | `js/components`, `scss/components`           | Same + **`src/svelte`** (SvelteComponents)                                                                                                |
-| **SCSS**              | `scss/sections/*.scss` (e.g. common-imports) | Same; Tailwind in `common-imports.scss`                                                                                                   |
+| **JS/TS entry dirs**  | `js/sections/**/*.js`                        | `js/sections/**/*.{js,jsx}` + **`ts/sections/**/*.{ts,tsx}`**                                                                              |
+| **Component aliases** | `js/components`, `scss/components`           | **`ts/components`** (TsComponents), **`scss/components`** (StyleComponents)                                                               |
+| **SCSS**              | `scss/sections/*.scss` (e.g. common-imports) | Same (e.g. `common-imports.scss`)                                                                                                         |
 | **Output**            | `assets/` (JS, CSS, shared, vendors)         | Same                                                                                                       |
-| **TypeScript**        | —                                            | **`src/`** (index, sections, lib, components, svelte); **`tsconfig.json`** (noEmit, paths); **`dist/`** only for `yarn emit-declarations` |
+| **TypeScript**        | —                                            | **`ts/`** (sections, components); **`tsconfig.json`** (rootDir ts/, noEmit, include ts/**/*); optional emit-declarations                 |
 
 ---
 
 ## 8. Config files only in Module update
 
-- **tsconfig.json** — strict TS, path aliases, `noEmit: true`; declarations via `yarn emit-declarations`.
+- **tsconfig.json** — strict TS, `rootDir: "./ts"`, `include: ["ts/**/*"]`, `noEmit: true`; declarations via `yarn emit-declarations`.
+- **.eslintrc.cjs** — ESLint config for `ts/`; used by eslint-webpack-plugin during build.
 - **.gitignore** — `.env`, etc.
 
 ---
 
 ## 9. Summary
 
-- **Shared:** Entry pattern (scss + js/sections), output to `assets/`, same Tailwind/Flowbite/PostCSS/Babel (except TS), same optimization idea (usedExports, Vendors + common chunks, CssMinimizer only), same dev shell plugin.
+- **Shared:** Entry pattern (scss + section JS/TS), output to `assets/`, same Tailwind/Flowbite/PostCSS/Babel (except TS), same optimization idea (usedExports, Vendors + common chunks, Terser + CssMinimizer), dev shell plugin (onBuildStart/onBuildEnd).
 - **New-theme only:** JS/JSX, more app deps, Playwright, inline comments in webpack, duplicate dev/prod optimization blocks.
-- **Module update only:** TypeScript (Babel), `src/sections` entries, SvelteComponents + SCSS aliases, Yarn/engines/browserslist, typecheck and emit-declarations scripts, lighter deps.
+- **Module update only:** TypeScript (Babel), `ts/sections` entries, TsComponents + StyleComponents aliases, ForkTsChecker + ESLint in webpack, Yarn/engines/browserslist, typecheck/lint/emit-declarations scripts, lighter deps.
 
 ---
 
@@ -112,13 +113,13 @@ These are either already identical or can be aligned so both projects behave and
 
 | Area | New-theme | Module update | Status |
 |------|-----------|---------------|--------|
-| **Entry pattern** | `...scssEntryPoint`, `...jsEntryPoints` | Same + `...tsEntryPoints` | TS adds one spread (required). |
+| **Entry pattern** | `...scssEntryPoint`, `...jsEntryPoints` | Same + `...tsEntryPoints` from `ts/sections/**/*.{ts,tsx}` | TS adds one spread (required). |
 | **Output** | `assets/`, `[name].js`, `[name].css`, `[name].js?[chunkhash]` | Same | Same. |
 | **Optimization** | Separate dev/prod blocks (usedExports, splitChunks, minimizer) | Same | Same. |
 | **PostCSS** | postcss-preset-env (browsers, stage 0, autoprefixer), tailwindcss, autoprefixer | Same | Same. |
 | **Tailwind** | content, theme, flowbite prefix `tw-` | Same + `./src/**/*` in content | Same; extra path for TS. |
-| **sideEffects** | `["*.css", "*.scss", "*.vue"]` | Same | Same. |
-| **Scripts (core)** | build, start, deploy, shopify:push, shopify:pull | Same | Same. |
+| **sideEffects** | `["*.css", "*.scss", "*.vue"]` | `["*.scss"]` | Module update: SCSS only. |
+| **Scripts (core)** | build, start, deploy, shopify:push, shopify:pull | start (tsc + webpack --watch), deploy (webpack && shopify theme push), typecheck, lint | Module update has no separate `build`; deploy runs webpack. |
 | **Shell plugin (dev)** | onBuildStart/onBuildEnd, parallel: true | Same | Same. |
 | **Webpack glob reduce** | reduce pattern (variable `path` shadows Node) | Same; `p` / `filePath` (no shadow) | Same. |
 
@@ -128,15 +129,15 @@ These differences are needed to support TypeScript and your tree-shaking setup. 
 
 | Area | Why it must differ |
 |------|--------------------|
-| **Entry** | `...tsEntryPoints` from `src/sections/**/*.{ts,tsx}` is required so TS section files are entry points. |
+| **Entry** | `...tsEntryPoints` from `ts/sections/**/*.{ts,tsx}` is required so TS section files are entry points. |
 | **resolve.extensions** | `.ts`, `.tsx` must be present so webpack resolves TypeScript files. |
-| **resolve.alias** | `SvelteComponents` → `src/svelte` for TS/svelte resolution; keep. |
+| **resolve.alias** | `TsComponents` → `ts/components`, `StyleComponents` → `scss/components` for stable imports; keep. |
 | **JS rule** | `test: /\.(js\|jsx\|ts\|tsx)$/` and babel-loader are required to compile TS/TSX. |
 | **Babel** | `@babel/preset-typescript` is required for TypeScript. |
 | **package.json** | `typecheck`, `emit-declarations`; `@babel/runtime`; `@babel/preset-typescript`, `typescript` in devDependencies; optional `engines`/`browserslist` for consistency. |
-| **Tailwind content** | `./src/**/*.{ts,tsx,js,jsx}` is needed so Tailwind sees classes in TS/TSX. |
-| **Config only in Module update** | `tsconfig.json` (type-check, paths, noEmit); `.gitignore` for `.env`, etc. |
-| **Source layout** | `src/` (sections, lib, components, svelte) and optional `dist/` for declarations. |
+| **Tailwind content** | `./ts/**/*.{ts,tsx,js,jsx}` (or equivalent) is needed so Tailwind sees classes in TS/TSX. |
+| **Config only in Module update** | `tsconfig.json` (rootDir ts/, type-check, noEmit); `.eslintrc.cjs`; `.gitignore` for `.env`, etc. |
+| **Source layout** | `ts/` (sections, components) and optional emit output for declarations. |
 
 ### Minimal changes to “be the same as New-theme” where possible
 
@@ -154,18 +155,18 @@ These differences are needed to support TypeScript and your tree-shaking setup. 
 
 ### The source
 
-- **`src/lib/utils.ts`** exports: `GreetOptions`, `greet`, `unusedExport`.
-- **`src/index.ts`** only imports `greet` (and re-exports `greet` + type `GreetOptions`). It never imports `unusedExport`.
+- **`ts/lib/utils.ts`** (or any `ts/**/*.ts` module) exports e.g. `GreetOptions`, `greet`, `unusedExport`.
+- An **entry** in `ts/sections/*.ts` only imports `greet` (and re-exports `greet` + type `GreetOptions`). It never imports `unusedExport`.
 
 So from the entry point, `unusedExport` is **never used**.
 
 ### The mechanism (step by step)
 
-1. **`package.json`: `"sideEffects": ["*.css", "*.scss"]`**  
-   Tells webpack: only CSS/SCSS are side-effectful; JS/TS can be tree-shaken. So webpack is allowed to remove whole exports if nothing uses them.
+1. **`package.json`: `"sideEffects": ["*.scss"]`**  
+   Tells webpack: only SCSS is side-effectful; JS/TS can be tree-shaken. So webpack is allowed to remove whole exports if nothing uses them.
 
 2. **Webpack: `optimization.usedExports: true`**  
-   Webpack analyzes the dependency graph from the entry (`src/index.ts`):
+   Webpack analyzes the dependency graph from each entry (e.g. `ts/sections/new.ts`):
    - It sees `index.ts` → imports `greet` from `./lib/utils`.
    - It marks `greet` (and `GreetOptions`, used by `greet`) as **used**.
    - It marks `unusedExport` as **unused** (no import path leads to it).
@@ -176,20 +177,20 @@ So from the entry point, `unusedExport` is **never used**.
 4. **Production: `mode: 'production'` → minification**  
    With `minimize: true`, webpack’s minimizer actually **removes** the dead code. `usedExports` only *marks* unused code; the minimizer **deletes** it from the bundle.
 
-**Chain:** sideEffects → usedExports (mark unused) → sideEffects: true (allow removal) → minimize (delete unused) → **`unusedExport` is not in `dist/main.js`**.
+**Chain:** sideEffects → usedExports (mark unused) → sideEffects: true (allow removal) → minimize (delete unused) → **`unusedExport` is not in the section bundle**.
 
 ### Verification
 
-After `yarn build`:
+After `yarn deploy` (or a production webpack build):
 
-- `grep unusedExport dist/main.js` → no match.
-- `grep greet dist/main.js` → match (it’s used).
+- `grep unusedExport assets/*.js` → no match in the section bundle that only uses `greet`.
+- `grep greet assets/*.js` → match in that bundle (it’s used).
 
 So tree-shaking did drop `unusedExport`.
 
 ### If it weren’t dropped
 
-- If you did `import { greet, unusedExport } from './lib/utils'` in `index.ts`, then `unusedExport` would be marked used and would stay in the bundle.
+- If you did `import { greet, unusedExport } from '../lib/utils'` in a section file, then `unusedExport` would be marked used and would stay in the bundle.
 - If you set `"sideEffects": true` (or omitted it) in `package.json`, webpack would be more conservative and might keep more code.
 - In **development** (`yarn start`), `minimize` is false, so the bundle often still contains unused code for faster builds; tree-shaking is most visible in **production** builds.
 
@@ -205,14 +206,12 @@ In `resolve.alias`, add a new key (alias name) and value (absolute path):
 
 ```js
 resolve: {
-  extensions: ['.ts', '.tsx', '.js', '.json'],
-  extensionAlias: { '.js': ['.ts', '.tsx', '.js'] },
+  extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   alias: {
-    JsComponents: path.resolve(__dirname, 'src/components'),
     StyleComponents: path.resolve(__dirname, 'scss/components'),
-    SvelteComponents: path.resolve(__dirname, 'src/svelte'),
-    // New alias example: "Components" -> "src/components"
-    Components: path.resolve(__dirname, 'src/components'),
+    TsComponents: path.resolve(__dirname, 'ts/components'),
+    // New alias example: "Components" -> "ts/components"
+    Components: path.resolve(__dirname, 'ts/components'),
   },
 },
 ```
@@ -226,10 +225,9 @@ In `compilerOptions.paths`, add a matching pattern so types and IDE resolve the 
 
 ```json
 "paths": {
-  "JsComponents/*": ["src/components/*"],
   "StyleComponents/*": ["scss/components/*"],
-  "SvelteComponents/*": ["src/svelte/*"],
-  "Components/*": ["src/components/*"]
+  "TsComponents/*": ["ts/components/*"],
+  "Components/*": ["ts/components/*"]
 }
 ```
 
@@ -240,10 +238,10 @@ In `compilerOptions.paths`, add a matching pattern so types and IDE resolve the 
 
 ```ts
 // Before (relative)
-import { Button } from './components/Button';
+import { Button } from '../components/Button';
 
 // After (alias) — only works if the alias is in both webpack and tsconfig
-import { Button } from 'Components/Button';
+import { Button } from 'TsComponents/Button';
 ```
 
 ### Checklist
