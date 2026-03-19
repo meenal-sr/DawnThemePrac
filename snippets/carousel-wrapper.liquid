@@ -1,0 +1,104 @@
+{%- comment -%}
+  Carousel Wrapper Snippet
+  Renders a Swiper carousel with blocks as slides
+  Requires: carousel-swiper custom element (registered via global.js)
+  Requires: carousel-wrapper.css (from scss/components/carousel-wrapper.scss)
+
+  Accepts:
+  - section_id: String (unique ID for this carousel instance)
+  - slider_items: String (pre-rendered slide HTML, items separated by '::slider-limiter')
+  - mobile_slides_per_view: String or Number
+  - tablet_slides_per_view: String or Number (default: '3.2')
+  - desktop_slides_per_view: String or Number
+  - mobile_space_between: Number
+  - tablet_space_between: Number (default: 32)
+  - desktop_space_between: Number
+  - mobile_slides_offset_after: Number
+  - tablet_slides_offset_after: Number (default: 20)
+  - desktop_slides_offset_after: Number
+  - show_progress: Boolean (default: false)
+  - progress_color: String (Tailwind color class, default: 'tw-bg-slate-400')
+  - carousel_class: String (additional BEM classes)
+  - navigation_enabled: Boolean (default: false)
+  - autoplay_enabled: Boolean (default: false)
+  - autoplay_delay: Number (default: 3000, in milliseconds)
+  - autoplay_disable_on_interaction: Boolean (default: true)
+  - autoplay_pause_on_mouse_enter: Boolean (default: false)
+  - direction: String (optional, 'vertical' for vertical carousel)
+  - uniform_height_attr: String (optional, attribute string for uniform height)
+  - uniform_height_body: Boolean (optional)
+{%- endcomment -%}
+
+{%- liquid
+  assign show_progress = show_progress | default: false
+  assign progress_color = progress_color | default: 'tw-bg-slate-400'
+  assign carousel_class = carousel_class | default: ''
+  assign direction = direction
+  if section_id == blank
+    assign section_id = 'carousel-' | append: 'now' | date: '%s'
+  endif
+-%}
+<carousel-swiper id="carousel-{{ section_id }}" class="carousel {{ carousel_class }}">
+  <script type="application/json">
+    {
+      "slidesPerView": "{{ mobile_slides_per_view }}",
+      {%  if mobile_space_between != blank %}
+      "spaceBetween": {{ mobile_space_between }},
+      {%  endif  %}
+      "centeredSlides": false,
+      "grabCursor": true,
+      {% if mobile_slides_offset_after != blank %}
+        "slidesOffsetAfter": {{ mobile_slides_offset_after }},
+      {% endif %}
+      "freeMode": false,
+    {%  if direction == 'vertical' %}
+        "direction": "vertical",
+      {%  endif  %}
+      "breakpoints": {
+        "768": {
+          "slidesPerView": "{{ tablet_slides_per_view  | default: '3.2' }}",
+          "spaceBetween": "{{ tablet_space_between | default: 32 }}"
+          ,"slidesOffsetAfter": {{ tablet_slides_offset_after | default: 20 }}
+        },
+        "1200": {
+          "slidesPerView": "{{ desktop_slides_per_view }}"
+          {%  if desktop_space_between != blank %}
+          ,"spaceBetween": {{ desktop_space_between }}
+          {%  endif  %}
+          {% if desktop_slides_offset_after != blank %}
+            ,"slidesOffsetAfter": {{ desktop_slides_offset_after }}
+          {% endif %}
+        }
+      }{%- if show_progress -%},"progressBarSelector": ".carousel-progress__bar--{{ section_id }}"{%- endif -%}{%- if navigation_enabled == true -%},"navigation": true{%- endif -%}{%- if autoplay_enabled == true -%},"autoplay": {
+        "delay": {{ autoplay_delay | default: 3000 }},
+        "disableOnInteraction": {{ autoplay_disable_on_interaction | default: true }},
+        "pauseOnMouseEnter": {{ autoplay_pause_on_mouse_enter | default: false }}
+      },"pagination": {
+        "type": "bullets",
+        "clickable": true
+      }{%- endif -%}
+    }
+  </script>
+
+
+
+  <div class="swiper carousel__swiper" data-swiper-parent>
+    <div class="swiper-wrapper carousel__wrapper"{% if uniform_height_attr != blank %} {{ uniform_height_attr }}{% unless uniform_height_body %} data-uniform-body="false"{% endunless %}{% endif %}>
+      {%  assign slider_items = slider_items | split: '::slider-limiter' %}
+      {%- for slider_item in slider_items -%}
+        <div class="swiper-slide carousel__slide tw-h-auto">
+          {{ slider_item }}
+        </div>
+      {%- endfor -%}
+    </div>
+    {%- if autoplay_enabled == true -%}
+      <div class="swiper-pagination"></div>
+    {%- endif -%}
+  </div>
+
+  {%- if show_progress -%}
+    <div class="carousel-progress tw-mt-8 tw-w-full tw-h-[5px] tw-bg-slate-200 tw-rounded-full tw-overflow-hidden">
+      <div class="carousel-progress__bar carousel-progress__bar--{{ section_id }} {{ progress_color }} tw-h-full tw-rounded-full tw-transition-all tw-duration-300" style="width: 25%;"></div>
+    </div>
+  {%- endif -%}
+</carousel-swiper>

@@ -1,0 +1,15 @@
+/*! @babel/runtime/helpers/defineProperty */
+
+/*! TsComponents/carousel-swiper */
+
+/*! swiper */
+
+/*! swiper/modules */
+
+/*!*******************************!*\
+  !*** ./ts/sections/global.ts ***!
+  \*******************************/
+
+/*!******************************************!*\
+  !*** ./ts/components/carousel-swiper.ts ***!
+  \******************************************/

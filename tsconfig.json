@@ -19,7 +19,11 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "TsComponents/*": ["ts/components/*"],
+      "StyleComponents/*": ["scss/components/*"]
+    }
   },
   "include": ["ts/**/*"],
   "exclude": ["node_modules", "assets"]
