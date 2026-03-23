@@ -30,7 +30,7 @@ Always-on guidelines loaded automatically into every conversation.
 | `security.md`               | No hardcoded secrets, XSS prevention, secret rotation protocol                |
 | `performance.md`            | Model selection (Haiku/Sonnet/Opus), context window management                |
 | `agents.md`                 | When and how to delegate to subagents                                         |
-| `crosscode-instructions.md` | Master reference for this Shopify TS project — overrides all others           |
+| `crosscode-instructions.md` | Shopify-specific layer: Skills, MCP Servers, Build System, Feature Workflow, Shopify Theme Patterns |
 
 
 ---

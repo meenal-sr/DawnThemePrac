@@ -12,12 +12,12 @@
   - tertiary_hover_color: String (optional, hex color code, only for tertiary variant)
   - full_width: Boolean (optional, if true, button will take full width of container)
   - block_shopify_attributes: Block attributes
+
 {%- endcomment -%}
 
 {%- liquid
   assign variant = variant | default: 'primary'
   assign full_width = full_width | default: false
-  assign modal_id = modal_id | default: ''
   if button_id != blank
     if block.id != blank
       assign block_id = button_id | append: '-' | append: block.id
@@ -114,12 +114,7 @@
 </style>
 {%- endif -%}
 
-{%  assign should_show = false %}
-{%  if link or modal_id != blank %}
-  {%  assign should_show = true %}
-{% endif %}
-
-{%- if label != blank and should_show -%}
+{%- if label != blank and link != blank -%}
   <a id="{{block_id}}"
     {%  if link != blank %}
       href="{{ link }}"
@@ -133,13 +128,6 @@
       rel="noopener noreferrer"
     {% endif %}
     {{ block_shopify_attributes }}
-    {%  if modal_id != blank %}
-      data-modal-toggle="{{ modal_id }}"
-      aria-haspopup="dialog"
-      aria-controls="{{ modal_id }}"
-      role="button"
-      tabindex="0"
-    {% endif %}
   >
     <span class="tw-leading-[20px]" data-button-label>{{ label }}</span>
     <div class="tw-hidden tw-items-center tw-justify-center" data-button-spinner>
