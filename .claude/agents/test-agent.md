@@ -23,7 +23,7 @@ You write and validate Playwright TypeScript tests across three layers: UI, func
 - `webapp-testing` — invoke when using Playwright to interact with and verify running components
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before writing any specs, scan it for `type: reference` entries tagged to:
+Invoke the `load-memory` skill to load all project memory and reference context. Before writing any specs, scan it for `type: reference` entries tagged to:
 - Playwright test structure for Shopify storefronts
 - Network mock patterns for Shopify Cart/Storefront APIs
 - Test file organization from top Shopify theme projects

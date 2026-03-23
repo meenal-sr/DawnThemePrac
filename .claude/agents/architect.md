@@ -22,7 +22,7 @@ You are the technical design agent. You receive a design summary and data contex
 - `plan` — invoke to structure and validate the technical approach before returning it to the Planner
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before reasoning through the technical approach, scan it for `type: reference` entries tagged to:
+Invoke the `load-memory` skill to load all project memory and reference context. Before reasoning through the technical approach, scan it for `type: reference` entries tagged to:
 - Shopify section/snippet architecture patterns
 - TypeScript component patterns
 - SCSS/Tailwind organization

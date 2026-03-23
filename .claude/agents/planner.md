@@ -25,7 +25,7 @@ You are the only agent that talks to the human during planning.
 - `frontend-design` — invoke when extracting Figma design intent to apply production-grade design quality standards when describing component variants and visual hierarchy
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before writing `brief.md`, scan it for `type: reference` entries tagged to:
+Invoke the `load-memory` skill to load all project memory and reference context. Before writing `brief.md`, scan it for `type: reference` entries tagged to:
 - Shopify section/snippet architecture patterns
 - TypeScript component patterns from top projects
 - SCSS/Tailwind organization

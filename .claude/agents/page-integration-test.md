@@ -20,7 +20,7 @@ You write and validate Playwright tests for cross-section behavior on a fully as
 - `webapp-testing` — invoke when using Playwright to navigate, interact with, and assert against the fully assembled page
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before writing any specs, scan it for `type: reference` entries tagged to:
+Invoke the `load-memory` skill to load all project memory and reference context. Before writing any specs, scan it for `type: reference` entries tagged to:
 - Playwright test structure for Shopify storefronts
 - Cross-section event testing patterns
 - Full-page integration test organization

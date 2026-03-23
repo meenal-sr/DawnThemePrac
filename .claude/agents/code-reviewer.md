@@ -19,7 +19,7 @@ You are a senior code reviewer ensuring high standards of code quality and secur
 - `simplify` — invoke after review to identify over-engineered patterns and suggest simplifications
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before reviewing, scan it for `type: reference` entries relevant to the files being reviewed:
+Invoke the `load-memory` skill to load all project memory and reference context. Before reviewing, scan it for `type: reference` entries relevant to the files being reviewed:
 - TypeScript patterns — flag deviations when reviewing `.ts`/`.tsx` files
 - Shopify section/snippet architecture — flag deviations when reviewing `.liquid` files
 - SCSS/Tailwind patterns — flag deviations when reviewing `.scss` files

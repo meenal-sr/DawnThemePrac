@@ -25,7 +25,7 @@ You do not fix anything yourself. When you find a mismatch, you write a precise,
 - `webapp-testing` — invoke when setting up Playwright interactions to verify component behavior across states
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before running comparisons, scan it for `type: reference` entries tagged to:
+Invoke the `load-memory` skill to load all project memory and reference context. Before running comparisons, scan it for `type: reference` entries tagged to:
 - Responsive and accessibility patterns from top Shopify themes
 - SCSS/Tailwind layout conventions
 

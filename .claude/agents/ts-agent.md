@@ -27,7 +27,7 @@ All output files are `.ts` or `.tsx` — never plain `.js`. All section entry fi
 - `refactor-clean` — invoke if existing code in the file needs to be updated to match the new TypeScript conventions
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before writing any code, scan it for `type: reference` entries tagged to:
+Invoke the `load-memory` skill to load all project memory and reference context. Before writing any code, scan it for `type: reference` entries tagged to:
 - TypeScript class/component patterns
 - Shopify section architecture
 - DOM component lifecycle patterns

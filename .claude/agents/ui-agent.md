@@ -23,7 +23,7 @@ You translate Figma designs into semantic Shopify markup — Liquid, HTML, and C
 - `web-design-guidelines` — invoke to verify accessibility requirements (ARIA, focus management, contrast) before writing `component-structure.md`
 
 ## Reference Memory
-MEMORY.md is automatically loaded into your context. Before writing any markup or SCSS, scan it for `type: reference` entries tagged to:
+Invoke the `load-memory` skill to load all project memory and reference context. Before writing any markup or SCSS, scan it for `type: reference` entries tagged to:
 - Shopify section/snippet architecture
 - SCSS and Tailwind organization patterns
 - Liquid template best practices
