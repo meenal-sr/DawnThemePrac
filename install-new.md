@@ -1,25 +1,33 @@
 # Claude Code Setup — CrossCode Shopify Starter
 
-## Source
 Based on [everything-claude-code](https://github.com/affaan-m/everything-claude-code), refined and trained over this Shopify TypeScript theme project.
 
 ---
 
 ## Global Install (run once per machine)
 
-All files in `.claude/` must be copied to `~/.claude/` so they are available globally across every project.
+All files in `.claude/` must be copied to `~/.claude/` so they are available globally across every project. Then seed memory for this project.
+
+> **Note:** This overwrites any existing files with the same name. Back up `~/.claude/` first if you have custom configs you want to preserve.
 
 ```bash
-# From the repo root — run once after cloning
+# 1. Copy agents, commands, contexts, rules globally
 cp -r .claude/agents/    ~/.claude/agents/
 cp -r .claude/commands/  ~/.claude/commands/
 cp -r .claude/contexts/  ~/.claude/contexts/
 cp -r .claude/rules/     ~/.claude/rules/
+
+# 2. Seed project memory into Claude's global memory store
+PROJECT_HASH=$(pwd | sed 's|/|-|g' | sed 's|^-||')
+MEMORY_DIR="$HOME/.claude/projects/$PROJECT_HASH/memory"
+mkdir -p "$MEMORY_DIR"
+cp .claude/memory/*.md "$MEMORY_DIR/"
 ```
 
-> **Note:** This overwrites any existing files with the same name. Back up `~/.claude/` first if you have custom configs you want to preserve.
-
-After copying, Claude Code will automatically load rules on every conversation and agents/commands will be available globally in any project.
+After running this:
+- Rules load automatically on every conversation
+- Agents, commands, and contexts are available in any project
+- Claude auto-loads project memory at the start of every session
 
 ---
 
@@ -38,19 +46,15 @@ Always-on guidelines loaded automatically into every conversation.
 | `agents.md` | When and how to delegate to subagents |
 | `crosscode-instructions.md` | Shopify-specific: Skills, MCP Servers, Build System, Feature Workflow, Theme Patterns |
 
----
-
 ### Contexts (`~/.claude/contexts/`)
 
-Contexts set Claude's operating mode. Reference them at the start of a session.
+Set Claude's operating mode at the start of a session.
 
 | File | Purpose | How to invoke |
 | --- | --- | --- |
 | `dev.md` | Active development mode (code first, ship fast) | `use @dev context` |
 | `research.md` | Exploration mode (read before writing, findings first) | `use @research context` |
 | `review.md` | Code review mode (severity-ranked checklist) | `use @review context` |
-
----
 
 ### Commands / Skills (`~/.claude/commands/`)
 
@@ -75,15 +79,12 @@ Slash commands invoke skills. Type `/<skill-name>` in the chat.
 | `/api-design-principles` | `api-design-principles.md` | REST/GraphQL API design review |
 | `/web-artifacts-builder` | `web-artifacts-builder.md` | Multi-component HTML artifacts (React + Tailwind + shadcn/ui) |
 
-**How to invoke:**
 ```
 /plan add a sticky header to the product page
 /code-review
 /load-memory
 /tdd write tests for the cart drawer
 ```
-
----
 
 ### Agents (`~/.claude/agents/`)
 
@@ -102,21 +103,52 @@ Subagents Claude spawns automatically or on request for specialised tasks.
 | `page-integration-test` | `page-integration-test.md` | Cross-section Playwright tests | After full page is assembled |
 | `code-reviewer` | `code-reviewer.md` | Security + quality reviewer (CRITICAL/HIGH/MEDIUM/LOW) | Automatically after writing/modifying code |
 
-**How to invoke manually:**
 ```
+# Manual invocation examples
 use the planner agent to plan a new announcement bar section
 use the architect agent to design the cart drawer data flow
 run the code-reviewer agent on the files I just changed
 ```
 
-**Automatic invocation order for a full section build:**
+Automatic invocation order for a full section build:
 ```
 planner → [ui-agent + architect in parallel] → visual-qa-agent → ts-agent → test-agent
 ```
 
+### Memory (`~/.claude/projects/<project-hash>/memory/`)
+
+Memory gives Claude persistent context across conversations — project patterns, onboarding references, and per-project notes.
+
+Claude Code automatically manages a memory folder per project at `~/.claude/projects/<hash>/memory/`. The hash is the absolute project path with `/` replaced by `-`. This folder is **not** in the repo — it lives on each developer's machine and is auto-loaded into every main conversation.
+
+The `.claude/memory/` folder in this repo is the **committed reference copy** seeded by the install step above.
+
+**Memory files in this project:**
+
+| File | Type | Purpose |
+| --- | --- | --- |
+| `MEMORY.md` | index | Auto-loaded index — points to all other memory files |
+| `reference_new_theme.md` | reference | New-theme project context + Shopify methodology principles |
+| `project_new_project_setup.md` | project | Startup kit file list + per-project customization checklist |
+| `reference_image_stack.md` | reference | Three-layer image system usage pattern |
+
+**Agents and memory:** Agents do not auto-load memory — they invoke `/load-memory` which finds the correct `~/.claude/projects/<hash>/memory/` folder and reads all indexed files.
+
+**Adding new memory:**
+1. Write a `.md` file in `.claude/memory/` with frontmatter:
+```markdown
+---
+name: Short name
+description: One-line description — used to decide relevance
+type: reference | project | user | feedback
+---
+```
+2. Add a pointer to it in `.claude/memory/MEMORY.md`
+3. Re-run the seed command from Global Install to sync to your global memory folder
+
 ---
 
-## Build Commands (this project)
+## Build Commands
 
 ```bash
 yarn start              # Type-check + webpack watch (development)
