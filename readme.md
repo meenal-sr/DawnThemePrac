@@ -5,3 +5,4 @@ Uses webpack for asset bundling.
 Development server: `yarn start` | Deploy: `yarn deploy`
 
 This is just to check the email i entered
+okay everything is changed now
