@@ -1,38 +1,16 @@
 module.exports = {
   root: true,
-  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: './tsconfig.json',
+    ecmaFeatures: { jsx: true },
   },
-  plugins: ['@typescript-eslint'],
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-  ],
+  extends: ['eslint:recommended'],
   env: {
     browser: true,
     es2020: true,
   },
   rules: {
-    '@typescript-eslint/no-inferrable-types': 'off',
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
-  overrides: [
-    {
-      files: ['**/*.ts', '**/*.tsx'],
-      rules: {
-        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-        '@typescript-eslint/typedef': [
-          'error',
-          {
-            variableDeclaration: true,
-            memberVariableDeclaration: true,
-            parameter: true,
-            propertyDeclaration: true,
-          },
-        ],
-      },
-    },
-  ],
 };

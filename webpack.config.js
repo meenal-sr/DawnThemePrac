@@ -7,7 +7,6 @@ const TerserPlugin = require('terser-webpack-plugin');
 const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 const ESLintPlugin = require('eslint-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const mode = 'development';
 const stats = { children: false };
@@ -20,19 +19,13 @@ const scssEntryPoint = glob.sync('./scss/sections/**.scss').reduce((acc, p) => {
   return acc;
 }, {});
 
-const tsEntryPoints = glob.sync('./ts/sections/**/*.{ts,tsx}').reduce((acc, p) => {
-  const key = p.replace(/^.*[\\\/]/, '').replace(/\.(ts|tsx)$/, '');
-  acc[key] = p.startsWith('.') ? p : `./${p}`;
-  return acc;
-}, {});
-
 const jsEntryPoints = glob.sync('./js/sections/**/*.{js,jsx}').reduce((acc, p) => {
   const key = p.replace(/^.*[\\\/]/, '').replace(/\.(js|jsx)$/, '');
   acc[key] = p.startsWith('.') ? p : `./${p}`;
   return acc;
 }, {});
 
-const entry = { ...scssEntryPoint, ...tsEntryPoints, ...jsEntryPoints };
+const entry = { ...scssEntryPoint, ...jsEntryPoints };
 
 function playFailSoundPlugin() {
   const errorSound = path.resolve(__dirname, 'sounds/fahhhhh.mp3');
@@ -53,17 +46,17 @@ module.exports = {
   context: __dirname,
   entry,
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    extensions: ['.js', '.jsx', '.json'],
     preferRelative: true,
     alias: {
       StyleComponents: path.resolve(__dirname, 'scss/components'),
-      TsComponents: path.resolve(__dirname, 'ts/components')
+      JsComponents: path.resolve(__dirname, 'js/components'),
     },
   },
   module: {
     rules: [
       {
-        test: /\.(ts|tsx|js|jsx)$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
       },
@@ -126,18 +119,13 @@ module.exports = {
     minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
   },
   plugins: [
-    new ForkTsCheckerWebpackPlugin({
-      async: false,
-      typescript: { configFile: path.join(__dirname, 'tsconfig.json') },
-      issue: { exclude: [{ origin: 'eslint', severity: 'warning' }] },
-    }),
     new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
       filename: './[name].css',
     }),
     new ESLintPlugin({
-      context: path.join(__dirname, 'ts'),
-      extensions: ['ts', 'tsx'],
+      context: path.join(__dirname, 'js'),
+      extensions: ['js', 'jsx'],
       failOnError: true,
       eslintPath: 'eslint/use-at-your-own-risk',
       overrideConfigFile: path.join(__dirname, '.eslintrc.cjs'),
