@@ -21,7 +21,6 @@ See `.claude/rules/workflow-commands.md` for the full decision tree. Project ski
 | `tailwind-design-system` | Token application + responsive variants — invoked by main for ui-agent |
 | `vercel-react-best-practices` | React island patterns — invoked by main for js-agent / code-reviewer **only if `.jsx` files present** |
 | `web-design-guidelines` | a11y + interface standards — invoked by main for ui-agent / visual-qa-agent / code-reviewer |
-| `api-design-principles` | REST/GraphQL review — invoked by main for architect when component involves API calls |
 | `caveman` | Token-compression communication mode (trigger: "caveman mode") |
 
 Workflow skills (`/plan`, `/tdd`, `/simplify`, `/refactor-clean`, `/code-review`, `/load-memory`) are invoked by the human or main directly. Domain skills (`webapp-testing`, `modern-javascript-patterns`, etc.) are invoked by **main** per the Main Prefetch Contract in `.claude/rules/agents.md` before spawning the relevant agent.
