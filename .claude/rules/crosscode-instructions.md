@@ -6,39 +6,42 @@ Project-specific rules for this Shopify JavaScript theme build system. Generic r
 
 ## Available Skills (`/<skill>`)
 
+See `.claude/rules/workflow-commands.md` for the full decision tree. Project skills:
+
 | Skill | When to Use |
 |-------|-------------|
-| `/plan` | Restate requirements + create step-by-step plan before touching code |
+| `/plan` | Restate requirements + step-by-step plan before code (non-Figma tasks) |
 | `/tdd` | Enforce RED → GREEN → REFACTOR workflow |
-| `/code-review` | Review code changes for quality/security |
-| `/simplify` | Review changed code for reuse and efficiency |
+| `/code-review` | Quality + security review of current diff |
+| `/simplify` | Review changed code for reuse + efficiency |
 | `/refactor-clean` | Remove dead code and clean up |
-| `/frontend-design` | Build production-grade UI components |
-| `/webapp-testing` | Test local dev server with Playwright |
-| `/typescript-advanced-types` | Complex type logic and generics |
-| `/modern-javascript-patterns` | ES6+ refactoring and patterns |
-| `/tailwind-design-system` | Design tokens and Tailwind component patterns |
-| `/vercel-react-best-practices` | React/Next.js performance patterns |
-| `/web-design-guidelines` | Accessibility and UX audit |
-| `/javascript-testing-patterns` | Jest/Vitest/Testing Library setup |
-| `/api-design-principles` | REST/GraphQL API design review |
+| `/load-memory` | Explicit full memory load (beyond MEMORY.md index) |
+| `webapp-testing` | Playwright patterns — invoked by main for test-agent / page-integration-test |
+| `modern-javascript-patterns` | ES6+ patterns — invoked by main for js-agent / code-reviewer |
+| `tailwind-design-system` | Token application + responsive variants — invoked by main for ui-agent |
+| `vercel-react-best-practices` | React island patterns — invoked by main for js-agent / code-reviewer **only if `.jsx` files present** |
+| `web-design-guidelines` | a11y + interface standards — invoked by main for ui-agent / visual-qa-agent / code-reviewer |
+| `api-design-principles` | REST/GraphQL review — invoked by main for architect when component involves API calls |
+| `caveman` | Token-compression communication mode (trigger: "caveman mode") |
+
+Workflow skills (`/plan`, `/tdd`, `/simplify`, `/refactor-clean`, `/code-review`, `/load-memory`) are invoked by the human or main directly. Domain skills (`webapp-testing`, `modern-javascript-patterns`, etc.) are invoked by **main** per the Main Prefetch Contract in `.claude/rules/agents.md` before spawning the relevant agent.
 
 ---
 
 ## MCP Servers
 
+Configured in `.mcp.json`. Enabled list in `.claude/settings.local.json`.
+
 | Server | Purpose | When to Use |
 |--------|---------|-------------|
-| `figma` | Read/write Figma designs | Any Figma URL or design-to-code task |
-| `shopify-dev-mcp` | Shopify API docs + schema + theme validation | Shopify Liquid, GraphQL, theme work |
-| `context7` | Up-to-date library documentation | Any `resolve-library-id` + `query-docs` |
-| `github` | PR/issue/branch management | Git operations beyond local |
-| `playwright` | Browser automation + UI testing | Testing live Shopify dev server |
-| `playwright-mcp` | Snapshot + screenshot testing | Visual regression / QA |
-| `filesystem` | File operations outside CWD | Reading assets, cross-project files |
-| `firecrawl` | Web scraping + research | External docs, competitor research |
-| `sequential-thinking` | Complex multi-step reasoning | Architectural planning |
-| `ide` | Diagnostics + code execution | Lint / JS runtime errors, run code |
+| `figma` | Read Figma design context + screenshots | Core: every section build (planner, ui-agent, visual-qa) |
+| `shopify-dev-mcp` | Shopify Liquid validation + API docs | Core: UI agent validation loop, Shopify API shape lookup |
+| `playwright-mcp` | Browser snapshot + screenshot | Visual QA + live DOM inspection |
+| `context7` | Library documentation | Any `resolve-library-id` + `query-docs` for third-party libs |
+| `github` | PR/issue/branch management | Code reviewer PR context, issue lookup |
+| `sequential-thinking` | Multi-step reasoning | Architect for complex cross-section dependencies |
+| `memory` | Persistent knowledge graph | Long-term cross-session recall |
+| `ide` | Diagnostics + code execution | Lint / runtime errors, run code snippets |
 
 ---
 
