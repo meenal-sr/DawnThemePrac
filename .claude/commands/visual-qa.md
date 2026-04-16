@@ -29,11 +29,11 @@ For each node in `brief.md`, re-fetch `figma.get_design_context(fileKey, nodeId)
 
 ## Step 4b — Read axe-core accessibility results
 
-Check `brief.md` for the `Accessibility:` field:
+Check `brief.md` for the `Accessibility:` field. Default is **`skip`** when the field is absent or set to `skip`.
 
-**If `skip`** — verify `features/<feature-name>/qa/a11y-skipped.marker` exists. If yes, record "a11y skipped by brief" and move on. If the marker is missing, test-agent ignored the brief — stop and re-run `/test-ui <feature-name>`.
+**When skipped (default):** verify `features/<feature-name>/qa/a11y-skipped.marker` exists. If yes, record "a11y skipped by brief" and move on. If the marker is missing, test-agent ignored the default — stop and re-run `/test-ui <feature-name>`.
 
-**If `required` (or field absent)** — read every file matching `features/<feature-name>/qa/a11y-*.json`, one per breakpoint. If no JSON files exist, the specs didn't include a11y tests. Stop and re-run `/test-ui <feature-name>` — the test-agent template must include axe scans per breakpoint when a11y is required.
+**When `Accessibility: required`:** read every file matching `features/<feature-name>/qa/a11y-*.json`, one per breakpoint. If no JSON files exist, the specs didn't include a11y tests. Stop and re-run `/test-ui <feature-name>` — the test-agent template must include axe scans per breakpoint when a11y is required.
 
 Each JSON file is an array of axe `results.violations`. Keep the raw JSON to embed in the agent prompt; the agent parses and grades severity.
 
