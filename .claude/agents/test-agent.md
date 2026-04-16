@@ -59,20 +59,20 @@ Screenshots and diffs from test runs go to `features/[name]/qa/` — configured 
 
 ## Test Page URL
 
-Use `sectionTestUrl(type)` from `tests/helpers.ts`. It picks the right base path + test template based on section type.
+Use `sectionTestUrl(type)` from `tests/helpers.js`. It picks the right base path + test template based on section type.
 
 Three dedicated test templates (names from .env):
 | Type | Env var | Template | Base path env | URL |
 |---|---|---|---|---|
-| `page` | `TEST_PAGE_TEMPLATE` | `page.test.json` | `GLOBAL_PAGE_PATH` | `/pages/contact?view=page.test` |
-| `product` | `TEST_PRODUCT_TEMPLATE` | `product.test.json` | `DEFAULT_PRODUCT_PATH` | `/products/example?view=product.test` |
-| `collection` | `TEST_COLLECTION_TEMPLATE` | `collection.test.json` | `DEFAULT_COLLECTION_PATH` | `/collections/all?view=collection.test` |
+| `page` | `TEST_PAGE_TEMPLATE` | `page.test.json` | `GLOBAL_PAGE_PATH` | `/pages/contact?view=test` |
+| `product` | `TEST_PRODUCT_TEMPLATE` | `product.test.json` | `DEFAULT_PRODUCT_PATH` | `/products/example?view=test` |
+| `collection` | `TEST_COLLECTION_TEMPLATE` | `collection.test.json` | `DEFAULT_COLLECTION_PATH` | `/collections/all?view=test` |
 
-Templates are auto-created by `tests/global-setup.ts` if they don't exist.
+Templates are auto-created by `tests/global-setup.js` if they don't exist.
 
 Determine the type from `brief.md` — it specifies whether the section is for pages, products, or collections.
 
-Available helpers in `tests/helpers.ts`:
+Available helpers in `tests/helpers.js`:
 - `sectionTestUrl(type)` — builds URL from type (`'page'` | `'product'` | `'collection'`)
 - `previewUrl(pagePath)` — any page with preview theme ID
 - `saveScreenshot(page, selector, sectionName, name)` — save PNG to `features/[name]/qa/`
@@ -91,7 +91,7 @@ import { previewUrl, saveScreenshot, saveOnFailure } from '../../tests/helpers';
 const filePath = await saveScreenshot(page, '.hero-banner', 'hero-banner', 'live-desktop');
 ```
 
-`tests/helpers.ts` provides:
+`tests/helpers.js` provides:
 - `previewUrl(pagePath)` — builds store preview URL from `.env`
 - `saveScreenshot(page, selector, sectionName, name)` — saves PNG to `features/[name]/qa/`
 - `qaDir(sectionName)` — returns the qa folder path, creates it if needed

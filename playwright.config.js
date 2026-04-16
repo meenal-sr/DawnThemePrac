@@ -1,16 +1,20 @@
-import { defineConfig, devices } from '@playwright/test';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
+const { defineConfig, devices } = require('@playwright/test');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
-const storeUrl = process.env.STORE_URL?.trim();
+const storeUrl = process.env.STORE_URL && process.env.STORE_URL.trim();
 const baseURL = storeUrl ? `https://${storeUrl}` : undefined;
 
-export default defineConfig({
+module.exports = defineConfig({
   testDir: '.',
-  testMatch: ['tests/**/*.spec.ts', 'features/**/*.spec.ts'],
-  globalSetup: './tests/global-setup.ts',
+  testMatch: [
+    'tests/**/*.spec.js',
+    'tests/**/*.spec.ts',
+    'features/**/*.spec.js',
+    'features/**/*.spec.ts',
+  ],
+  globalSetup: './tests/global-setup.js',
 
   timeout: 30_000,
   expect: { timeout: 10_000 },

@@ -1,27 +1,23 @@
-import { chromium, type FullConfig } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
+const { chromium } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
 const STORAGE_STATE_PATH = 'tests/.auth/storage-state.json';
 
-const TEST_TEMPLATES: Record<string, string> = {
+const TEST_TEMPLATES = {
   TEST_PAGE_TEMPLATE: 'page',
   TEST_PRODUCT_TEMPLATE: 'product',
   TEST_COLLECTION_TEMPLATE: 'collection',
 };
 
-/**
- * Ensure dedicated test templates exist.
- * Creates empty template JSON if missing so Shopify can resolve ?view= param.
- */
-function ensureTestTemplates(): void {
+function ensureTestTemplates() {
   const templatesDir = path.join(process.cwd(), 'templates');
 
-  for (const [envKey, prefix] of Object.entries(TEST_TEMPLATES)) {
-    const templateName = process.env[envKey]?.trim();
+  for (const envKey of Object.keys(TEST_TEMPLATES)) {
+    const templateName = process.env[envKey] && process.env[envKey].trim();
     if (!templateName) continue;
 
     const filePath = path.join(templatesDir, `${templateName}.json`);
@@ -33,19 +29,17 @@ function ensureTestTemplates(): void {
   }
 }
 
-async function globalSetup(_config: FullConfig): Promise<void> {
-  // Ensure test templates exist before running tests
+async function globalSetup() {
   ensureTestTemplates();
 
-  const storeUrl = process.env.STORE_URL?.trim();
-  const themeId = process.env.THEME_ID?.trim();
-  const password = process.env.STORE_PASSWORD?.trim() || 'umesh';
+  const storeUrl = process.env.STORE_URL && process.env.STORE_URL.trim();
+  const themeId = process.env.THEME_ID && process.env.THEME_ID.trim();
+  const password = (process.env.STORE_PASSWORD && process.env.STORE_PASSWORD.trim()) || 'umesh';
 
   if (!storeUrl || !themeId) {
     throw new Error('Missing STORE_URL or THEME_ID in .env');
   }
 
-  // Ensure auth directory exists
   fs.mkdirSync(path.dirname(STORAGE_STATE_PATH), { recursive: true });
 
   const targetUrl = `https://${storeUrl}?preview_theme_id=${themeId}`;
@@ -79,4 +73,4 @@ async function globalSetup(_config: FullConfig): Promise<void> {
   await browser.close();
 }
 
-export default globalSetup;
+module.exports = globalSetup;
