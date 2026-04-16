@@ -35,6 +35,7 @@ Configured in `.mcp.json`. Enabled list in `.claude/settings.local.json`.
 | `figma` | Read Figma design context + screenshots | Core: every section build (planner, ui-agent, visual-qa) |
 | `shopify-dev-mcp` | Shopify Liquid validation + API docs | Core: UI agent validation loop, Shopify API shape lookup |
 | `playwright-mcp` | Browser snapshot + screenshot | Visual QA + live DOM inspection |
+| `pixelmatch` | Pixel-level screenshot diff | Visual QA — compare Figma reference (`qa/figma-*.png`) vs live screenshot (`qa/live-*.png`) per breakpoint; writes `qa/diff-*.png` + mismatch percentage |
 | `context7` | Library documentation | Any `resolve-library-id` + `query-docs` for third-party libs |
 | `github` | PR/issue/branch management | Code reviewer PR context, issue lookup |
 | `sequential-thinking` | Multi-step reasoning | Architect for complex cross-section dependencies |

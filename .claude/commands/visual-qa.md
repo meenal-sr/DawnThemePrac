@@ -27,19 +27,32 @@ Re-read the output of `npx playwright test features/<feature-name>/ui.spec.js` f
 ## Step 4 — Re-fetch Figma design context
 For each node in `brief.md`, re-fetch `figma.get_design_context(fileKey, nodeId)` to get the typography/color values in React+Tailwind format for exact comparison.
 
-## Step 5 — Spawn visual-qa-agent
+## Step 5 — Pixelmatch diff (spacing + layout)
+For each breakpoint present in `features/<feature-name>/qa/`, match `figma-<breakpoint>.png` with `live-<breakpoint>.png` via:
+```
+pixelmatch.compare({
+  reference: "features/<feature-name>/qa/figma-<breakpoint>.png",
+  actual:    "features/<feature-name>/qa/live-<breakpoint>.png",
+  output:    "features/<feature-name>/qa/diff-<breakpoint>.png",
+  threshold: 0.1
+})
+```
+Capture each breakpoint's mismatch percentage. Typical bindings: breakpoints are `mobile` (375), `tablet` (768), `desktop` (1280) — match whatever the test-agent emitted.
+
+## Step 6 — Spawn visual-qa-agent
 Call `Agent({ subagent_type: "visual-qa-agent", prompt: <embed> })`:
 
 Embed:
 - Workspace: `features/<feature-name>/`
 - Test output from Step 3
 - Figma design context from Step 4
-- Paths of all `qa/figma-*.png` and `qa/live-*.png`
+- Pixelmatch diff results from Step 5 (per-breakpoint mismatch %, paths to `diff-*.png`)
+- Paths of all `qa/figma-*.png`, `qa/live-*.png`, `qa/diff-*.png`
 - Skill output + memory subset
 
 Expected output: `features/<feature-name>/qa/visual-qa-report.md` with `Status: PASS` or `NEEDS_FIX`
 
-## Step 6 — Fix loop if NEEDS_FIX (max 3 cycles)
+## Step 7 — Fix loop if NEEDS_FIX (max 3 cycles)
 If report is `NEEDS_FIX`:
 1. Read mismatches
 2. Re-invoke ui-agent via `/build-ui <feature-name>` with mismatches embedded
@@ -47,7 +60,7 @@ If report is `NEEDS_FIX`:
 4. Re-run this command
 5. Loop max 3 cycles. Escalate if still failing.
 
-## Step 7 — Report
+## Step 8 — Report
 > "Visual QA: PASS. Ready for `/build-js <feature-name>` (or skip if no JS needed)."
 
 Or:

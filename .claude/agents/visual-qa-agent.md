@@ -47,9 +47,12 @@ These are compared using **pixel-level screenshot diff** (Figma screenshot vs li
 ## External Inputs
 MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Everything you need is pre-captured:
 - Test results (pass/fail output from playwright)
-- Screenshots in `features/[name]/qa/`
-- Figma screenshot (`features/[name]/qa/figma-*.png`)
+- Live screenshots in `features/[name]/qa/live-*.png`
+- Figma reference screenshots in `features/[name]/qa/figma-*.png`
+- Pixelmatch diff images in `features/[name]/qa/diff-*.png` + per-breakpoint mismatch %
 - Figma design context (React+Tailwind code with exact values, in prompt)
+
+You do not run pixelmatch yourself — main invokes the `pixelmatch` MCP before spawning you and embeds the results. Read the diff images to identify which regions differ and correlate with the mismatch percentage.
 
 ---
 

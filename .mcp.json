@@ -27,6 +27,10 @@
     "playwright-mcp": {
       "command": "npx",
       "args": ["-y", "playwright-mcp"]
+    },
+    "pixelmatch": {
+      "command": "npx",
+      "args": ["-y", "pixelmatch-mcp-server"]
     }
   }
 }
