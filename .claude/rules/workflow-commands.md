@@ -26,9 +26,6 @@ What are you doing?
 ├── Non-Figma engineering work (refactor, bug fix, config)?
 │   → /plan                                    (align on approach, confirm, then proceed)
 │
-├── Writing new functionality test-first?
-│   → /tdd                                     (RED → GREEN → REFACTOR)
-│
 ├── Cleaning up code after implementing?
 │   → /refactor-clean                          (remove dead code)
 │   → /simplify                                (reduce over-engineering — via Skill tool)
@@ -63,7 +60,6 @@ What are you doing?
 | Command | When | Example |
 |---|---|---|
 | `/plan` | Any non-Figma task you want aligned before coding | `/plan migrate the webpack config to support SSR` |
-| `/tdd` | Writing any feature test-first | `/tdd add cart-drawer open/close with keyboard support` |
 | `/refactor-clean` | Just merged something, want to remove unused exports/imports | `/refactor-clean` |
 | `/code-review` | Have uncommitted changes, want review before committing | `/code-review` |
 | `/load-memory` | Start of session or when you want explicit memory refresh | `/load-memory` |

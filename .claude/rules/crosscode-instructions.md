@@ -11,7 +11,6 @@ See `.claude/rules/workflow-commands.md` for the full decision tree. Project ski
 | Skill | When to Use |
 |-------|-------------|
 | `/plan` | Restate requirements + step-by-step plan before code (non-Figma tasks) |
-| `/tdd` | Enforce RED → GREEN → REFACTOR workflow |
 | `/code-review` | Quality + security review of current diff |
 | `/simplify` | Review changed code for reuse + efficiency |
 | `/refactor-clean` | Remove dead code and clean up |
@@ -22,7 +21,7 @@ See `.claude/rules/workflow-commands.md` for the full decision tree. Project ski
 | `web-design-guidelines` | a11y + interface standards — invoked by main for ui-agent / visual-qa-agent / code-reviewer |
 | `caveman` | Token-compression communication mode (trigger: "caveman mode") |
 
-Workflow skills (`/plan`, `/tdd`, `/simplify`, `/refactor-clean`, `/code-review`, `/load-memory`) are invoked by the human or main directly. Domain skills (`webapp-testing`, `modern-javascript-patterns`, etc.) are invoked by **main** per the Main Prefetch Contract in `.claude/rules/agents.md` before spawning the relevant agent.
+Workflow skills (`/plan`, `/simplify`, `/refactor-clean`, `/code-review`, `/load-memory`) are invoked by the human or main directly. Domain skills (`webapp-testing`, `modern-javascript-patterns`, etc.) are invoked by **main** per the Main Prefetch Contract in `.claude/rules/agents.md` before spawning the relevant agent.
 
 ---
 
@@ -73,7 +72,7 @@ yarn shopify:pull       # Pull templates/*.json from Shopify
 ```
 1. /plan          → Align on approach before touching code (main-invoked skill)
 2. planner agent  → Create brief.md + test-scenarios.md
-3. /tdd           → Write tests first (RED) (main-invoked skill)
+3. /plan-feature  → If Figma work: planner agent writes brief.md + test-scenarios.md (spec-first)
 4. Implement      → Minimal code to pass (GREEN) — UI → TS agents
 5. /simplify      → Refactor and clean up (IMPROVE) (main-invoked checkpoint)
 6. /refactor-clean → Remove dead code, dedupe (main-invoked checkpoint, optional)
