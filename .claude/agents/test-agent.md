@@ -113,17 +113,58 @@ Name screenshots as `live-[breakpoint].png` (e.g. `live-mobile.png`, `live-deskt
   - Font sizes, min-heights, padding values
   - Element visibility per breakpoint
 - Screenshot comparison at each breakpoint
+- **Accessibility scan via axe-core** — one test per breakpoint, serializes violations to `qa/a11y-<breakpoint>.json`
 - No console errors on load
 - CTA hover/focus states (CSS-only interactions)
+
+### Accessibility scan pattern
+
+Use `@axe-core/playwright`. Scope the scan to the section root so failures from other sections on the test page don't bleed in:
+
+```js
+const AxeBuilder = require('@axe-core/playwright').default;
+
+const a11yScan = async (page, sectionSelector, sectionName, breakpoint) => {
+  const results = await new AxeBuilder({ page })
+    .include(sectionSelector)
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze();
+
+  const qaDir = path.join(process.cwd(), 'features', sectionName, 'qa');
+  fs.mkdirSync(qaDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(qaDir, `a11y-${breakpoint}.json`),
+    JSON.stringify(results.violations, null, 2),
+  );
+  return results.violations;
+};
+```
 
 ### Template
 ```js
 const { test, expect } = require('@playwright/test');
+const AxeBuilder = require('@axe-core/playwright').default;
 const fs = require('fs');
+const path = require('path');
 const { sectionTestUrl, saveScreenshot, saveOnFailure } = require('../../tests/helpers');
 
 const SECTION = 'hero-banner';
+const SECTION_SELECTOR = '.hero-banner';
 const SECTION_TYPE = 'page'; // 'page' | 'product' | 'collection'
+
+const a11yScan = async (page, breakpoint) => {
+  const results = await new AxeBuilder({ page })
+    .include(SECTION_SELECTOR)
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze();
+  const qaDir = path.join(process.cwd(), 'features', SECTION, 'qa');
+  fs.mkdirSync(qaDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(qaDir, `a11y-${breakpoint}.json`),
+    JSON.stringify(results.violations, null, 2),
+  );
+  return results.violations;
+};
 
 test.describe(`${SECTION} — UI`, () => {
   test.beforeEach(async ({ page }) => {
@@ -136,20 +177,35 @@ test.describe(`${SECTION} — UI`, () => {
   });
 
   test('renders all primary elements', async ({ page }) => {
-    await expect(page.locator('.hero-banner')).toBeVisible();
+    await expect(page.locator(SECTION_SELECTOR)).toBeVisible();
     // ... assert each element from component-structure.md
   });
 
   test('responsive — mobile 375px', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    const filePath = await saveScreenshot(page, '.hero-banner', SECTION, 'live-mobile');
+    const filePath = await saveScreenshot(page, SECTION_SELECTOR, SECTION, 'live-mobile');
     expect(fs.existsSync(filePath)).toBe(true);
   });
 
   test('responsive — desktop 1280px', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    const filePath = await saveScreenshot(page, '.hero-banner', SECTION, 'live-desktop');
+    const filePath = await saveScreenshot(page, SECTION_SELECTOR, SECTION, 'live-desktop');
     expect(fs.existsSync(filePath)).toBe(true);
+  });
+
+  test('a11y — mobile 375px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    const violations = await a11yScan(page, 'mobile');
+    // Fail on critical/serious violations; log moderate/minor for the visual-qa-agent to grade
+    const blocking = violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+    expect(blocking, blocking.map((v) => `${v.id}: ${v.help}`).join('\n')).toEqual([]);
+  });
+
+  test('a11y — desktop 1280px', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    const violations = await a11yScan(page, 'desktop');
+    const blocking = violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+    expect(blocking, blocking.map((v) => `${v.id}: ${v.help}`).join('\n')).toEqual([]);
   });
 
   test('no console errors on load', async ({ page }) => {
@@ -160,6 +216,8 @@ test.describe(`${SECTION} — UI`, () => {
   });
 });
 ```
+
+**Always write a11y scans for every breakpoint the section declares in `test-scenarios.md`.** The JSON output feeds visual-qa-agent's accessibility report section.
 
 ---
 

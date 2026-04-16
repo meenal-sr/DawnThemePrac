@@ -38,21 +38,40 @@ These are compared using **pixel-level screenshot diff** (Figma screenshot vs li
 - Responsive layout changes across breakpoints
 - Visual proportions and whitespace
 
-**Source:** `qa/diff-*.png` files and diff percentages from the `compareScreenshot` utility.
+**Source:** `qa/diff-*.png` files and diff percentages from the `pixelmatch` MCP.
 
-**Why this split:** Typography and colors have exact Figma values that can be compared numerically. Spacing and layout are better judged visually because Figma's absolute pixel values don't always translate 1:1 to responsive web layouts — the overall visual result matters more than individual pixel values.
+### 3. Accessibility → Match via @axe-core/playwright rule engine
+WCAG 2.1 AA rule violations from automated scans per breakpoint:
+- Missing alt text, empty links, unlabeled form controls
+- Color contrast failures (text vs background)
+- ARIA usage errors (invalid roles, conflicting attributes)
+- Keyboard navigation / focus-order issues detectable from DOM
+- Landmark / heading hierarchy issues
+
+**Source:** `qa/a11y-<breakpoint>.json` (one file per breakpoint; each file is the array of `results.violations` from axe).
+
+Axe severity map → visual-qa severity:
+| axe impact | visual-qa severity | Blocks PASS? |
+|---|---|---|
+| `critical` | HIGH | Yes |
+| `serious` | HIGH | Yes |
+| `moderate` | MEDIUM | Yes |
+| `minor` | LOW | No (note in report) |
+
+**Why this split:** Typography and colors have exact Figma values that can be compared numerically. Spacing and layout are better judged visually because Figma's absolute pixel values don't always translate 1:1 to responsive web layouts. Accessibility violations are deterministic rule breaches — either the page has the bug or it doesn't.
 
 ---
 
 ## External Inputs
 MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Everything you need is pre-captured:
-- Test results (pass/fail output from playwright)
+- Test results (pass/fail output from playwright, including a11y tests)
 - Live screenshots in `features/[name]/qa/live-*.png`
 - Figma reference screenshots in `features/[name]/qa/figma-*.png`
 - Pixelmatch diff images in `features/[name]/qa/diff-*.png` + per-breakpoint mismatch %
+- **Accessibility violations** in `features/[name]/qa/a11y-*.json` (one file per breakpoint, emitted by `@axe-core/playwright` inside `ui.spec.js`)
 - Figma design context (React+Tailwind code with exact values, in prompt)
 
-You do not run pixelmatch yourself — main invokes the `pixelmatch` MCP before spawning you and embeds the results. Read the diff images to identify which regions differ and correlate with the mismatch percentage.
+You do not run pixelmatch or axe yourself — main invokes them before spawning you and embeds the results. Read the diff images + a11y JSON to identify mismatches and correlate with the mismatch percentage.
 
 ---
 
@@ -65,6 +84,7 @@ You do not run pixelmatch yourself — main invokes the `pixelmatch` MCP before 
 | `test-scenarios.md` | Planner |
 | `ui.spec.js` | Test Agent |
 | `qa/*.png` | Playwright test run (screenshots, diffs) |
+| `qa/a11y-*.json` | Playwright test run — one per breakpoint, emitted by @axe-core/playwright |
 | `qa/figma-*.png` | Main (Figma MCP screenshot) |
 | Figma design context | Passed in prompt by main |
 | Test run output | Passed in prompt by main |
@@ -119,7 +139,18 @@ Thresholds:
 
 If diff images exist in `qa/diff-*/`, examine them to identify which areas differ. Report specific elements if identifiable.
 
-### Step 5 — Write visual-qa-report.md
+### Step 5 — Accessibility check (axe-core violations)
+
+For each `qa/a11y-<breakpoint>.json` file, parse the array. Each entry has:
+- `id` — axe rule ID (e.g. `color-contrast`, `button-name`, `image-alt`)
+- `impact` — `critical` | `serious` | `moderate` | `minor`
+- `help` — short description
+- `helpUrl` — link to rule explanation
+- `nodes[]` — each with `target` (CSS selector), `html` snippet, `failureSummary`
+
+Group violations by severity. Apply the severity map. Report every `critical` / `serious` / `moderate` violation as a fix instruction pointing at the failing selector. Note `minor` ones without blocking PASS.
+
+### Step 6 — Write visual-qa-report.md
 
 Save to `features/[section-name]/qa/visual-qa-report.md`:
 
@@ -159,6 +190,12 @@ Runs completed: [n]
 | Tablet 768px | 0.8% | Pass |
 | Desktop 1280px | 3.2% | NEEDS_FIX |
 
+## Accessibility Check (axe-core)
+| Breakpoint | Critical | Serious | Moderate | Minor | Result |
+|---|---|---|---|---|---|
+| Mobile 375px | 0 | 1 | 0 | 2 | NEEDS_FIX |
+| Desktop 1280px | 0 | 0 | 0 | 1 | Pass |
+
 ## Mismatches
 
 ### Mismatch 001
@@ -178,6 +215,15 @@ Runs completed: [n]
 **Severity:** HIGH
 **Fix instruction:** Verify md: breakpoint prefix on subtitle font-size class
 
+### Mismatch 003
+**Type:** Accessibility (axe-core)
+**Breakpoint:** 375px
+**Rule:** `color-contrast` (serious)
+**Element:** `.hero-banner__subtitle`
+**Failure:** Text color rgba(255,255,255,0.7) on rgb(2,125,179) = 3.8:1 contrast (WCAG AA requires 4.5:1)
+**Severity:** HIGH
+**Fix instruction:** Raise subtitle opacity or use full white; alternatively darken background behind overlay
+
 ---
 
 ## Fix Cycle History
@@ -186,8 +232,8 @@ Runs completed: [n]
 | 1 | 2 | NEEDS_FIX |
 ```
 
-### Step 6 — Report status
-- All typography/color matches + pixel diff acceptable → `PASS`
+### Step 7 — Report status
+- All typography/color matches + pixel diff acceptable + no critical/serious/moderate a11y → `PASS`
 - Any HIGH/MEDIUM mismatch → `NEEDS_FIX`
 
 ---
@@ -198,9 +244,12 @@ Runs completed: [n]
 |---|---|---|---|
 | HIGH | Typography/Color | Wrong font-size, wrong color, wrong font-weight | Yes |
 | HIGH | Layout | Missing element, broken layout, element not visible | Yes |
+| HIGH | A11y | axe `critical` / `serious` — missing alt, contrast failure, unlabeled control | Yes |
 | MEDIUM | Typography | Wrong line-height, wrong letter-spacing | Yes |
 | MEDIUM | Layout | Pixel diff >2%, noticeable spacing mismatch | Yes |
+| MEDIUM | A11y | axe `moderate` — landmark issue, heading hierarchy, ARIA misuse | Yes |
 | LOW | Layout | Pixel diff 1-2%, sub-pixel font rendering | No |
+| LOW | A11y | axe `minor` — best-practice nudges | No |
 
 ---
 

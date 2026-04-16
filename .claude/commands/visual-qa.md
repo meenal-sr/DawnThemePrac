@@ -27,6 +27,13 @@ Re-read the output of `npx playwright test features/<feature-name>/ui.spec.js` f
 ## Step 4 — Re-fetch Figma design context
 For each node in `brief.md`, re-fetch `figma.get_design_context(fileKey, nodeId)` to get the typography/color values in React+Tailwind format for exact comparison.
 
+## Step 4b — Read axe-core accessibility results
+Read every file matching `features/<feature-name>/qa/a11y-*.json` — one per breakpoint, emitted by `@axe-core/playwright` from inside `ui.spec.js`.
+
+If no `a11y-*.json` files exist: the specs didn't include a11y tests. Stop and re-run `/test-ui <feature-name>` — the test-agent template must include axe scans per breakpoint.
+
+Each file is an array of axe `results.violations`. Keep the raw JSON to embed in the agent prompt; the agent parses and grades severity.
+
 ## Step 5 — Pixelmatch diff (spacing + layout)
 For each breakpoint present in `features/<feature-name>/qa/`, match `figma-<breakpoint>.png` with `live-<breakpoint>.png` via:
 ```
@@ -46,8 +53,9 @@ Embed:
 - Workspace: `features/<feature-name>/`
 - Test output from Step 3
 - Figma design context from Step 4
+- Axe violations JSON per breakpoint from Step 4b
 - Pixelmatch diff results from Step 5 (per-breakpoint mismatch %, paths to `diff-*.png`)
-- Paths of all `qa/figma-*.png`, `qa/live-*.png`, `qa/diff-*.png`
+- Paths of all `qa/figma-*.png`, `qa/live-*.png`, `qa/diff-*.png`, `qa/a11y-*.json`
 - Skill output + memory subset
 
 Expected output: `features/<feature-name>/qa/visual-qa-report.md` with `Status: PASS` or `NEEDS_FIX`
