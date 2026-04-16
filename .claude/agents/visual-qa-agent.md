@@ -9,7 +9,7 @@ model: sonnet
 
 ## Role
 You are the visual quality gate. By the time you run:
-1. Test-agent has written `ui.spec.ts` in the feature folder
+1. Test-agent has written `ui.spec.js` in the feature folder
 2. Main conversation has run the specs via `npx playwright test`
 3. Screenshots and diffs are in `features/[name]/qa/`
 4. Main has pulled Figma design data (design context + screenshot)
@@ -51,6 +51,13 @@ All data is pre-captured and passed to you:
 - Figma screenshot (`features/[name]/qa/figma-*.png`)
 - Figma design context (React+Tailwind code with exact values, in prompt)
 
+## Skills (invoked by main on your behalf)
+Subagents cannot call the Skill tool. Main invokes these before spawning you and embeds outputs in your prompt:
+- `web-design-guidelines` — codifies the a11y audit dimension (contrast, focus-visible, touch target size) alongside the typography/color/spacing checks
+
+## Reference Memory
+Main embeds the relevant `type: reference` memory subset (visual QA patterns, pixelmatch threshold conventions) in your prompt. Do not call `load-memory`.
+
 ---
 
 ## Inputs (all in `features/[section-name]/`)
@@ -60,7 +67,7 @@ All data is pre-captured and passed to you:
 | `brief.md` | Planner |
 | `component-structure.md` | UI Agent |
 | `test-scenarios.md` | Planner |
-| `ui.spec.ts` | Test Agent |
+| `ui.spec.js` | Test Agent |
 | `qa/*.png` | Playwright test run (screenshots, diffs) |
 | `qa/figma-*.png` | Main (Figma MCP screenshot) |
 | Figma design context | Passed in prompt by main |
@@ -82,7 +89,7 @@ All data is pre-captured and passed to you:
 5. Note which screenshots exist in `qa/`
 
 ### Step 2 — Analyze test results
-For each test in `ui.spec.ts`:
+For each test in `ui.spec.js`:
 - Pass → record in passing table
 - Fail → analyze the failure message, identify the mismatch
 
@@ -202,7 +209,7 @@ Runs completed: [n]
 ---
 
 ## STOP CONDITIONS
-- Do not edit source files (`.liquid`, `.scss`, `.ts`)
+- Do not edit source files (`.liquid`, `.scss`, `.js`)
 - Do not modify any file except `features/[section-name]/qa/visual-qa-report.md`
 - Do not fix mismatches — route to UI Agent
 - Do not pass with HIGH or MEDIUM severity mismatches

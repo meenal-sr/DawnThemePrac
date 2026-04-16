@@ -28,7 +28,7 @@ When building any Shopify section, read `/Users/cross/New-theme/DEVELOPMENT_STAN
 ## Startup Kit vs. Reference Project
 
 - **New-theme** — gold standard for methodology. Study it to understand *how* things should be built.
-- **Module update** (`/Users/cross/Module update`) — the distributable startup kit derived from New-theme. This is the *actual bootstrapping source* — copy its blocks/snippets/sections/TS files into every new project. See `project_new_project_setup.md` for the full onboarding process.
+- **Module update** (`/Users/cross/Module update`) — the distributable startup kit derived from New-theme. This is the *actual bootstrapping source* — copy its blocks/snippets/sections/JS files into every new project. See `project_new_project_setup.md` for the full onboarding process.
 
 ---
 

@@ -1,6 +1,6 @@
-# CrossCode Instructions — Shopify TypeScript Theme
+# CrossCode Instructions — Shopify JavaScript Theme
 
-Project-specific rules for this Shopify TypeScript theme build system. Generic rules (security, coding style, git, agents, performance) live in their own focused files.
+Project-specific rules for this Shopify JavaScript theme build system. Generic rules (security, coding style, git, agents, performance) live in their own focused files.
 
 ---
 
@@ -38,17 +38,15 @@ Project-specific rules for this Shopify TypeScript theme build system. Generic r
 | `filesystem` | File operations outside CWD | Reading assets, cross-project files |
 | `firecrawl` | Web scraping + research | External docs, competitor research |
 | `sequential-thinking` | Complex multi-step reasoning | Architectural planning |
-| `ide` | Diagnostics + code execution | TypeScript errors, run code |
+| `ide` | Diagnostics + code execution | Lint / JS runtime errors, run code |
 
 ---
 
 ## Build System Reference
 
 ```bash
-yarn start              # Type-check + webpack watch (development)
-yarn lint               # ESLint on ts/ directory
-yarn typecheck          # tsc --noEmit (type-check only)
-yarn emit-declarations  # Generate .d.ts to dist/
+yarn start              # webpack watch (development)
+yarn lint               # ESLint on js/ directory
 yarn deploy             # webpack build + shopify theme push
 yarn shopify:push       # Push theme to Shopify store
 yarn shopify:pull       # Pull templates/*.json from Shopify
@@ -56,30 +54,32 @@ yarn shopify:pull       # Pull templates/*.json from Shopify
 
 ### Build Troubleshooting
 1. Read error messages carefully
-2. Run `yarn typecheck` to isolate TS issues
-3. Run `yarn lint` for ESLint violations
-4. Fix incrementally — verify after each fix
-5. Run `yarn deploy` to confirm full build passes
+2. Run `yarn lint` for ESLint violations
+3. Fix incrementally — verify after each fix
+4. Run `yarn deploy` to confirm full build passes
 
-### TypeScript Rules
-- Babel compiles TS — `tsc` is type-check only (`noEmit: true`)
-- Strict mode: `noUnusedLocals` + `noUnusedParameters` enforced
-- ESLint requires explicit type annotations (except `_`-prefixed vars)
-- Never emit JS from `tsc` — webpack/Babel owns compilation
+### JavaScript Rules
+- Babel compiles JS via `@babel/preset-env` + `@babel/preset-react` (preset kept for future React islands)
+- ESLint: `no-unused-vars` enforced; prefix intentionally-unused with `_`
+- Use JSDoc comments for type hints where editor inference helps
+- Webpack entry: every file in `js/sections/*.js` is an entry point; shared code in `js/components/*.js` imported via `JsComponents/*` alias
 
 ---
 
 ## Feature Implementation Workflow
 
 ```
-1. /plan          → Align on approach before touching code
+1. /plan          → Align on approach before touching code (main-invoked skill)
 2. planner agent  → Create brief.md + test-scenarios.md
-3. /tdd           → Write tests first (RED)
-4. Implement      → Minimal code to pass (GREEN)
-5. /simplify      → Refactor and clean up (IMPROVE)
-6. code-reviewer  → Review for quality/security
-7. Commit         → Conventional commit message
+3. /tdd           → Write tests first (RED) (main-invoked skill)
+4. Implement      → Minimal code to pass (GREEN) — UI → TS agents
+5. /simplify      → Refactor and clean up (IMPROVE) (main-invoked checkpoint)
+6. /refactor-clean → Remove dead code, dedupe (main-invoked checkpoint, optional)
+7. code-reviewer  → Review for quality/security
+8. Commit         → Conventional commit message
 ```
+
+Skills at steps 1, 3, 5, 6 are invoked by **main conversation**, never declared as sub-steps inside the agents themselves. See `.claude/rules/agents.md` for the Skill/Memory Routing table.
 
 ---
 
@@ -88,6 +88,6 @@ yarn shopify:pull       # Pull templates/*.json from Shopify
 - All Tailwind classes prefixed `tw-` — never use unprefixed utilities
 - Custom breakpoints: `small` (390px), `md-small` (768px), `md` (1024px), `lg` (1280px), `2xl` (1550px)
 - Design tokens vary per project — always check `tailwind.config.js` for token names, never raw hex
-- One section file = one output bundle — no shared logic in section files, put it in `ts/components/`
+- One section file = one output bundle — no shared logic in section files, put it in `js/components/` and import via the `JsComponents/*` alias
 - Shared code used by ≥ 2 entries goes into `assets/shared.js` automatically via webpack
 - `sideEffects: ["*.scss"]` — SCSS files have side effects; TS/JS files do not

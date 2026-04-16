@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(yarn typecheck:*)",
       "Bash(yarn lint:*)",
       "Bash(yarn start:*)",
       "Bash(yarn deploy:*)",
@@ -56,7 +55,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); echo '=== Session Context ==='; echo \"Branch: $(git -C \"$ROOT\" branch --show-current 2>/dev/null)\"; echo 'Last 5 commits:'; git -C \"$ROOT\" log --oneline -5 2>/dev/null; TS_ERRORS=$(cd \"$ROOT\" && yarn typecheck 2>&1 | grep -c 'error TS' 2>/dev/null || echo 0); echo \"TypeScript errors: $TS_ERRORS\"; MODIFIED=$(git -C \"$ROOT\" diff --name-only HEAD 2>/dev/null | head -10); [ -n \"$MODIFIED\" ] && echo 'Modified:' && echo \"$MODIFIED\" || true",
+            "command": "ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); echo '=== Session Context ==='; echo \"Branch: $(git -C \"$ROOT\" branch --show-current 2>/dev/null)\"; echo 'Last 5 commits:'; git -C \"$ROOT\" log --oneline -5 2>/dev/null; LINT_ERRORS=$(cd \"$ROOT\" && yarn lint 2>&1 | grep -cE 'error' 2>/dev/null || echo 0); echo \"Lint errors: $LINT_ERRORS\"; MODIFIED=$(git -C \"$ROOT\" diff --name-only HEAD 2>/dev/null | head -10); [ -n \"$MODIFIED\" ] && echo 'Modified:' && echo \"$MODIFIED\" || true",
             "async": false
           }
         ]
@@ -77,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); CONTENT=$(jq -r '.tool_input.content // empty'); if [[ \"$FILE\" == */ts/sections/*.ts || \"$FILE\" == */ts/sections/*.tsx ]]; then if echo \"$CONTENT\" | grep -qE \"from [\\\"'][^\\\"']*/sections/\"; then echo \"BLOCKED: Section files cannot import from other ts/sections/ files. Move shared logic to ts/components/.\"; exit 1; fi; fi",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); CONTENT=$(jq -r '.tool_input.content // empty'); if [[ \"$FILE\" == */js/sections/*.js || \"$FILE\" == */js/sections/*.jsx ]]; then if echo \"$CONTENT\" | grep -qE \"from [\\\"'][^\\\"']*/sections/\"; then echo \"BLOCKED: Section files cannot import from other js/sections/ files. Move shared logic to js/components/ and import via JsComponents alias.\"; exit 1; fi; fi",
             "async": false
           }
         ]
@@ -87,7 +86,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CMD=$(jq -r '.tool_input.command // empty'); if echo \"$CMD\" | grep -qE 'git (commit|push)'; then echo '=== Commit Gate ==='; ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); TS_OUT=$(cd \"$ROOT\" && yarn typecheck 2>&1); TS_ERRS=$(echo \"$TS_OUT\" | grep -c 'error TS' || echo 0); if [ \"$TS_ERRS\" -gt 0 ]; then echo '--- TypeScript errors ---'; echo \"$TS_OUT\" | grep 'error TS' | head -15; echo \"BLOCKED: $TS_ERRS TypeScript error(s) must be fixed before committing\"; exit 1; fi; SECRETS=$(git diff --staged 2>/dev/null | grep -iE '(api_key|password|access_token|private_key)[[:space:]]*[=:][[:space:]]*[A-Za-z0-9_+/=-]{16,}' || true); if [ -n \"$SECRETS\" ]; then echo 'BLOCKED: Possible secret detected in staged diff:'; echo \"$SECRETS\"; exit 1; fi; echo 'Clean: commit allowed'; fi",
+            "command": "CMD=$(jq -r '.tool_input.command // empty'); if echo \"$CMD\" | grep -qE 'git (commit|push)'; then echo '=== Commit Gate ==='; ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); LINT_OUT=$(cd \"$ROOT\" && yarn lint 2>&1); LINT_ERRS=$(echo \"$LINT_OUT\" | grep -cE '^[[:space:]]*[0-9]+:[0-9]+[[:space:]]+error' || echo 0); if [ \"$LINT_ERRS\" -gt 0 ]; then echo '--- Lint errors ---'; echo \"$LINT_OUT\" | grep -E 'error' | head -15; echo \"BLOCKED: $LINT_ERRS lint error(s) must be fixed before committing\"; exit 1; fi; SECRETS=$(git diff --staged 2>/dev/null | grep -iE '(api_key|password|access_token|private_key)[[:space:]]*[=:][[:space:]]*[A-Za-z0-9_+/=-]{16,}' || true); if [ -n \"$SECRETS\" ]; then echo 'BLOCKED: Possible secret detected in staged diff:'; echo \"$SECRETS\"; exit 1; fi; echo 'Clean: commit allowed'; fi",
             "async": false
           }
         ]
@@ -104,7 +103,7 @@
           },
           {
             "type": "command",
-            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); if [[ \"$FILE\" == *ts/*.ts || \"$FILE\" == *ts/*.tsx ]] && [[ \"$FILE\" != *.d.ts ]]; then ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); echo \"=== ESLint: $(basename \"$FILE\") ===\"; cd \"$ROOT\" && ./node_modules/.bin/eslint \"$FILE\" 2>&1 | head -30 || true; fi",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); if [[ \"$FILE\" == *js/*.js || \"$FILE\" == *js/*.jsx ]]; then ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); echo \"=== ESLint: $(basename \"$FILE\") ===\"; cd \"$ROOT\" && ./node_modules/.bin/eslint \"$FILE\" 2>&1 | head -30 || true; fi",
             "async": false
           },
           {

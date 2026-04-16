@@ -45,12 +45,12 @@ Source: `/Users/cross/Module update/`
 | `rich-text.liquid` | Multi-column rich text section using block system |
 | `vertical-rich-text.liquid` | Single-column stacked rich text section |
 
-### ts/components/ (compiled → assets/shared.js)
+### js/components/ (compiled → assets/shared.js)
 | File | Purpose |
 |------|---------|
-| `global.ts` (entry: `ts/sections/global.ts`) | Global theme init, scroll, nav behaviors |
-| `migrate-section.ts` | Section migration utility |
-| `ui-components.ts` | UI component JS (modals, drawers, accordions) |
+| `global.js` (entry: `js/sections/global.js`) | Global theme init, scroll, nav behaviors |
+| `migrate-section.js` | Section migration utility |
+| `ui-components.js` | UI component JS (modals, drawers, accordions) |
 
 ---
 

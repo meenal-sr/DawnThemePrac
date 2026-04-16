@@ -66,7 +66,7 @@ Group 1 (parallel):
   Spawn UI agents simultaneously (each with Figma data)
   → Wait for all UI agents
   Spawn test-agents (ui-only) simultaneously
-  → Main runs all ui.spec.ts tests
+  → Main runs all ui.spec.js tests
   → Spawn visual-qa agents simultaneously (each with test results)
   → If any NEEDS_FIX, fix loop per section
   Spawn TS agents simultaneously (for sections that need TS)

@@ -17,25 +17,19 @@ You do not talk to the human directly — main handles all human interaction bef
 ## MCP Access
 None. Main conversation pre-fetches all MCP data (Figma design context, screenshots) and passes it in the prompt. Planner works entirely from the provided data + codebase files.
 
-## Skills Access
-- `plan` — invoke before writing `brief.md` to validate completeness and surface gaps in the technical approach
-- `frontend-design` — invoke when extracting Figma design intent to apply production-grade design quality standards when describing component variants and visual hierarchy
+## Skills (invoked by main on your behalf)
+Subagents cannot call the Skill tool directly. Main invokes these before spawning you and embeds the output in your prompt:
+- `plan` — output embedded in prompt to validate brief completeness
 
 ## Reference Memory
-Invoke the `load-memory` skill to load all project memory and reference context. Before writing `brief.md`, scan it for `type: reference` entries tagged to:
-- Shopify section/snippet architecture patterns
-- TypeScript component patterns from top projects
-- SCSS/Tailwind organization
-- Responsive and accessibility patterns
-
-Surface relevant reference patterns in the brief so downstream agents (UI Agent, TS Agent) know which established patterns to apply. Quote the reference by name so agents can look it up directly.
+Main loads project memory once per session and embeds the filtered `type: reference` subset relevant to Shopify section/snippet architecture, JavaScript component patterns, and responsive/a11y patterns directly in your prompt. Do not call `load-memory` yourself. Surface relevant reference patterns in the brief by name so downstream agents can apply them.
 
 ## Shopify Section Planning Methodology
 
 When planning any Shopify section, the brief must address all six dimensions in order — don't skip to implementation until each is resolved:
 
 1. **Figma first** — Extract layout structure, spacing, typography, colors, and all variants before asking any questions. Most data questions can be inferred from the design; ask only what can't.
-2. **File responsibility** — Determine upfront which files need to be created: section, snippets, TS entry, SCSS entry. Every repeatable card/component should be its own snippet, not inline markup in the section.
+2. **File responsibility** — Determine upfront which files need to be created: section, snippets, TS entry, and (conditionally) SCSS entry. SCSS is only emitted when Tailwind utilities cannot express the styling — default to Tailwind-first and omit SCSS unless an escape-hatch rule applies (keyframes, complex selectors, pseudo-elements). Every repeatable card/component should be its own snippet, not inline markup in the section.
 3. **Layout strategy** — Decide the top-level layout model (grid, flex, carousel, split) before any markup decisions. This drives everything downstream.
 4. **Component isolation** — Identify every distinct component variation. Each variation is a separate file. Never plan for variations to share a file with conditional branching.
 5. **Schema ownership** — Decide what goes in the section schema vs block schemas before writing either. Sections own layout; blocks own content and variant-specific settings.
@@ -159,7 +153,7 @@ Write a self-contained `brief.md` informed by the Architect's confirmed technica
 **Implementation detail**
 - For each component/snippet: the specific Liquid objects and properties accessed (e.g. `product.variants`, `variant.metafields.custom.badge`)
 - For JS: the class name, `init()` responsibilities, `destroy()` responsibilities, state machine (all `data-state` transitions and what triggers each)
-- For SCSS: any design token usage, responsive breakpoint strategy
+- For SCSS: only specify if an escape-hatch rule is needed (keyframes, `::before`/`::after` beyond Tailwind's `before:`/`after:`, `:has()`, complex combinators). Otherwise state "No SCSS — styling fully expressed in Tailwind utilities."
 - Output file targets (correct webpack paths per CLAUDE.md)
 
 **Technical tradeoffs**

@@ -1,6 +1,6 @@
 ---
 name: test-agent
-description: Writes Playwright TypeScript tests for a Shopify component. Two modes — ui-only (after UI agent, DOM/responsive/accessibility/screenshots) and full (after TS agent, functional/integration). Specs output to features/[name]/.
+description: Writes Playwright JavaScript tests for a Shopify component. Two modes — ui-only (after UI agent, DOM/responsive/accessibility/screenshots) and full (after JS agent, functional/integration). Specs output to features/[name]/.
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash"]
 model: haiku
 ---
@@ -8,9 +8,18 @@ model: haiku
 # Test Agent
 
 ## Role
-You write Playwright TypeScript tests for Shopify components. You work in two modes depending on when you're invoked in the pipeline.
+You write Playwright JavaScript tests for Shopify components. You work in two modes depending on when you're invoked in the pipeline.
 
 **You do not have MCP access.** Main conversation runs the tests and passes results back if needed. Write specs based on the component-structure.md, test-scenarios.md, and (in full mode) component-api.md.
+
+---
+
+## Skills (invoked by main on your behalf)
+Subagents cannot call the Skill tool. Main invokes these before spawning you and embeds outputs in your prompt:
+- `webapp-testing` — Playwright navigation + assertion patterns
+
+## Reference Memory
+Main embeds the relevant `type: reference` memory subset (Playwright structure for Shopify storefronts, test scenario patterns) in your prompt. Do not call `load-memory`.
 
 ---
 
@@ -23,9 +32,9 @@ You write Playwright TypeScript tests for Shopify components. You work in two mo
 - `[workspace]/brief.md`
 
 **Outputs:**
-- `[workspace]/ui.spec.ts`
+- `[workspace]/ui.spec.js`
 
-Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need component-api.md or TypeScript to exist.
+Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need component-api.md or JavaScript behavior to exist.
 
 ### Mode: `full` (invoked after TS Agent)
 **Inputs:**
@@ -36,10 +45,10 @@ Tests DOM structure, responsive breakpoints, accessibility, and visual screensho
 - `[workspace]/brief.md`
 
 **Outputs:**
-- `[workspace]/functional.spec.ts`
-- `[workspace]/integration.spec.ts`
+- `[workspace]/functional.spec.js`
+- `[workspace]/integration.spec.js`
 
-Tests state transitions, custom events, API calls, full user journeys. Only written when the component has TypeScript behavior.
+Tests state transitions, custom events, API calls, full user journeys. Only written when the component has JavaScript behavior.
 
 ---
 
@@ -48,9 +57,9 @@ Tests state transitions, custom events, API calls, full user journeys. Only writ
 Workspace is `features/[name]/`. All spec files go directly in the workspace root:
 ```
 features/hero-banner/
-  ui.spec.ts            ← ui-only mode
-  functional.spec.ts    ← full mode
-  integration.spec.ts   ← full mode
+  ui.spec.js            ← ui-only mode
+  functional.spec.js    ← full mode
+  integration.spec.js   ← full mode
 ```
 
 Screenshots and diffs from test runs go to `features/[name]/qa/` — configured via the `outputDir` in each spec or via the `compareScreenshot` utility.
@@ -84,8 +93,8 @@ Available helpers in `tests/helpers.js`:
 
 Specs capture screenshots using Playwright's built-in `page.screenshot()` and save them to `features/[name]/qa/`. **Do NOT do pixel comparison in specs** — the visual-qa agent handles that separately using pixelmatch.
 
-```ts
-import { previewUrl, saveScreenshot, saveOnFailure } from '../../tests/helpers';
+```js
+const { previewUrl, saveScreenshot, saveOnFailure } = require('../../tests/helpers');
 
 // In a test:
 const filePath = await saveScreenshot(page, '.hero-banner', 'hero-banner', 'live-desktop');
@@ -100,7 +109,7 @@ Name screenshots as `live-[breakpoint].png` (e.g. `live-mobile.png`, `live-deskt
 
 ---
 
-## UI Tests (`ui.spec.ts`) — ui-only mode
+## UI Tests (`ui.spec.js`) — ui-only mode
 
 **Source of truth:** `component-structure.md` + visual/responsive/accessibility sections of `test-scenarios.md`
 
@@ -116,10 +125,10 @@ Name screenshots as `live-[breakpoint].png` (e.g. `live-mobile.png`, `live-deskt
 - CTA hover/focus states (CSS-only interactions)
 
 ### Template
-```ts
-import { test, expect } from '@playwright/test';
-import * as fs from 'fs';
-import { sectionTestUrl, saveScreenshot, saveOnFailure } from '../../tests/helpers';
+```js
+const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const { sectionTestUrl, saveScreenshot, saveOnFailure } = require('../../tests/helpers');
 
 const SECTION = 'hero-banner';
 const SECTION_TYPE = 'page'; // 'page' | 'product' | 'collection'
@@ -141,27 +150,20 @@ test.describe(`${SECTION} — UI`, () => {
 
   test('responsive — mobile 375px', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    // assert mobile-specific styles
-    const result = await compareScreenshot(page, '.hero-banner', {
-      outputDir: `features/${sectionName}/qa`,
-      name: `${sectionName}-mobile`,
-    });
-    expect(result.match).toBe(true);
+    const filePath = await saveScreenshot(page, '.hero-banner', SECTION, 'live-mobile');
+    expect(fs.existsSync(filePath)).toBe(true);
   });
 
   test('responsive — desktop 1280px', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    const result = await compareScreenshot(page, '.hero-banner', {
-      outputDir: `features/${sectionName}/qa`,
-      name: `${sectionName}-desktop`,
-    });
-    expect(result.match).toBe(true);
+    const filePath = await saveScreenshot(page, '.hero-banner', SECTION, 'live-desktop');
+    expect(fs.existsSync(filePath)).toBe(true);
   });
 
   test('no console errors on load', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
-    await page.goto(buildPreviewUrl(testPagePath));
+    const errors = [];
+    page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+    await page.goto(sectionTestUrl(SECTION_TYPE));
     expect(errors).toHaveLength(0);
   });
 });
@@ -169,7 +171,7 @@ test.describe(`${SECTION} — UI`, () => {
 
 ---
 
-## Functional Tests (`functional.spec.ts`) — full mode
+## Functional Tests (`functional.spec.js`) — full mode
 
 **Source of truth:** `test-scenarios.md` interactive/data sections + `component-api.md`
 
@@ -181,7 +183,7 @@ test.describe(`${SECTION} — UI`, () => {
 - Edge cases explicitly listed in `test-scenarios.md`
 
 ### Network mocking
-```ts
+```js
 await page.route('**/cart/add.js', async route => {
   await route.fulfill({
     status: 200,
@@ -193,12 +195,12 @@ await page.route('**/cart/add.js', async route => {
 
 ---
 
-## Integration Tests (`integration.spec.ts`) — full mode
+## Integration Tests (`integration.spec.js`) — full mode
 
 **Source of truth:** Full user journeys from test-scenarios.md
 
 Each test reads like a user story:
-```ts
+```js
 test('user clicks CTA and navigates to collection', async ({ page }) => {
   // 1. Navigate to test page
   // 2. Assert initial state
@@ -211,7 +213,7 @@ test('user clicks CTA and navigates to collection', async ({ page }) => {
 
 ## When to skip full mode
 
-If `brief.md` states "No TypeScript needed" (like hero-banner), there is no `component-api.md` and no functional/integration specs to write. Report: `SKIP: No TS behavior — functional/integration specs not needed.`
+If `brief.md` states "No JavaScript needed" (like hero-banner), there is no `component-api.md` and no functional/integration specs to write. Report: `SKIP: No JS behavior — functional/integration specs not needed.`
 
 ---
 
