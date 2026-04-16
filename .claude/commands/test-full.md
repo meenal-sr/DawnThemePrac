@@ -1,5 +1,5 @@
 ---
-description: Prefetch webapp-testing skill, spawn test-agent in full mode (functional + integration), run specs. Argument — $1 feature name.
+description: Spawn test-agent in full mode (functional + integration), run specs. Argument — $1 feature name.
 ---
 
 # Test Full: $ARGUMENTS
@@ -18,9 +18,8 @@ If component-api.md missing because brief says "No JavaScript needed":
 
 Otherwise `BLOCKED: Run /build-js first.`
 
-## Step 2 — Skill + memory prefetch
+## Step 2 — Memory prefetch
 Per Main Prefetch Contract → test-agent row:
-- Skill: `webapp-testing`
 - Memory subset: Playwright structure, test scenario patterns
 
 ## Step 3 — Spawn test-agent (full)
@@ -31,7 +30,7 @@ Embed:
 - Workspace: `features/<feature-name>/`
 - Contents of `brief.md`, `component-structure.md`, `component-api.md`, `test-scenarios.md`
 - `mock-map.md` if it exists
-- Skill output + memory subset
+- Memory subset
 
 Expected outputs:
 - `features/<feature-name>/functional.spec.js`

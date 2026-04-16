@@ -18,9 +18,9 @@ Subagents cannot call MCPs, skills, or `load-memory`. Main prefetches and embeds
 | architect | `shopify-dev-mcp.search_docs_chunks` (on demand), `sequential-thinking` (complex deps) | `plan` | Shopify architecture, JS patterns, proven theme patterns | — |
 | ui-agent | `figma.get_design_context`, `figma.get_screenshot` | `web-design-guidelines` | Section/snippet architecture, Tailwind organization, Liquid best practices, responsive+a11y patterns | `shopify-dev-mcp.learn_shopify_api` + `validate_theme` (loop max 3) |
 | js-agent | `shopify-dev-mcp.search_docs_chunks` (on demand), `context7` (libs) | `modern-javascript-patterns`, `vercel-react-best-practices` (only for `.jsx`/React islands) | JS class/component patterns, Shopify section architecture, DOM lifecycle | `ide.getDiagnostics` + `yarn lint` per file (loop max 3) |
-| test-agent | — | `webapp-testing` | Playwright structure for Shopify storefronts, test scenario patterns | `npx playwright test features/[name]/*.spec.js` |
+| test-agent | — | — | Playwright structure for Shopify storefronts, test scenario patterns | `npx playwright test features/[name]/*.spec.js` |
 | visual-qa-agent | `figma.get_screenshot` (saved to `qa/figma-*.png`), `pixelmatch.compare` (diff each figma-*.png vs live-*.png per breakpoint, writes `qa/diff-*.png` + mismatch %) | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
-| page-integration-test | — | `webapp-testing` | Playwright structure, cross-section event testing, full-page integration | `npx playwright test pages/[name]/tests/*.spec.js` |
+| page-integration-test | — | — | Playwright structure, cross-section event testing, full-page integration | `npx playwright test pages/[name]/tests/*.spec.js` |
 | code-reviewer | `ide.getDiagnostics`, `github.get_pull_request*` (PR context) | `code-review`, `modern-javascript-patterns`, `vercel-react-best-practices` (gated), `web-design-guidelines` | JS patterns, Shopify architecture, Tailwind organization, Playwright structure | — |
 
 Workflow checkpoints (`simplify`, `refactor-clean`) are main-invoked **between agent runs**, not during. Never declared in agent skill lists.

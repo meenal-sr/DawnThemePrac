@@ -1,5 +1,5 @@
 ---
-description: Prefetch webapp-testing skill + memory, spawn test-agent in ui-only mode, run the specs via playwright. Argument — $1 feature name.
+description: Prefetch memory, spawn test-agent in ui-only mode, run the specs via playwright. Argument — $1 feature name.
 ---
 
 # Test UI: $ARGUMENTS
@@ -16,9 +16,8 @@ Verify:
 
 If missing: `BLOCKED: Run /build-ui first.`
 
-## Step 2 — Skill + memory prefetch
+## Step 2 — Memory prefetch
 Per Main Prefetch Contract → test-agent row:
-- Skill: `webapp-testing`
 - Memory subset: Playwright structure for Shopify storefronts, test scenario patterns
 
 ## Step 3 — Spawn test-agent (ui-only)
@@ -28,7 +27,6 @@ Embed:
 - Mode: `ui-only`
 - Workspace: `features/<feature-name>/`
 - Contents of `brief.md`, `component-structure.md`, `test-scenarios.md`
-- Skill output
 - Memory subset
 
 Expected output: `features/<feature-name>/ui.spec.js`

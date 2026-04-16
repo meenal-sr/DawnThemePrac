@@ -15,13 +15,12 @@ See `.claude/rules/workflow-commands.md` for the full decision tree. Project ski
 | `/simplify` | Review changed code for reuse + efficiency |
 | `/refactor-clean` | Remove dead code and clean up |
 | `/load-memory` | Explicit full memory load (beyond MEMORY.md index) |
-| `webapp-testing` | Playwright patterns — invoked by main for test-agent / page-integration-test |
 | `modern-javascript-patterns` | ES6+ patterns — invoked by main for js-agent / code-reviewer |
 | `vercel-react-best-practices` | React island patterns — invoked by main for js-agent / code-reviewer **only if `.jsx` files present** |
 | `web-design-guidelines` | a11y + interface standards — invoked by main for ui-agent / visual-qa-agent / code-reviewer |
 | `caveman` | Token-compression communication mode (trigger: "caveman mode") |
 
-Workflow skills (`/plan`, `/simplify`, `/refactor-clean`, `/code-review`, `/load-memory`) are invoked by the human or main directly. Domain skills (`webapp-testing`, `modern-javascript-patterns`, etc.) are invoked by **main** per the Main Prefetch Contract in `.claude/rules/agents.md` before spawning the relevant agent.
+Workflow skills (`/plan`, `/simplify`, `/refactor-clean`, `/code-review`, `/load-memory`) are invoked by the human or main directly. Domain skills (`modern-javascript-patterns`, `web-design-guidelines`, etc.) are invoked by **main** per the Main Prefetch Contract in `.claude/rules/agents.md` before spawning the relevant agent.
 
 ---
 
