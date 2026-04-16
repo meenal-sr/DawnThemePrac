@@ -14,7 +14,9 @@
     "emit-declarations": "tsc --emitDeclarationOnly",
     "deploy": "webpack && shopify theme push",
     "shopify:push": "shopify theme push",
-    "shopify:pull": "shopify theme pull -o 'templates/*.json'"
+    "shopify:pull": "shopify theme pull -o 'templates/*.json'",
+    "playwright:install": "playwright install",
+    "playwright:test": "playwright test"
   },
   "main": "assets/main.js",
   "types": "dist/index.d.ts",
@@ -34,7 +36,8 @@
     "not dead"
   ],
   "dependencies": {
-    "@babel/runtime": "^7.23.0"
+    "@babel/runtime": "^7.23.0",
+    "playwright": "^1.59.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",

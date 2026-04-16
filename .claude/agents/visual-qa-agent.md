@@ -37,6 +37,7 @@ Use these as an additional quality bar beyond the Figma spec — flag in your re
 - `[workspace]/brief.md`
 - `[workspace]/artifacts/component-structure.md`
 - The Liquid and SCSS source files at the paths specified in `component-structure.md`
+- **Page path from user** (e.g., `/pages/about-us`, `/collections/all`) — MUST ask before starting
 
 The workspace is provided by the Orchestrator and may be `/features/[name]/` or `/pages/[name]/sections/[section-name]/` depending on the build context.
 
@@ -46,14 +47,62 @@ The workspace is provided by the Orchestrator and may be `/features/[name]/` or 
 
 ---
 
+## URL Construction
+
+**Always build the preview URL from `.env`** — never hardcode store URLs.
+
+1. Read `STORE_URL` and `THEME_ID` from `.env` at repo root
+2. Ask the user for the page path to test (e.g., `/pages/about-us`)
+3. Construct: `https://${STORE_URL}${pagePath}?preview_theme_id=${THEME_ID}`
+
+Example: `https://umesh-dev-store.myshopify.com/pages/about-us?preview_theme_id=168567275799`
+
+## Password Page Handling
+
+Shopify dev stores redirect to a password page. After every `page.goto()`, run the password handler:
+
+```ts
+async function handlePasswordPage(page, targetUrl = null) {
+  const currentUrl = page.url();
+  const isPasswordPage = currentUrl.includes('/password') ||
+    await page.locator('input[type="password"]').isVisible().catch(() => false);
+
+  if (isPasswordPage) {
+    const password = process.env.STORE_PASSWORD || 'adapt';
+
+    const passwordInput = page.locator('input[type="password"]');
+    await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+    await passwordInput.fill(password);
+
+    const enterButton = page.locator('button:has-text("Enter"), input[type="submit"]');
+    await enterButton.waitFor({ state: 'visible', timeout: 10000 });
+    await enterButton.click();
+
+    await page.waitForURL((url) => !url.pathname.includes('/password'), { timeout: 15000 });
+
+    if (targetUrl && !page.url().includes(targetUrl)) {
+      await page.goto(targetUrl);
+      await page.waitForLoadState('domcontentloaded');
+    }
+  }
+}
+```
+
+See full reference: `.claude/utils/playwright-password-handler.md`
+
+---
+
 ## Workflow
 
-### Step 1 — Read context
+### Step 1 — Read context and build URL
 1. Read `CLAUDE.md` at repo root
-2. Read `brief.md` — note the variant → state mapping and all breakpoints
-3. Read `component-structure.md` — note all `data-state` values and the component URL
-4. Confirm dev server is reachable via Playwright MCP before proceeding
-5. If not reachable, write `BLOCKED: Dev server not running` and stop
+2. Read `.env` — extract `STORE_URL` and `THEME_ID`
+3. **Ask user for the page path** to test (MUST NOT proceed without this)
+4. Read `brief.md` — note the variant → state mapping and all breakpoints
+5. Read `component-structure.md` — note all `data-state` values
+6. Construct preview URL: `https://${STORE_URL}${pagePath}?preview_theme_id=${THEME_ID}`
+7. Navigate via Playwright MCP, then run `handlePasswordPage(page, fullUrl)` to bypass store password
+8. If page not reachable after password handling, write `BLOCKED: Dev server not running` and stop
 
 ---
 
@@ -75,7 +124,7 @@ Store this as your comparison baseline. Do not proceed to Playwright until you h
 
 For each state in the variant → state mapping:
 
-1. Navigate to the component URL
+1. Navigate to the constructed preview URL (already done in Step 1 if first run; re-navigate if needed)
 2. Set the correct `data-state` on the root element if needed:
    ```ts
    await page.evaluate(() => {
