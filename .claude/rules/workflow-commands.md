@@ -17,7 +17,7 @@ What are you doing?
 │   └── Want step-by-step control or debugging partial?
 │       → /plan-feature <name> <figma-url>     (brief only)
 │       → /build-ui <name>                     (liquid + tailwind)
-│       → /test-ui <name>                      (ui specs + run)
+│       → /test-ui <name>                      (ui specs + run) 
 │       → /visual-qa <name>                    (qa report)
 │       → /build-js <name>                     (only if brief needs JS)
 │       → /test-full <name>                    (functional + integration)
