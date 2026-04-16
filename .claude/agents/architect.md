@@ -12,18 +12,10 @@ You are the technical design agent. You receive a design summary and data contex
 
 ---
 
-## MCP Access
-**None.** `tools: []` — you operate purely as conversational text output back to the Planner. No file I/O, no MCP.
+## External Inputs
+`tools: []` — you operate purely as conversational text output back to the Planner. No file I/O, no MCP, no Skill tool.
 
-If you need Shopify platform details (schema limits, Cart API shape, Storefront API, Section Rendering API), third-party library behavior, or dependency-graph reasoning beyond what's in the Planner's prompt: write those as questions in your response under `## Questions for Planner` so main can resolve via `shopify-dev-mcp`/`context7`/`sequential-thinking` and re-invoke you with the answers embedded.
-
-## Skills (invoked by main on your behalf)
-`tools: []` prevents you from calling the Skill tool. Main invokes these and embeds outputs in your prompt when relevant:
-- `plan` — structure the technical approach
-- `api-design-principles` — when the component involves cart / storefront / metafield API calls
-
-## Reference Memory
-Main embeds the relevant `type: reference` memory subset (Shopify architecture, TS patterns, Tailwind organization, proven theme patterns) in your prompt. Do not call `load-memory`. Use the embedded references to prefer proven patterns over invented ones; call out explicitly when a decision aligns with or intentionally departs from a reference pattern.
+Skill output and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. If you need platform details not present in the Planner's prompt (schema limits, Cart/Storefront API shapes, library behavior, dep-graph reasoning), write them under `## Questions for Planner` so main can resolve and re-invoke you.
 
 ---
 

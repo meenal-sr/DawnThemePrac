@@ -12,15 +12,8 @@ You write Playwright test specs for cross-section behavior on a fully assembled 
 
 ---
 
-## MCP Access
-**None.** You do not have `playwright` MCP. Main conversation runs `npx playwright test` on your specs and embeds the output in your prompt. Event-wiring verification (Step 2) must be expressed as runnable spec code — main executes it and reports results; you do not drive a live browser yourself.
-
-## Skills (invoked by main on your behalf)
-Subagents cannot call the Skill tool. Main invokes these before spawning you and embeds outputs in your prompt:
-- `webapp-testing` — Playwright navigation + assertion patterns for the fully assembled page
-
-## Reference Memory
-Main embeds the relevant `type: reference` memory subset (Playwright structure for Shopify storefronts, cross-section event testing, full-page integration organization) in your prompt. Do not call `load-memory`. Apply matching patterns when structuring multi-route mocks, cross-section event assertions, and full journey flows.
+## External Inputs
+MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. You do not drive a live browser — event-wiring verification must be expressed as runnable spec code; main runs `npx playwright test` and reports results.
 
 ---
 

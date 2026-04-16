@@ -8,20 +8,20 @@ Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot acc
 2. **Skill output** — main invokes skills relevant to the agent's task, embeds output in prompt
 3. **Filtered memory** — main loads `MEMORY.md` once per session and embeds the `type: reference` subset relevant to the agent (see Skill/Memory Routing below)
 
-## Skill / Memory Routing (main → agent)
+## Main Prefetch Contract (single source of truth)
 
-Main loads memory once per session. For each subagent invocation, main filters and embeds:
+Subagents cannot call MCPs, skills, or `load-memory`. Main prefetches and embeds everything in the agent's prompt. Each agent file references this table instead of repeating the contract per agent.
 
-| Agent | Skills main invokes first | Memory subset embedded |
-|---|---|---|
-| planner | `plan` | Shopify section/snippet architecture, TS component patterns, Tailwind organization, a11y patterns |
-| architect | `plan`, `api-design-principles` (if API calls involved) | Shopify architecture, TS patterns, proven theme patterns |
-| ui-agent | `tailwind-design-system`, `web-design-guidelines` | Section/snippet architecture, Tailwind organization, Liquid best practices, responsive+a11y patterns |
-| js-agent | `modern-javascript-patterns`, `vercel-react-best-practices` (only for `.jsx`/React islands) | JS class/component patterns, Shopify section architecture, DOM lifecycle |
-| test-agent | `webapp-testing` | Playwright structure for Shopify storefronts, test scenario patterns |
-| visual-qa-agent | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions |
-| page-integration-test | `webapp-testing` | Playwright structure, cross-section event testing, full-page integration |
-| code-reviewer | `code-review`, `typescript-advanced-types`, `vercel-react-best-practices` (gated), `web-design-guidelines` | TS patterns, Shopify architecture, Tailwind organization, Playwright structure |
+| Agent | MCPs main calls first | Skills main invokes first | Memory subset embedded | Post-handoff checks (main) |
+|---|---|---|---|---|
+| planner | `figma.get_design_context`, `figma.get_screenshot` | `plan` | Shopify section/snippet architecture, JS component patterns, Tailwind organization, a11y patterns | — |
+| architect | `shopify-dev-mcp.search_docs_chunks` (on demand), `sequential-thinking` (complex deps) | `plan`, `api-design-principles` (if API calls) | Shopify architecture, JS patterns, proven theme patterns | — |
+| ui-agent | `figma.get_design_context`, `figma.get_screenshot` | `tailwind-design-system`, `web-design-guidelines` | Section/snippet architecture, Tailwind organization, Liquid best practices, responsive+a11y patterns | `shopify-dev-mcp.learn_shopify_api` + `validate_theme` (loop max 3) |
+| js-agent | `shopify-dev-mcp.search_docs_chunks` (on demand), `context7` (libs) | `modern-javascript-patterns`, `vercel-react-best-practices` (only for `.jsx`/React islands) | JS class/component patterns, Shopify section architecture, DOM lifecycle | `ide.getDiagnostics` + `yarn lint` per file (loop max 3) |
+| test-agent | — | `webapp-testing` | Playwright structure for Shopify storefronts, test scenario patterns | `npx playwright test features/[name]/*.spec.js` |
+| visual-qa-agent | `figma.get_screenshot` (saved to `qa/figma-*.png`) | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
+| page-integration-test | — | `webapp-testing` | Playwright structure, cross-section event testing, full-page integration | `npx playwright test pages/[name]/tests/*.spec.js` |
+| code-reviewer | `ide.getDiagnostics`, `github.get_pull_request*` (PR context) | `code-review`, `modern-javascript-patterns`, `vercel-react-best-practices` (gated), `web-design-guidelines` | JS patterns, Shopify architecture, Tailwind organization, Playwright structure | — |
 
 Workflow checkpoints (`simplify`, `refactor-clean`) are main-invoked **between agent runs**, not during. Never declared in agent skill lists.
 

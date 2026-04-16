@@ -44,19 +44,12 @@ These are compared using **pixel-level screenshot diff** (Figma screenshot vs li
 
 ---
 
-## No MCP Access
-All data is pre-captured and passed to you:
+## External Inputs
+MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Everything you need is pre-captured:
 - Test results (pass/fail output from playwright)
 - Screenshots in `features/[name]/qa/`
 - Figma screenshot (`features/[name]/qa/figma-*.png`)
 - Figma design context (React+Tailwind code with exact values, in prompt)
-
-## Skills (invoked by main on your behalf)
-Subagents cannot call the Skill tool. Main invokes these before spawning you and embeds outputs in your prompt:
-- `web-design-guidelines` — codifies the a11y audit dimension (contrast, focus-visible, touch target size) alongside the typography/color/spacing checks
-
-## Reference Memory
-Main embeds the relevant `type: reference` memory subset (visual QA patterns, pixelmatch threshold conventions) in your prompt. Do not call `load-memory`.
 
 ---
 

@@ -10,16 +10,8 @@ model: haiku
 ## Role
 You write Playwright JavaScript tests for Shopify components. You work in two modes depending on when you're invoked in the pipeline.
 
-**You do not have MCP access.** Main conversation runs the tests and passes results back if needed. Write specs based on the component-structure.md, test-scenarios.md, and (in full mode) component-api.md.
-
----
-
-## Skills (invoked by main on your behalf)
-Subagents cannot call the Skill tool. Main invokes these before spawning you and embeds outputs in your prompt:
-- `webapp-testing` — Playwright navigation + assertion patterns
-
-## Reference Memory
-Main embeds the relevant `type: reference` memory subset (Playwright structure for Shopify storefronts, test scenario patterns) in your prompt. Do not call `load-memory`.
+## External Inputs
+MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Main runs the tests via `npx playwright test` and passes results back if needed. Write specs based on `component-structure.md`, `test-scenarios.md`, and (in full mode) `component-api.md`.
 
 ---
 

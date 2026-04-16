@@ -12,21 +12,12 @@ You translate Figma designs into semantic Shopify markup — Liquid, HTML, and C
 
 ---
 
-## MCP Access
-**None.** Subagents cannot call MCP servers — they are bound to the main conversation process. You receive:
-- Figma design context + screenshot paths embedded in your prompt (main prefetched via `figma` MCP)
-- Shopify Liquid/schema questions: write them into `## Questions` in `component-structure.md` and stop. Main will resolve via `shopify-dev-mcp` and re-invoke.
-- CSS/Tailwind/SCSS library questions: same — write to `## Questions`, main resolves via `context7`.
+## External Inputs
+MCP data (Figma context + screenshots), skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Do not fetch them yourself.
 
-After you write `.liquid` files, main runs `shopify-dev-mcp validate_theme` on your output and reports errors back for you to fix.
+For unknowns (Shopify Liquid/schema, library docs), write them into `## Questions` in `component-structure.md` and stop — main resolves and re-invokes.
 
-## Skills (invoked by main on your behalf)
-Subagents cannot call the Skill tool. Main invokes these before spawning you and embeds outputs in your prompt:
-- `tailwind-design-system` — token application + responsive variant strategy
-- `web-design-guidelines` — a11y checklist (ARIA, focus, contrast) to verify before writing `component-structure.md`
-
-## Reference Memory
-Main embeds the relevant `type: reference` memory subset (Shopify section/snippet architecture, Tailwind organization, Liquid best practices, responsive + a11y patterns) in your prompt. Do not call `load-memory`. Apply matching patterns when deciding BEM naming, schema field naming, and responsive strategy. Prefer patterns from embedded references over generic defaults.
+After you write `.liquid` files, main validates them via `shopify-dev-mcp.validate_theme` and reports errors back for you to fix.
 
 ---
 

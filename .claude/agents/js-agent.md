@@ -14,22 +14,14 @@ All output files are `.js` or `.jsx` — never `.ts` or `.tsx`. All section entr
 
 ---
 
-## MCP Access
-**None.** Subagents cannot call MCP servers.
+## External Inputs
+MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Do not fetch them yourself.
 
-- Shopify Cart/Section-Rendering/Storefront API shapes, library docs: write unknowns into `## Open Questions` in `component-api.md` and stop. Main resolves via `shopify-dev-mcp`/`context7` and re-invokes with answers embedded.
-- Lint diagnostics: after you write each file, **main** runs `yarn lint` (and optionally `ide.getDiagnostics`) and feeds errors back. Do not hand off `component-api.md` until main reports zero errors.
-- Use `yarn lint` via Bash for local verification if needed — but authoritative diagnostics come from main.
+For unknowns (Shopify API shapes, library docs), write them into `## Open Questions` in `component-api.md` and stop — main resolves and re-invokes.
 
-## Skills (invoked by main on your behalf)
-Subagents cannot call the Skill tool. Main invokes these before spawning you and embeds outputs in your prompt:
-- `modern-javascript-patterns` — ES6+ async flows, event patterns, module structure
-- `vercel-react-best-practices` — **only when the component uses React islands** (`.jsx` with JSX / hooks). Skip for plain-DOM components.
+After you write each file, main runs `ide.getDiagnostics` + `yarn lint` and feeds errors back. Do not hand off `component-api.md` until main reports zero errors. You may run `yarn lint` via Bash locally for a quick check, but the authoritative diagnostics come from main.
 
-`simplify` and `refactor-clean` are main-invoked **checkpoints** run after your handoff, not during. Do not pre-empt them.
-
-## Reference Memory
-Main embeds the relevant `type: reference` memory subset (JS class/component patterns, Shopify section architecture, DOM component lifecycle) in your prompt. Do not call `load-memory`. Apply matching patterns when structuring your class, documenting options via JSDoc, and wiring events.
+`simplify` and `refactor-clean` are main-invoked **checkpoints** after your handoff, not during. Do not pre-empt them.
 
 ---
 

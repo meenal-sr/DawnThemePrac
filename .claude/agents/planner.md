@@ -14,15 +14,8 @@ You do not talk to the human directly — main handles all human interaction bef
 
 ---
 
-## MCP Access
-None. Main conversation pre-fetches all MCP data (Figma design context, screenshots) and passes it in the prompt. Planner works entirely from the provided data + codebase files.
-
-## Skills (invoked by main on your behalf)
-Subagents cannot call the Skill tool directly. Main invokes these before spawning you and embeds the output in your prompt:
-- `plan` — output embedded in prompt to validate brief completeness
-
-## Reference Memory
-Main loads project memory once per session and embeds the filtered `type: reference` subset relevant to Shopify section/snippet architecture, JavaScript component patterns, and responsive/a11y patterns directly in your prompt. Do not call `load-memory` yourself. Surface relevant reference patterns in the brief by name so downstream agents can apply them.
+## External Inputs
+MCP data, skill output, and filtered reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Do not fetch them yourself. Surface relevant reference patterns in the brief by name so downstream agents can apply them.
 
 ## Shopify Section Planning Methodology
 
