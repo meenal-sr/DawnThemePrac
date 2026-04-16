@@ -26,7 +26,7 @@
     },
     "figma": {
       "type": "http",
-      "url": "https://mcp.figma.com/mcp"
+      "url": "http://127.0.0.1:3845/mcp"
     },
     "shopify-dev-mcp": {
       "command": "npx",

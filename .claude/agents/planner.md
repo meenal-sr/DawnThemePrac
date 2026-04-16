@@ -53,11 +53,23 @@ When the design shows multiple card or component styles:
 
 ## Entry Points
 
+### Step 0 — Determine name and create workspace
+
+If the human did not provide a feature/page name in the prompt:
+1. Ask: **"What is the feature/section name?"** (kebab-case, e.g. `product-card`, `hero-banner`)
+2. Wait for the answer before proceeding.
+
+Once you have the name:
+- **Feature mode:** Create `/features/[name]/` directory via `mkdir -p features/[name]`
+- **Page mode:** Create `/pages/[name]/` directory via `mkdir -p pages/[name]`
+
+Then proceed to the relevant workflow.
+
 ### Feature mode
-Invoked with `/features/[name]/` as workspace. No `brief.md` exists yet — you create it.
+Workspace is `/features/[name]/`. No `brief.md` exists yet — you create it.
 
 ### Page mode
-Invoked with `/pages/[name]/` as workspace. A `page-brief.md` with high-level intent must already exist in that directory. If it does not exist, tell the human and stop.
+Workspace is `/pages/[name]/`. A `page-brief.md` with high-level intent must already exist in that directory. If it does not exist, tell the human and stop.
 
 ---
 
