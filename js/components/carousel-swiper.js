@@ -1,23 +1,21 @@
 import Swiper from 'swiper';
-import type { SwiperOptions } from 'swiper/types';
 import { Navigation, Pagination, A11y, Keyboard, Autoplay } from 'swiper/modules';
 
-interface CarouselConfig extends SwiperOptions {
-  progressBarSelector?: string;
-}
-
 class CarouselSwiper extends HTMLElement {
-  private swiper: Swiper | null = null;
-  private _buttonObserver: MutationObserver | null = null;
-  private _resizeHandler: (() => void) | null = null;
-  private autoplayProgressBar: HTMLElement | null = null;
-  private paginationEl: HTMLElement | null = null;
+  constructor() {
+    super();
+    this.swiper = null;
+    this._buttonObserver = null;
+    this._resizeHandler = null;
+    this.autoplayProgressBar = null;
+    this.paginationEl = null;
+  }
 
-  connectedCallback(): void {
-    const settingsScript = this.querySelector<HTMLScriptElement>('script[type="application/json"]');
-    const settings: CarouselConfig = settingsScript ? JSON.parse(settingsScript.textContent ?? '{}') : {};
+  connectedCallback() {
+    const settingsScript = this.querySelector('script[type="application/json"]');
+    const settings = settingsScript ? JSON.parse(settingsScript.textContent ?? '{}') : {};
 
-    const defaultSettings: CarouselConfig = {
+    const defaultSettings = {
       slidesPerView: 'auto',
       spaceBetween: 20,
       centeredSlides: false,
@@ -30,21 +28,21 @@ class CarouselSwiper extends HTMLElement {
       autoplay: false,
     };
 
-    const config: CarouselConfig = { ...defaultSettings, ...settings };
-    const swiperContainer = this.querySelector<HTMLElement>('.swiper');
+    const config = { ...defaultSettings, ...settings };
+    const swiperContainer = this.querySelector('.swiper');
     if (!swiperContainer) return;
 
-    const navigationConfig: Partial<SwiperOptions> = {};
+    const navigationConfig = {};
 
     if (config.navigation) {
-      const closestParent = this.closest<HTMLElement>('[data-swiper-parent]');
-      let prevButton = (closestParent ?? this).querySelector<HTMLButtonElement>('.swiper-button-prev')
-        ?? (closestParent ?? this).querySelector<HTMLButtonElement>('.carousel__nav-button--prev');
-      let nextButton = (closestParent ?? this).querySelector<HTMLButtonElement>('.swiper-button-next')
-        ?? (closestParent ?? this).querySelector<HTMLButtonElement>('.carousel__nav-button--next');
+      const closestParent = this.closest('[data-swiper-parent]');
+      let prevButton = (closestParent ?? this).querySelector('.swiper-button-prev')
+        ?? (closestParent ?? this).querySelector('.carousel__nav-button--prev');
+      let nextButton = (closestParent ?? this).querySelector('.swiper-button-next')
+        ?? (closestParent ?? this).querySelector('.carousel__nav-button--next');
 
       if (!prevButton || !nextButton) {
-        const navContainer = this.querySelector<HTMLElement>('.carousel__navigation') ?? document.createElement('div');
+        const navContainer = this.querySelector('.carousel__navigation') ?? document.createElement('div');
         if (!navContainer.classList.contains('carousel__navigation')) {
           navContainer.className = 'carousel__navigation tw-flex tw-items-center tw-justify-end tw-gap-3 tw-mt-8';
           this.appendChild(navContainer);
@@ -101,18 +99,18 @@ class CarouselSwiper extends HTMLElement {
       }
     }
 
-    const paginationConfig: Partial<SwiperOptions> = {};
+    const paginationConfig = {};
     if (config.pagination) {
-      const paginationParent = this.closest<HTMLElement>('[data-swiper-parent]');
-      const paginationEl = this.querySelector<HTMLElement>('.swiper-pagination')
-        ?? paginationParent?.querySelector<HTMLElement>('.swiper-pagination')
+      const paginationParent = this.closest('[data-swiper-parent]');
+      const paginationEl = this.querySelector('.swiper-pagination')
+        ?? paginationParent?.querySelector('.swiper-pagination')
         ?? null;
       if (paginationEl) {
         paginationConfig.pagination = { el: paginationEl, type: 'bullets', clickable: true };
       }
     }
 
-    const autoplayConfig: Partial<SwiperOptions> = {};
+    const autoplayConfig = {};
     const isAutoplayEnabled = config.autoplay && (typeof config.autoplay === 'object' || config.autoplay === true);
 
     if (isAutoplayEnabled) {
@@ -124,10 +122,10 @@ class CarouselSwiper extends HTMLElement {
         ...autoplaySettings,
       };
 
-      this.autoplayProgressBar = this.querySelector<HTMLElement>('.autoplay-progress__bar');
-      const autoplayParent = this.closest<HTMLElement>('[data-swiper-parent]');
-      this.paginationEl = this.querySelector<HTMLElement>('.swiper-pagination')
-        ?? autoplayParent?.querySelector<HTMLElement>('.swiper-pagination')
+      this.autoplayProgressBar = this.querySelector('.autoplay-progress__bar');
+      const autoplayParent = this.closest('[data-swiper-parent]');
+      this.paginationEl = this.querySelector('.swiper-pagination')
+        ?? autoplayParent?.querySelector('.swiper-pagination')
         ?? null;
     }
 
@@ -171,7 +169,7 @@ class CarouselSwiper extends HTMLElement {
       },
     });
 
-    let resizeTimeout: ReturnType<typeof setTimeout>;
+    let resizeTimeout;
     this._resizeHandler = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => this.updateSlideFocusability(), 100);
@@ -179,20 +177,20 @@ class CarouselSwiper extends HTMLElement {
     window.addEventListener('resize', this._resizeHandler);
   }
 
-  private updateProgress(config: CarouselConfig): void {
+  updateProgress(config) {
     if (!config.progressBarSelector || !this.swiper) return;
-    const progressBar = document.querySelector<HTMLElement>(config.progressBarSelector);
+    const progressBar = document.querySelector(config.progressBarSelector);
     if (progressBar) {
       const progress = ((this.swiper.activeIndex + 1) / this.swiper.slides.length) * 100;
       progressBar.style.width = `${progress}%`;
     }
   }
 
-  private updateButtonAccessibility(): void {
+  updateButtonAccessibility() {
     if (!this.swiper) return;
-    const parent = this.closest<HTMLElement>('[data-swiper-parent]') ?? this;
-    const prevButton = parent.querySelector<HTMLElement>('.carousel__nav-button--prev, .swiper-button-prev');
-    const nextButton = parent.querySelector<HTMLElement>('.carousel__nav-button--next, .swiper-button-next');
+    const parent = this.closest('[data-swiper-parent]') ?? this;
+    const prevButton = parent.querySelector('.carousel__nav-button--prev, .swiper-button-prev');
+    const nextButton = parent.querySelector('.carousel__nav-button--next, .swiper-button-next');
 
     if (prevButton) {
       prevButton.setAttribute('tabindex', '0');
@@ -204,19 +202,19 @@ class CarouselSwiper extends HTMLElement {
     }
   }
 
-  private updateSlideFocusability(): void {
+  updateSlideFocusability() {
     if (!this.swiper) return;
     const swiperEl = this.swiper.el;
     const swiperRect = swiperEl.getBoundingClientRect();
 
-    swiperEl.querySelectorAll<HTMLElement>('.swiper-slide').forEach(slide => {
+    swiperEl.querySelectorAll('.swiper-slide').forEach((slide) => {
       const { right, left, bottom, top } = slide.getBoundingClientRect();
       const isVisible = right > swiperRect.left && left < swiperRect.right
         && bottom > swiperRect.top && top < swiperRect.bottom;
 
-      slide.querySelectorAll<HTMLElement>(
+      slide.querySelectorAll(
         'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      ).forEach(el => {
+      ).forEach((el) => {
         if (isVisible) {
           if (el.getAttribute('tabindex') === '-1') el.removeAttribute('tabindex');
           if (el.tagName === 'A' || el.tagName === 'BUTTON') el.removeAttribute('tabindex');
@@ -227,22 +225,22 @@ class CarouselSwiper extends HTMLElement {
     });
   }
 
-  private updateAutoplayProgress(progress: number): void {
+  updateAutoplayProgress(progress) {
     const pct = (1 - progress) * 100;
     if (this.autoplayProgressBar) this.autoplayProgressBar.style.width = `${pct}%`;
     if (this.paginationEl) {
-      this.paginationEl.querySelector<HTMLElement>('.swiper-pagination-bullet-active')
+      this.paginationEl.querySelector('.swiper-pagination-bullet-active')
         ?.style.setProperty('--progress-width', `${pct}%`);
     }
   }
 
-  private resetPaginationProgress(): void {
+  resetPaginationProgress() {
     if (!this.paginationEl) return;
-    this.paginationEl.querySelectorAll<HTMLElement>('.swiper-pagination-bullet')
-      .forEach(bullet => bullet.style.setProperty('--progress-width', '0%'));
+    this.paginationEl.querySelectorAll('.swiper-pagination-bullet')
+      .forEach((bullet) => bullet.style.setProperty('--progress-width', '0%'));
   }
 
-  disconnectedCallback(): void {
+  disconnectedCallback() {
     this._buttonObserver?.disconnect();
     this._buttonObserver = null;
     if (this._resizeHandler) {
