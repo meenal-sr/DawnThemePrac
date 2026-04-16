@@ -11,10 +11,9 @@ All files in `.claude/` must be copied to `~/.claude/` so they are available glo
 > **Note:** This overwrites any existing files with the same name. Back up `~/.claude/` first if you have custom configs you want to preserve.
 
 ```bash
-# 1. Copy agents, commands, contexts, rules globally
+# 1. Copy agents, commands, rules globally
 cp -r .claude/agents/    ~/.claude/agents/
 cp -r .claude/commands/  ~/.claude/commands/
-cp -r .claude/contexts/  ~/.claude/contexts/
 cp -r .claude/rules/     ~/.claude/rules/
 
 # 2. Seed project memory into Claude's global memory store
@@ -26,7 +25,7 @@ cp .claude/memory/*.md "$MEMORY_DIR/"
 
 After running this:
 - Rules load automatically on every conversation
-- Agents, commands, and contexts are available in any project
+- Agents and commands are available in any project
 - Claude auto-loads project memory at the start of every session
 
 ---
@@ -45,16 +44,6 @@ Always-on guidelines loaded automatically into every conversation.
 | `performance.md` | Model selection (Haiku/Sonnet/Opus), context window management |
 | `agents.md` | When and how to delegate to subagents |
 | `crosscode-instructions.md` | Shopify-specific: Skills, MCP Servers, Build System, Feature Workflow, Theme Patterns |
-
-### Contexts (`~/.claude/contexts/`)
-
-Set Claude's operating mode at the start of a session.
-
-| File | Purpose | How to invoke |
-| --- | --- | --- |
-| `dev.md` | Active development mode (code first, ship fast) | `use @dev context` |
-| `research.md` | Exploration mode (read before writing, findings first) | `use @research context` |
-| `review.md` | Code review mode (severity-ranked checklist) | `use @review context` |
 
 ### Commands / Skills (`~/.claude/commands/`)
 
