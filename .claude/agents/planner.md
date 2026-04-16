@@ -125,6 +125,7 @@ Write a self-contained `brief.md` informed by the Architect's confirmed technica
 - Feature name and purpose
 - Figma references — Desktop: [node ID or URL] / Mobile: [node ID or URL]
 - **Template type:** `page` | `product` | `collection` — determines test URL and which test template the section is added to
+- **Accessibility:** `required` (default) | `skip` — when `skip`, test-agent omits axe scans and visual-qa-agent treats a11y as deliberately waived. Only use `skip` if the section is behind a feature flag, internal-only, or has a documented exemption from the human.
 
 **Architecture decisions**
 - Liquid type (section or snippet) — from Architect, with reasoning

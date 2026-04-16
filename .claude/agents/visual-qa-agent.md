@@ -141,7 +141,11 @@ If diff images exist in `qa/diff-*/`, examine them to identify which areas diffe
 
 ### Step 5 — Accessibility check (axe-core violations)
 
-For each `qa/a11y-<breakpoint>.json` file, parse the array. Each entry has:
+First, check `brief.md` for the `Accessibility:` field and `qa/a11y-skipped.marker`.
+
+**If brief says `skip` AND the marker file exists:** record "A11y skipped by brief" in the report's Accessibility Check section. Do not treat as a mismatch. Do not block PASS.
+
+**Otherwise:** for each `qa/a11y-<breakpoint>.json` file, parse the array. Each entry has:
 - `id` — axe rule ID (e.g. `color-contrast`, `button-name`, `image-alt`)
 - `impact` — `critical` | `serious` | `moderate` | `minor`
 - `help` — short description
@@ -195,6 +199,8 @@ Runs completed: [n]
 |---|---|---|---|---|---|
 | Mobile 375px | 0 | 1 | 0 | 2 | NEEDS_FIX |
 | Desktop 1280px | 0 | 0 | 0 | 1 | Pass |
+
+*(If brief declares `Accessibility: skip`, replace this table with a single row: `Skipped by brief — marker: qa/a11y-skipped.marker`.)*
 
 ## Mismatches
 

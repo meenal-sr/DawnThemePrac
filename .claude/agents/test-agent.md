@@ -119,6 +119,19 @@ Name screenshots as `live-[breakpoint].png` (e.g. `live-mobile.png`, `live-deskt
 
 ### Accessibility scan pattern
 
+First, read `brief.md` for the `Accessibility:` field. If it says **`skip`**, do not emit any a11y tests and do not import `@axe-core/playwright`. Instead, write a marker file so visual-qa-agent knows the skip was deliberate:
+
+```js
+// At the top of ui.spec.js when brief declares Accessibility: skip
+const fs = require('fs');
+const path = require('path');
+const qaDir = path.join(process.cwd(), 'features', 'hero-banner', 'qa');
+fs.mkdirSync(qaDir, { recursive: true });
+fs.writeFileSync(path.join(qaDir, 'a11y-skipped.marker'), 'skipped-by-brief\n');
+```
+
+If `Accessibility: required` (or the field is absent — default to required), emit the axe tests described below.
+
 Use `@axe-core/playwright`. Scope the scan to the section root so failures from other sections on the test page don't bleed in:
 
 ```js

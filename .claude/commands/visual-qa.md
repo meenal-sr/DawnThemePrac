@@ -28,11 +28,14 @@ Re-read the output of `npx playwright test features/<feature-name>/ui.spec.js` f
 For each node in `brief.md`, re-fetch `figma.get_design_context(fileKey, nodeId)` to get the typography/color values in React+Tailwind format for exact comparison.
 
 ## Step 4b — Read axe-core accessibility results
-Read every file matching `features/<feature-name>/qa/a11y-*.json` — one per breakpoint, emitted by `@axe-core/playwright` from inside `ui.spec.js`.
 
-If no `a11y-*.json` files exist: the specs didn't include a11y tests. Stop and re-run `/test-ui <feature-name>` — the test-agent template must include axe scans per breakpoint.
+Check `brief.md` for the `Accessibility:` field:
 
-Each file is an array of axe `results.violations`. Keep the raw JSON to embed in the agent prompt; the agent parses and grades severity.
+**If `skip`** — verify `features/<feature-name>/qa/a11y-skipped.marker` exists. If yes, record "a11y skipped by brief" and move on. If the marker is missing, test-agent ignored the brief — stop and re-run `/test-ui <feature-name>`.
+
+**If `required` (or field absent)** — read every file matching `features/<feature-name>/qa/a11y-*.json`, one per breakpoint. If no JSON files exist, the specs didn't include a11y tests. Stop and re-run `/test-ui <feature-name>` — the test-agent template must include axe scans per breakpoint when a11y is required.
+
+Each JSON file is an array of axe `results.violations`. Keep the raw JSON to embed in the agent prompt; the agent parses and grades severity.
 
 ## Step 5 — Pixelmatch diff (spacing + layout)
 For each breakpoint present in `features/<feature-name>/qa/`, match `figma-<breakpoint>.png` with `live-<breakpoint>.png` via:
