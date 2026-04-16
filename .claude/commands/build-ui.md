@@ -25,7 +25,7 @@ Call for **each** node ID listed in brief:
 
 ## Step 4 — Memory + skill prefetch
 Per the Main Prefetch Contract in `.claude/rules/agents.md` → ui-agent row:
-- Skills: `tailwind-design-system`, `web-design-guidelines` — invoke via Skill tool
+- Skills: `web-design-guidelines` — invoke via Skill tool
 - Memory subset: filter `MEMORY.md` `type: reference` entries tagged section/snippet architecture, Tailwind organization, Liquid best practices, responsive + a11y patterns
 
 ## Step 5 — Spawn ui-agent

@@ -18,7 +18,6 @@ See `.claude/rules/workflow-commands.md` for the full decision tree. Project ski
 | `/load-memory` | Explicit full memory load (beyond MEMORY.md index) |
 | `webapp-testing` | Playwright patterns — invoked by main for test-agent / page-integration-test |
 | `modern-javascript-patterns` | ES6+ patterns — invoked by main for js-agent / code-reviewer |
-| `tailwind-design-system` | Token application + responsive variants — invoked by main for ui-agent |
 | `vercel-react-best-practices` | React island patterns — invoked by main for js-agent / code-reviewer **only if `.jsx` files present** |
 | `web-design-guidelines` | a11y + interface standards — invoked by main for ui-agent / visual-qa-agent / code-reviewer |
 | `caveman` | Token-compression communication mode (trigger: "caveman mode") |

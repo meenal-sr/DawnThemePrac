@@ -16,7 +16,7 @@ Subagents cannot call MCPs, skills, or `load-memory`. Main prefetches and embeds
 |---|---|---|---|---|
 | planner | `figma.get_design_context`, `figma.get_screenshot` | `plan` | Shopify section/snippet architecture, JS component patterns, Tailwind organization, a11y patterns | — |
 | architect | `shopify-dev-mcp.search_docs_chunks` (on demand), `sequential-thinking` (complex deps) | `plan` | Shopify architecture, JS patterns, proven theme patterns | — |
-| ui-agent | `figma.get_design_context`, `figma.get_screenshot` | `tailwind-design-system`, `web-design-guidelines` | Section/snippet architecture, Tailwind organization, Liquid best practices, responsive+a11y patterns | `shopify-dev-mcp.learn_shopify_api` + `validate_theme` (loop max 3) |
+| ui-agent | `figma.get_design_context`, `figma.get_screenshot` | `web-design-guidelines` | Section/snippet architecture, Tailwind organization, Liquid best practices, responsive+a11y patterns | `shopify-dev-mcp.learn_shopify_api` + `validate_theme` (loop max 3) |
 | js-agent | `shopify-dev-mcp.search_docs_chunks` (on demand), `context7` (libs) | `modern-javascript-patterns`, `vercel-react-best-practices` (only for `.jsx`/React islands) | JS class/component patterns, Shopify section architecture, DOM lifecycle | `ide.getDiagnostics` + `yarn lint` per file (loop max 3) |
 | test-agent | — | `webapp-testing` | Playwright structure for Shopify storefronts, test scenario patterns | `npx playwright test features/[name]/*.spec.js` |
 | visual-qa-agent | `figma.get_screenshot` (saved to `qa/figma-*.png`) | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
