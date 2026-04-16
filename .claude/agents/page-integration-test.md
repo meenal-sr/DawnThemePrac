@@ -31,7 +31,7 @@ Apply matching patterns when structuring multi-route mocks, cross-section event 
 
 ## Inputs
 - `/pages/[page-name]/page-test-scenarios.md` — written by human, cross-section journeys only
-- `/pages/[page-name]/artifacts/page-plan.md` — for cross-section event map
+- `/pages/[page-name]/page-plan.md` — for cross-section event map
 - All section `component-api.md` files — for event shapes and public methods
 
 ## Outputs

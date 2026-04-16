@@ -1,0 +1,72 @@
+// Hero Banner Section
+// All layout and typography handled via Tailwind tw- classes in the Liquid template.
+// This file covers: min-height, hover state, and anything Tailwind can't express in markup.
+
+.hero-banner {
+  min-height: 400px;
+
+  @media (min-width: 1024px) {
+    min-height: 560px;
+  }
+}
+
+// Background image fills the section container fully
+.hero-banner__bg,
+.hero-banner__bg-img {
+  pointer-events: none;
+  user-select: none;
+}
+
+// Content container — max-width set via inline style from section setting
+.hero-banner__container {
+  // horizontal padding defined by tw-px-5 in markup
+  // max-width injected as inline style from section.settings.content_max_width
+}
+
+// Inner content stack
+.hero-banner__inner {
+  // gap and flex-direction handled by tw- classes in markup
+  padding-top: 31px;
+  padding-bottom: 32px;
+
+  @media (min-width: 1024px) {
+    // desktop padding comes from section settings via <style> block in Liquid
+    // reset here so the inline style on .hero-banner takes precedence at section level
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+// Heading — max-width constraint matches design
+.hero-banner__heading {
+  max-width: 503px;
+}
+
+// Description richtext — reset any inherited margins from Shopify default styles
+.hero-banner__description {
+  p {
+    margin: 0;
+
+    & + p {
+      margin-top: 0.5em;
+    }
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
+
+// CTA button hover state
+.hero-banner__cta {
+  &:hover,
+  &:focus-visible {
+    background-color: #016a97;
+    outline-offset: 3px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+  }
+}

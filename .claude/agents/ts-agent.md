@@ -37,7 +37,7 @@ Apply any matching patterns when structuring your class, typing your interfaces,
 ---
 
 ## Inputs
-- `[workspace]/artifacts/component-structure.md`
+- `[workspace]/component-structure.md`
 - `[workspace]/brief.md`
 
 The workspace is provided by the Orchestrator and may be `/features/[name]/` or `/pages/[name]/sections/[section-name]/` depending on the build context.
@@ -49,7 +49,7 @@ The exact output file path is determined by the Architect's decisions in `brief.
 |---|---|---|
 | Section TS entry | `ts/sections/[name].ts` | When this is the section's own script — webpack picks up all files in this folder as entry points |
 | Shared TS component | `ts/components/[name].ts` | When brief specifies a reusable component imported by other sections via the `TsComponents` alias |
-| Handoff doc | `[workspace]/artifacts/component-api.md` | Always — workspace path provided by Orchestrator |
+| Handoff doc | `[workspace]/component-api.md` | Always — workspace path provided by Orchestrator |
 
 Never write to `/assets/` — webpack owns that folder. Never write `.js` files.
 

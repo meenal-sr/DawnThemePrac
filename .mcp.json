@@ -4,10 +4,6 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"]
     },
-    "firecrawl": {
-      "command": "npx",
-      "args": ["-y", "firecrawl-mcp"]
-    },
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"]
@@ -35,10 +31,6 @@
     "playwright-mcp": {
       "command": "npx",
       "args": ["-y", "playwright-mcp"]
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp", "--browser", "chrome"]
     },
     "token-optimizer": {
       "command": "npx",

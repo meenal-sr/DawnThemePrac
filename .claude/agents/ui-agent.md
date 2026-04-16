@@ -99,7 +99,7 @@ The exact output files and their paths are determined by the Architect's decisio
 | Liquid section | `/sections/[name].liquid` | When brief specifies a section (has schema, placed in theme editor) |
 | Liquid snippet | `/snippets/[name].liquid` | When brief specifies a snippet (stateless, rendered by parent) |
 | SCSS | `/scss/sections/[name].scss` | Always — webpack picks up all files in this folder as entry points |
-| Handoff doc | `[workspace]/artifacts/component-structure.md` | Always |
+| Handoff doc | `[workspace]/component-structure.md` | Always |
 
 Never write to `/assets/` — webpack owns that folder.
 Never write JavaScript — that is the TS Agent's responsibility.
@@ -198,7 +198,7 @@ Write to `/scss/sections/[name].scss` — this is a webpack entry point and will
 - Responsive overrides go inside `@include breakpoints.up(md)` (or the relevant breakpoint) — never `max-width` queries
 
 ### Step 6 — Write component-structure.md
-Write to `[workspace]/artifacts/component-structure.md`. This is your handoff document to the TS Agent and the Orchestrator. It must include:
+Write to `[workspace]/component-structure.md`. This is your handoff document to the TS Agent and the Orchestrator. It must include:
 
 ```markdown
 # Component Structure — [ComponentName]
