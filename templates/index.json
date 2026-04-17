@@ -121,6 +121,19 @@
         "padding_top": 52,
         "padding_bottom": 52
       }
+    },
+    "10x_founder_quote_8gmT8m": {
+      "type": "10x-founder-quote",
+      "name": "10X Founder Quote",
+      "settings": {
+        "background_image": "shopify://shop_images/baground.png",
+        "logo_image": "shopify://shop_images/logo.png",
+        "portrait_image": "shopify://shop_images/logo1.png",
+        "quote_text": "<p>\"For the past decade, I have researched ways to improve my overall wellbeing, alternatives to surgery, specific medicines, and supplementing just to supplement... I was in daily chronic pain and now, at 64, I am in the best shape of my life. I am free of pain, anxiety, stress, and I am able to accomplish more than any other time in my life.\"</p>",
+        "attribution_name": "Grant Cardone",
+        "padding_top": 40,
+        "padding_bottom": 40
+      }
     }
   },
   "order": [
@@ -128,6 +141,7 @@
     "featured_collection",
     "careers_hero_D4DkpE",
     "image_text_with_badge_PrEaJt",
-    "text_with_image_LDEEmr"
+    "text_with_image_LDEEmr",
+    "10x_founder_quote_8gmT8m"
   ]
 }
