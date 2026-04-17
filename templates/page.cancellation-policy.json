@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "content": {
+      "type": "cancellation-policy-content",
+      "settings": {}
+    },
+    "form": {
+      "type": "cancellation-form",
+      "settings": {}
+    }
+  },
+  "order": ["content", "form"]
+}

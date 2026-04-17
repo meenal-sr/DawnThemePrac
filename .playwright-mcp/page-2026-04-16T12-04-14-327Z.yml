@@ -1,0 +1,22 @@
+- alert [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e9]:
+      - img [ref=e12]
+      - heading "Upload Errors" [level=2] [ref=e16]
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - text: sections/cancellation-policy-content.liquid
+        - list [ref=e20]:
+          - listitem [ref=e21]: "Invalid schema: name is too long (max 25 characters)"
+      - generic [ref=e22]:
+        - text: sections/main-product.liquid
+        - list [ref=e23]:
+          - listitem [ref=e24]: "Liquid syntax error (line 44): Expected end_of_string but found pipe in \"section.blocks | map: 'type' | contains 'quantity_selector'\""
+      - generic [ref=e25]:
+        - text: sections/video-with-text.liquid
+        - list [ref=e26]:
+          - listitem [ref=e27]: "Invalid schema: setting with id=\"padding_bottom\" default must be a step in the range"
+      - generic [ref=e28]:
+        - text: templates/page.cancellation-policy.json
+        - list [ref=e29]:
+          - listitem [ref=e30]: Section type 'cancellation-policy-content' does not refer to an existing section file

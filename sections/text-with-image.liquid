@@ -1,0 +1,266 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .text-with-image-{{ section.id }} {
+    padding: 24px 16px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    order: 0;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__heading {
+    margin: 0;
+    font-weight: 700;
+    color: #000000;
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__body {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #515151;
+    line-height: 24px;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__body p {
+    margin: 0 0 12px;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__body strong,
+  .text-with-image-{{ section.id }} .text-with-image__body b {
+    font-weight: 700;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__body a {
+    color: #515151;
+    text-decoration: underline;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__media {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    border-radius: 10px;
+    overflow: hidden;
+    order: 1;
+    flex-shrink: 0;
+  }
+
+  .text-with-image-{{ section.id }} .text-with-image__media img,
+  .text-with-image-{{ section.id }} .text-with-image__media .placeholder-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+
+  /* ========================================
+     TABLET (768px – 1024px)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .text-with-image-{{ section.id }} {
+      padding: 40px 32px;
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__heading {
+      font-size: 30px;
+      line-height: 38px;
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__media {
+      height: 320px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (>=1024px)
+     Figma node: 5034:1758
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .text-with-image-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 50px {{ section.settings.padding_bottom }}px;
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__wrapper {
+      flex-direction: row;
+      align-items: center;
+      gap: 0;
+      max-width: 1340px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__content {
+      flex: 1 1 0;
+      max-width: 670px;
+      order: {{ section.settings.image_position | default: 'right' | replace: 'right', '0' | replace: 'left', '1' }};
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__content--pad-right {
+      padding-right: 100px;
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__content--pad-left {
+      padding-left: 100px;
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__media {
+      flex: 1 1 0;
+      height: auto;
+      min-height: 410px;
+      order: {{ section.settings.image_position | default: 'right' | replace: 'right', '1' | replace: 'left', '0' }};
+    }
+
+    .text-with-image-{{ section.id }} .text-with-image__heading {
+      font-size: 32px;
+      line-height: 42px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="text-with-image-{{ section.id }}">
+    <div class="text-with-image__wrapper">
+      <div class="text-with-image__media">
+        {%- if section.settings.image != blank -%}
+          {%- assign img_alt = section.settings.image.alt | default: section.settings.heading | strip_html | escape -%}
+          {{
+            section.settings.image
+            | image_url: width: 1600
+            | image_tag:
+              loading: 'lazy',
+              widths: '400, 600, 800, 1200, 1600',
+              sizes: '(min-width: 1024px) 50vw, 100vw',
+              alt: img_alt
+          }}
+        {%- else -%}
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        {%- endif -%}
+      </div>
+
+      {%- assign pad_class = 'text-with-image__content--pad-right' -%}
+      {%- if section.settings.image_position == 'left' -%}
+        {%- assign pad_class = 'text-with-image__content--pad-left' -%}
+      {%- endif -%}
+
+      <div class="text-with-image__content {{ pad_class }}">
+        {%- if section.settings.heading != blank -%}
+          <{{ section.settings.heading_size }} class="text-with-image__heading">
+            {{ section.settings.heading }}
+          </{{ section.settings.heading_size }}>
+        {%- endif -%}
+
+        {%- if section.settings.body != blank -%}
+          <div class="text-with-image__body rte">{{ section.settings.body }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Text with Image",
+  "tag": "section",
+  "class": "section text-with-image",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "How will SEER2 impact Homeowners?"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body text",
+      "default": "<p>There are a couple of ways that homeowners will be affected by the new SEER standards:</p><p><strong>You will save money.</strong></p><p>About 76 million US homes use central air, and 13 million use heat pumps. Once the new standards go into effect, those households collectively will reduce their energy bills by $2.5 - $12 billion over the next 30 years.</p><p><strong>The values that measure a unit or system's efficiency are changing.</strong></p><p>\"SEER\" as you know it will no longer exist as measurement of an HVAC system's efficiency. This will be completely replaced by \"SEER2\". The values are also changing. For example, 14 SEER will become 13.4 - 14.3 SEER2. 16 SEER will become 15.2-15.4 SEER2.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "background-1"
+    },
+    {
+      "type": "header",
+      "content": "Desktop section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 52
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 52
+    }
+  ],
+  "presets": [
+    {
+      "name": "Text with Image"
+    }
+  ]
+}
+{% endschema %}

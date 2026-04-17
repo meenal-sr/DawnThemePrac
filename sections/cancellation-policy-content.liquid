@@ -1,0 +1,179 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .cancellation-content-{{ section.id }} {
+    background-color: {{ section.settings.background_color }};
+    padding: 24px 16px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__container {
+    max-width: {{ section.settings.max_width }}px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body {
+    color: {{ section.settings.text_color }};
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body h1,
+  .cancellation-content-{{ section.id }} .cancellation-content__body h2 {
+    color: {{ section.settings.heading_color }};
+    font-size: 28px;
+    font-weight: 700;
+    line-height: normal;
+    margin: 0 0 12px;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body h1:not(:first-child),
+  .cancellation-content-{{ section.id }} .cancellation-content__body h2:not(:first-child) {
+    margin-top: 24px;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body p {
+    margin: 0 0 12px;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body ol,
+  .cancellation-content-{{ section.id }} .cancellation-content__body ul {
+    margin: 0 0 12px;
+    padding-left: 22.5px;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body li {
+    margin-bottom: 0;
+    line-height: 24px;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body a {
+    color: {{ section.settings.text_color }};
+    text-decoration: underline;
+  }
+
+  .cancellation-content-{{ section.id }} .cancellation-content__body strong,
+  .cancellation-content-{{ section.id }} .cancellation-content__body b {
+    font-weight: 700;
+  }
+
+  /* ========================================
+     TABLET (768px – 1024px)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .cancellation-content-{{ section.id }} {
+      padding: 30px 32px;
+    }
+
+    .cancellation-content-{{ section.id }} .cancellation-content__body h1,
+    .cancellation-content-{{ section.id }} .cancellation-content__body h2 {
+      font-size: 36px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (>=1024px)
+     Figma node: 5514:499
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .cancellation-content-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 50px {{ section.settings.padding_bottom }}px;
+    }
+
+    .cancellation-content-{{ section.id }} .cancellation-content__body h1,
+    .cancellation-content-{{ section.id }} .cancellation-content__body h2 {
+      font-size: 48px;
+    }
+
+    .cancellation-content-{{ section.id }} .cancellation-content__body h1:not(:first-child),
+    .cancellation-content-{{ section.id }} .cancellation-content__body h2:not(:first-child) {
+      margin-top: 32px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="cancellation-content-{{ section.id }}">
+  <div class="cancellation-content__container">
+    {% render 'breadcrumbs' %}
+    {%- if page.content != blank -%}
+      <div class="cancellation-content__body rte">
+        {{ page.content }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cancellation Policy Content",
+  "tag": "section",
+  "class": "section cancellation-policy-content",
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#F4F6F8"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#515151"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max width",
+      "min": 800,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1340
+    },
+    {
+      "type": "header",
+      "content": "Desktop section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cancellation Policy Content"
+    }
+  ]
+}
+{% endschema %}

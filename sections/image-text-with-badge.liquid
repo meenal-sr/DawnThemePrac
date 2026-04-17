@@ -1,0 +1,406 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .image-text-badge-{{ section.id }} {
+    padding: 24px 16px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__media {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    overflow: visible;
+    order: 0;
+    flex-shrink: 0;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__media-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__media img,
+  .image-text-badge-{{ section.id }} .image-text-badge__media .placeholder-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__badge {
+    display: none;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    order: 1;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__eyebrow {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #000000;
+    line-height: 24px;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__heading {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #000000;
+    line-height: 34px;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__body {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #515151;
+    line-height: 24px;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__body p {
+    margin: 0 0 12px;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__body a {
+    color: #515151;
+    text-decoration: underline;
+  }
+
+  .image-text-badge-{{ section.id }} .image-text-badge__body strong,
+  .image-text-badge-{{ section.id }} .image-text-badge__body b {
+    font-weight: 700;
+  }
+
+  /* ========================================
+     TABLET (768px – 1024px)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .image-text-badge-{{ section.id }} {
+      padding: 40px 32px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__media {
+      height: 320px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__eyebrow {
+      font-size: 15px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__heading {
+      font-size: 30px;
+      line-height: 38px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__badge {
+      display: block;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 65px;
+      height: 65px;
+      z-index: 3;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__badge--right {
+      right: -32px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__badge--left {
+      left: -32px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (>=1024px)
+     Figma node: 4703:12
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .image-text-badge-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 50px {{ section.settings.padding_bottom }}px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__wrapper {
+      flex-direction: row;
+      align-items: center;
+      gap: 0;
+      max-width: 1340px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__media {
+      flex: 1 1 0;
+      height: auto;
+      min-height: 447px;
+      order: {{ section.settings.image_position | default: 'left' | replace: 'left', '0' | replace: 'right', '1' }};
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__content {
+      flex: 1 1 0;
+      max-width: 670px;
+      order: {{ section.settings.image_position | default: 'left' | replace: 'left', '1' | replace: 'right', '0' }};
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__content--pad-left {
+      padding-left: 100px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__content--pad-right {
+      padding-right: 100px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__eyebrow {
+      font-size: 15.9px;
+      line-height: 24.9px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__heading {
+      font-size: 32px;
+      line-height: 42px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__badge {
+      display: block;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 79px;
+      height: 79px;
+      z-index: 3;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__badge--right {
+      right: -39.5px;
+    }
+
+    .image-text-badge-{{ section.id }} .image-text-badge__badge--left {
+      left: -39.5px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme | default: 'background-1' }} gradient">
+  <div class="image-text-badge-{{ section.id }}">
+    <div class="image-text-badge__wrapper">
+      <div class="image-text-badge__media">
+        <div class="image-text-badge__media-inner">
+          {%- if section.settings.image != blank -%}
+            {%- assign img_alt = section.settings.image.alt | default: section.settings.heading | strip_html | escape -%}
+            {{
+              section.settings.image
+              | image_url: width: 1600
+              | image_tag:
+                loading: 'lazy',
+                widths: '400, 600, 800, 1200, 1600',
+                sizes: '(min-width: 1024px) 50vw, 100vw',
+                alt: img_alt
+            }}
+          {%- else -%}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {%- endif -%}
+        </div>
+
+        {%- if section.settings.show_badge -%}
+          {%- assign badge_side = 'right' -%}
+          {%- if section.settings.image_position == 'right' -%}
+            {%- assign badge_side = 'left' -%}
+          {%- endif -%}
+
+          <div class="image-text-badge__badge image-text-badge__badge--{{ badge_side }}">
+            <svg viewBox="0 0 79 79" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <path id="badge-text-path-{{ section.id }}" d="M 39.5,39.5 m -30,0 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0"/>
+                <clipPath id="badge-clip-{{ section.id }}">
+                  <circle cx="39.5" cy="39.5" r="14"/>
+                </clipPath>
+              </defs>
+              <circle cx="39.5" cy="39.5" r="39.5" fill="#ffffff"/>
+              {%- if section.settings.badge_image != blank -%}
+                <image
+                  href="{{ section.settings.badge_image | image_url: width: 56 }}"
+                  x="25.5" y="25.5" width="28" height="28"
+                  clip-path="url(#badge-clip-{{ section.id }})"
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              {%- endif -%}
+              {%- if section.settings.badge_text != blank -%}
+                <text
+                  font-size="8"
+                  font-weight="700"
+                  font-family="'DM Sans', sans-serif"
+                  fill="#000000"
+                  letter-spacing="0.5"
+                  text-anchor="middle"
+                >
+                  <textPath href="#badge-text-path-{{ section.id }}" startOffset="50%">
+                    {{ section.settings.badge_text | upcase | escape }}
+                  </textPath>
+                </text>
+              {%- endif -%}
+            </svg>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- assign pad_class = 'image-text-badge__content--pad-left' -%}
+      {%- if section.settings.image_position == 'right' -%}
+        {%- assign pad_class = 'image-text-badge__content--pad-right' -%}
+      {%- endif -%}
+
+      <div class="image-text-badge__content {{ pad_class }}">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="image-text-badge__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <{{ section.settings.heading_size }} class="image-text-badge__heading">
+            {{ section.settings.heading }}
+          </{{ section.settings.heading_size }}>
+        {%- endif -%}
+
+        {%- if section.settings.body != blank -%}
+          <div class="image-text-badge__body rte">{{ section.settings.body }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Image Text with Badge",
+  "tag": "section",
+  "class": "section image-text-with-badge",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "The Need for Change"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Transitioning from R410A to R32 and R454 Refrigerants"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body text",
+      "default": "<p>As environmental regulations tighten and the need for sustainable solutions grows, the HVAC industry is shifting from traditional refrigerants like R410A to newer, more environmentally friendly alternatives.</p><p>R410A has been a popular choice in HVAC systems due to its efficiency and effectiveness. However, with a high global warming potential (GWP) of 2088, it contributes substantially to global warming.</p>"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Badge"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show badge",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "badge_image",
+      "label": "Badge center image"
+    },
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "R32 & R454 Refrigerant"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "background-1"
+    },
+    {
+      "type": "header",
+      "content": "Desktop section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image Text with Badge"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,38 @@
+{%- style -%}
+  .breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #515151;
+    line-height: 24px;
+    padding: 16px 0;
+  }
+
+  .breadcrumbs__link {
+    color: #515151;
+    text-decoration: none;
+  }
+
+  .breadcrumbs__link:hover {
+    text-decoration: underline;
+  }
+
+  .breadcrumbs__separator {
+    color: #515151;
+    font-size: 12px;
+  }
+
+  .breadcrumbs__current {
+    color: #1c1c1c;
+    font-weight: 500;
+  }
+{%- endstyle -%}
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/" class="breadcrumbs__link">Home</a>
+  <span class="breadcrumbs__separator" aria-hidden="true">|</span>
+  <span class="breadcrumbs__current" aria-current="page">{{ page.title | default: collection.title | escape }}</span>
+</nav>

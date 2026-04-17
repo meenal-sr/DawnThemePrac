@@ -1,0 +1,338 @@
+{{ 'component-deferred-media.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (360px - 768px)
+     ======================================== */
+  .vwt-{{ section.id }} {
+    padding: 24px 16px 40px;
+    background-color: #f4f6f8;
+  }
+
+  .vwt-{{ section.id }} .vwt__wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+  }
+
+  /* --- Media column --- */
+  .vwt-{{ section.id }} .vwt__media {
+    position: relative;
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+  }
+
+  .vwt-{{ section.id }} .vwt__poster {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .vwt-{{ section.id }} .vwt__poster img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .vwt-{{ section.id }} .vwt__media iframe,
+  .vwt-{{ section.id }} .vwt__media video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .vwt-{{ section.id }} .vwt__play-btn {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    transition: transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  .vwt-{{ section.id }} .vwt__poster:hover .vwt__play-btn {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+
+  .vwt-{{ section.id }} .vwt__play-btn .svg-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .vwt-{{ section.id }} .vwt__play-btn .icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 3px;
+  }
+
+  .vwt-{{ section.id }} [loaded] > .vwt__poster {
+    display: none;
+  }
+
+  /* --- Content column --- */
+  .vwt-{{ section.id }} .vwt__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .vwt-{{ section.id }} .vwt__heading {
+    margin: 0;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.2;
+    color: #000000;
+  }
+
+  .vwt-{{ section.id }} .vwt__body {
+    margin: 0;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 24px;
+    color: #000000;
+  }
+
+  .vwt-{{ section.id }} .vwt__body p {
+    margin: 0;
+  }
+
+  /* ========================================
+     TABLET (768px - 1024px)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .vwt-{{ section.id }} {
+      padding: 30px 32px 50px;
+    }
+
+    .vwt-{{ section.id }} .vwt__heading {
+      font-size: 34px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (1024px+)
+     Figma node: 5034:1676
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .vwt-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 35px {{ section.settings.padding_bottom }}px;
+    }
+
+    .vwt-{{ section.id }} .vwt__wrapper {
+      flex-direction: row;
+      gap: 0;
+      max-width: 1340px;
+      margin: 0 auto;
+      align-items: stretch;
+    }
+
+    .vwt-{{ section.id }} .vwt__media-col,
+    .vwt-{{ section.id }} .vwt__content-col {
+      flex: 1 1 0;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+    }
+
+    .vwt-{{ section.id }} .vwt__media {
+      width: 100%;
+      height: 100%;
+      min-height: 368px;
+      aspect-ratio: unset;
+    }
+
+    .vwt-{{ section.id }} .vwt__play-btn {
+      width: 100px;
+      height: 100px;
+    }
+
+    .vwt-{{ section.id }} .vwt__play-btn .icon {
+      width: 34px;
+      height: 34px;
+    }
+
+    .vwt-{{ section.id }} .vwt__heading {
+      font-size: 40px;
+      line-height: 48px;
+    }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign video_id = section.settings.video_url.id
+  assign video_alt = section.settings.description | default: section.settings.heading | strip_html | escape
+  assign poster = section.settings.cover_image
+-%}
+
+<div class="vwt-{{ section.id }}">
+  <div class="vwt__wrapper">
+    <div class="vwt__media-col">
+      <deferred-media
+        class="vwt__media"
+        data-media-id="{{ video_id }}"
+      >
+        <button
+          id="Deferred-Poster-Modal-{{ video_id }}"
+          class="vwt__poster"
+          type="button"
+          aria-label="{{ 'sections.video.load_video' | t: description: video_alt | escape }}"
+        >
+          {%- if poster != blank -%}
+            {%- assign poster_alt = poster.alt | default: video_alt -%}
+            {{
+              poster
+              | image_url: width: 1600
+              | image_tag:
+                loading: 'lazy',
+                widths: '400, 600, 800, 1200, 1600',
+                sizes: '(min-width: 1024px) 50vw, 100vw',
+                alt: poster_alt
+            }}
+          {%- else -%}
+            {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg' }}
+          {%- endif -%}
+          <span class="vwt__play-btn">
+            <span class="svg-wrapper">
+              {{- 'icon-play.svg' | inline_asset_content -}}
+            </span>
+          </span>
+        </button>
+        <template>
+          {%- if section.settings.video_url != null -%}
+            {%- if section.settings.video_url.type == 'youtube' -%}
+              <iframe
+                src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&autoplay=1"
+                class="js-youtube"
+                allow="autoplay; encrypted-media"
+                allowfullscreen
+                title="{{ video_alt }}"
+              ></iframe>
+            {%- else -%}
+              <iframe
+                src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1"
+                class="js-vimeo"
+                allow="autoplay; encrypted-media"
+                allowfullscreen
+                title="{{ video_alt }}"
+              ></iframe>
+            {%- endif -%}
+          {%- endif -%}
+        </template>
+      </deferred-media>
+    </div>
+
+    <div class="vwt__content-col">
+      <div class="vwt__content">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="vwt__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.body != blank -%}
+          <div class="vwt__body rte">{{ section.settings.body }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Video with Text",
+  "tag": "section",
+  "class": "section video-with-text",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What is \"SEER2\"?"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>Short for Seasonal Energy Efficiency Ratio 2, SEER2 measures the efficiency of your air conditioning system over an entire cooling season. It contains standards that have been updated from SEER to make heating and cooling equipment more energy efficient. The higher the SEER2 rating on your HVAC system, the more energy efficient it is.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Video"
+    },
+    {
+      "type": "video_url",
+      "id": "video_url",
+      "accept": ["youtube", "vimeo"],
+      "label": "Video URL",
+      "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+      "info": "Supports YouTube and Vimeo URLs"
+    },
+    {
+      "type": "image_picker",
+      "id": "cover_image",
+      "label": "Cover image",
+      "info": "Shows as video thumbnail before play. If empty, a placeholder is used."
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Video description",
+      "info": "Used for accessibility (screen readers)"
+    },
+    {
+      "type": "header",
+      "content": "Desktop section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 50
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video with Text"
+    }
+  ]
+}
+{% endschema %}

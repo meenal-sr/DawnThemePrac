@@ -1,0 +1,218 @@
+{%- style -%}
+  .capsule-desc-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .capsule-desc-{{ section.id }} {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .capsule-desc__wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .capsule-desc__image-col,
+  .capsule-desc__content-col {
+    width: 100%;
+  }
+
+  .capsule-desc__image-col img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .capsule-desc__heading {
+    margin: 0 0 2rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.25;
+  }
+
+  .capsule-desc__items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .capsule-desc__item {
+    border-top: 1px dashed rgba(var(--color-foreground), 0.3);
+    padding-top: 1rem;
+  }
+
+  .capsule-desc__item-title {
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .capsule-desc__item-text {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  @media screen and (min-width: 750px) {
+    .capsule-desc__wrapper {
+      flex-direction: row;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .capsule-desc__image-col,
+    .capsule-desc__content-col {
+      flex: 1 1 0;
+    }
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width capsule-desc-{{ section.id }}">
+    <div class="capsule-desc__wrapper">
+      <div class="capsule-desc__image-col">
+        {%- if section.settings.image != blank -%}
+          {{
+            section.settings.image
+            | image_url: width: 1200
+            | image_tag:
+              loading: 'lazy',
+              widths: '300, 500, 700, 900, 1200',
+              sizes: '(min-width: 750px) 50vw, 100vw',
+              alt: section.settings.image.alt
+          }}
+        {%- else -%}
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        {%- endif -%}
+      </div>
+
+      <div class="capsule-desc__content-col">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="capsule-desc__heading {{ section.settings.heading_size }}">
+            {{ section.settings.heading }}
+          </h2>
+        {%- endif -%}
+
+        {%- if section.blocks.size > 0 -%}
+          <ul class="capsule-desc__items" role="list">
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'item' -%}
+                <li class="capsule-desc__item" {{ block.shopify_attributes }}>
+                  {%- if block.settings.title != blank -%}
+                    <h3 class="capsule-desc__item-title">{{ block.settings.title }}</h3>
+                  {%- endif -%}
+                  {%- if block.settings.description != blank -%}
+                    <p class="capsule-desc__item-text">{{ block.settings.description }}</p>
+                  {%- endif -%}
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Capsule Description",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Move beyond curcumin to the power of full-spectrum oil extracts"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "h2", "label": "H2" },
+        { "value": "h1", "label": "H1" },
+        { "value": "h0", "label": "H0" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "background-1"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Item title"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Short description about this ingredient or feature."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Capsule Description",
+      "blocks": [
+        { "type": "item" },
+        { "type": "item" },
+        { "type": "item" },
+        { "type": "item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

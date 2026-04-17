@@ -1,0 +1,297 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (360px – 768px)
+     Figma node: 4915:2899
+     ======================================== */
+  .careers-hero-{{ section.id }} {
+    padding: 40px 16px;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    order: 1;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__heading {
+    margin: 0;
+    font-weight: 700;
+    color: #0b1e3d;
+    font-size: 28px;
+    line-height: 33.6px;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__location {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 900;
+    color: #0b1e3d;
+    line-height: 24px;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__location-value {
+    font-weight: 700;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__body {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #515151;
+    line-height: 24px;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__body p {
+    margin: 0;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #027db3;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: capitalize;
+    text-decoration: none;
+    padding: 9px 32px;
+    border-radius: 100px;
+    min-width: 215px;
+    height: 46px;
+    line-height: 30px;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__button:hover,
+  .careers-hero-{{ section.id }} .careers-hero__button:focus {
+    opacity: 0.9;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__media {
+    position: relative;
+    width: 100%;
+    height: 219.45px;
+    border-radius: 8px;
+    overflow: hidden;
+    order: 0;
+    flex-shrink: 0;
+  }
+
+  .careers-hero-{{ section.id }} .careers-hero__media img,
+  .careers-hero-{{ section.id }} .careers-hero__media .placeholder-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+
+  /* ========================================
+     TABLET (768px – 1024px)
+     Transitional — stacked layout with more padding
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .careers-hero-{{ section.id }} {
+      padding: 60px 32px;
+    }
+
+    .careers-hero-{{ section.id }} .careers-hero__heading {
+      font-size: 36px;
+      line-height: 43.2px;
+    }
+
+    .careers-hero-{{ section.id }} .careers-hero__media {
+      height: 320px;
+      border-radius: 10px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (1024px – 1440px)
+     Figma node: 4915:2212
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .careers-hero-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 50px {{ section.settings.padding_bottom }}px;
+    }
+
+    .careers-hero-{{ section.id }} .careers-hero__wrapper {
+      flex-direction: row;
+      align-items: stretch;
+      gap: 0;
+      max-width: 1340px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .careers-hero-{{ section.id }} .careers-hero__content {
+      flex: 1 1 0;
+      max-width: 670px;
+      padding-right: 100px;
+      order: 0;
+    }
+
+    .careers-hero-{{ section.id }} .careers-hero__media {
+      flex: 1 1 0;
+      height: auto;
+      min-height: 410px;
+      border-radius: 10px;
+      order: 1;
+    }
+
+    .careers-hero-{{ section.id }} .careers-hero__heading {
+      font-size: 48px;
+      line-height: 1.15;
+      color: #0b1e3d;
+    }
+
+    .careers-hero-{{ section.id }} .careers-hero__location {
+      font-size: 15.9px;
+      line-height: 24.9px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="careers-hero-{{ section.id }}">
+    <div class="careers-hero__wrapper">
+      {%- comment -%} Mobile: image first (order:0), content below (order:1). Desktop: content left (order:0), image right (order:1). {%- endcomment -%}
+      <div class="careers-hero__media">
+        {%- if section.settings.image != blank -%}
+          {%- assign hero_alt = section.settings.image.alt | default: section.settings.heading | strip_html | escape -%}
+          {{
+            section.settings.image
+            | image_url: width: 1600
+            | image_tag:
+              loading: 'eager',
+              fetchpriority: 'high',
+              widths: '400, 600, 800, 1200, 1600',
+              sizes: '(min-width: 1024px) 50vw, 100vw',
+              alt: hero_alt
+          }}
+        {%- else -%}
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        {%- endif -%}
+      </div>
+
+      <div class="careers-hero__content">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="careers-hero__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.location != blank -%}
+          <p class="careers-hero__location">
+            Location:
+            <span class="careers-hero__location-value"> {{ section.settings.location | escape }}</span>
+          </p>
+        {%- endif -%}
+
+        {%- if section.settings.body != blank -%}
+          <div class="careers-hero__body rte">{{ section.settings.body }}</div>
+        {%- endif -%}
+
+        {%- assign btn_label = section.settings.button_label | default: 'View Open Positions' -%}
+        {%- assign btn_link = section.settings.button_link | default: '#' -%}
+        <a href="{{ btn_link }}" class="careers-hero__button">
+          {{ btn_label | escape }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Careers Hero",
+  "tag": "section",
+  "class": "section careers-hero",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Join the Team Behind Better Home Comfort"
+    },
+    {
+      "type": "text",
+      "id": "location",
+      "label": "Location",
+      "default": "Hollywood, FL"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>The AC Outlet is at the center of the home comfort heating and cooling industry in America! If you want to excel fast, it's essential that your career is a good fit. How will you know? If you enjoy a fast paced environment and talking with customers about the latest in home comfort heating and cooling technology, you'll love The AC Outlet.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "View Open Positions"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "background-1"
+    },
+    {
+      "type": "header",
+      "content": "Desktop section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "Careers Hero"
+    }
+  ]
+}
+{% endschema %}

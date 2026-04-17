@@ -1,0 +1,395 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .cancellation-form-{{ section.id }} {
+    background-color: {{ section.settings.background_color }};
+    padding: 24px 16px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__container {
+    max-width: {{ section.settings.form_max_width }}px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__heading {
+    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    line-height: 42px;
+    text-align: center;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 20px;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__field {
+    padding: 0 5px;
+    margin-bottom: 0;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1c1c1c;
+    line-height: 20px;
+    margin-bottom: 4px;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__label .required {
+    color: red;
+    font-size: 12px;
+    margin-left: 1px;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__input {
+    width: 100%;
+    height: 41px;
+    background-color: {{ section.settings.input_bg_color }};
+    border: none;
+    border-radius: 20px;
+    padding: 0 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1c1c1c;
+    line-height: normal;
+    outline: none;
+    margin-bottom: 16px;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__input::placeholder {
+    color: #757575;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__input:focus {
+    box-shadow: 0 0 0 2px {{ section.settings.button_color }};
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 48px;
+    background-color: {{ section.settings.button_color }};
+    color: #f4f6f8;
+    border: 1px solid {{ section.settings.button_color }};
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    min-width: 100px;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__submit:hover,
+  .cancellation-form-{{ section.id }} .cancellation-form__submit:focus {
+    opacity: 0.9;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__note {
+    max-width: 1340px;
+    margin: 30px auto 0;
+    padding: 0 5px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #515151;
+    line-height: 24px;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__note p {
+    margin: 0;
+  }
+
+  .cancellation-form-{{ section.id }} .cancellation-form__note strong,
+  .cancellation-form-{{ section.id }} .cancellation-form__note b {
+    color: #c00;
+    font-weight: 700;
+  }
+
+  /* ========================================
+     TABLET (768px – 1024px)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .cancellation-form-{{ section.id }} {
+      padding: 30px 32px;
+    }
+
+    .cancellation-form-{{ section.id }} .cancellation-form__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .cancellation-form-{{ section.id }} .cancellation-form__heading {
+      font-size: 32px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (>=1024px)
+     Figma node: 5514:535
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .cancellation-form-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 50px {{ section.settings.padding_bottom }}px;
+    }
+
+    .cancellation-form-{{ section.id }} .cancellation-form__note {
+      padding: 0;
+    }
+  }
+{%- endstyle -%}
+
+<div class="cancellation-form-{{ section.id }}">
+  <div class="cancellation-form__container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="cancellation-form__heading">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+
+    {%- form 'contact' -%}
+      <div class="cancellation-form__grid">
+        <div class="cancellation-form__field">
+          <label class="cancellation-form__label" for="contact-order-{{ section.id }}">
+            Order number<span class="required">*</span>
+          </label>
+          <input
+            class="cancellation-form__input"
+            type="text"
+            id="contact-order-{{ section.id }}"
+            name="contact[order_number]"
+            placeholder="{{ section.settings.order_placeholder | escape }}"
+            required
+          >
+        </div>
+
+        <div class="cancellation-form__field">
+          <label class="cancellation-form__label" for="contact-name-{{ section.id }}">
+            Name<span class="required">*</span>
+          </label>
+          <input
+            class="cancellation-form__input"
+            type="text"
+            id="contact-name-{{ section.id }}"
+            name="contact[name]"
+            placeholder="{{ section.settings.name_placeholder | escape }}"
+            required
+          >
+        </div>
+
+        <div class="cancellation-form__field">
+          <label class="cancellation-form__label" for="contact-email-{{ section.id }}">
+            Email<span class="required">*</span>
+          </label>
+          <input
+            class="cancellation-form__input"
+            type="email"
+            id="contact-email-{{ section.id }}"
+            name="contact[email]"
+            placeholder="{{ section.settings.email_placeholder | escape }}"
+            required
+          >
+        </div>
+
+        <div class="cancellation-form__field">
+          <label class="cancellation-form__label" for="contact-phone-{{ section.id }}">
+            Phone<span class="required">*</span>
+          </label>
+          <input
+            class="cancellation-form__input"
+            type="tel"
+            id="contact-phone-{{ section.id }}"
+            name="contact[phone]"
+            placeholder="{{ section.settings.phone_placeholder | escape }}"
+            required
+          >
+        </div>
+
+        <div class="cancellation-form__field">
+          <label class="cancellation-form__label" for="contact-reason-{{ section.id }}">
+            Reason for cancellation<span class="required">*</span>
+          </label>
+          <input
+            class="cancellation-form__input"
+            type="text"
+            id="contact-reason-{{ section.id }}"
+            name="contact[reason]"
+            placeholder="{{ section.settings.reason_placeholder | escape }}"
+            required
+          >
+        </div>
+
+        <div class="cancellation-form__field">
+          <label class="cancellation-form__label" for="contact-additional-{{ section.id }}">
+            Additional information<span class="required">*</span>
+          </label>
+          <input
+            class="cancellation-form__input"
+            type="text"
+            id="contact-additional-{{ section.id }}"
+            name="contact[body]"
+            placeholder="{{ section.settings.additional_placeholder | escape }}"
+            required
+          >
+        </div>
+      </div>
+
+      <button type="submit" class="cancellation-form__submit">
+        {{ section.settings.button_label | escape }}
+      </button>
+    {%- endform -%}
+
+    {%- if section.settings.bottom_note != blank -%}
+      <div class="cancellation-form__note rte">
+        {{ section.settings.bottom_note }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cancellation Form",
+  "tag": "section",
+  "class": "section cancellation-form",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Cancellation request form"
+    },
+    {
+      "type": "header",
+      "content": "Form placeholders"
+    },
+    {
+      "type": "text",
+      "id": "order_placeholder",
+      "label": "Order number placeholder",
+      "default": "2016XXXX"
+    },
+    {
+      "type": "text",
+      "id": "name_placeholder",
+      "label": "Name placeholder",
+      "default": "Full Name"
+    },
+    {
+      "type": "text",
+      "id": "email_placeholder",
+      "label": "Email placeholder",
+      "default": "Email"
+    },
+    {
+      "type": "text",
+      "id": "phone_placeholder",
+      "label": "Phone placeholder",
+      "default": "Phone"
+    },
+    {
+      "type": "text",
+      "id": "reason_placeholder",
+      "label": "Reason placeholder",
+      "default": "Enter reason for cancellation"
+    },
+    {
+      "type": "text",
+      "id": "additional_placeholder",
+      "label": "Additional info placeholder",
+      "default": "Enter additional information"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Submit"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#027DB3"
+    },
+    {
+      "type": "header",
+      "content": "Styling"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#F4F6F8"
+    },
+    {
+      "type": "color",
+      "id": "input_bg_color",
+      "label": "Input background color",
+      "default": "#E6E6E6"
+    },
+    {
+      "type": "range",
+      "id": "form_max_width",
+      "label": "Form max width",
+      "min": 600,
+      "max": 1400,
+      "step": 20,
+      "unit": "px",
+      "default": 1000
+    },
+    {
+      "type": "header",
+      "content": "Bottom note"
+    },
+    {
+      "type": "richtext",
+      "id": "bottom_note",
+      "label": "Bottom note",
+      "default": "<p><strong>Please note:</strong> Once we receive this information, we will contact you via email to proceed with your cancellation if your request meets our criteria. Cancellation Requests can only be considered if your order has not shipped/left our facility. We value your business and will process your return as quickly as possible. Thank you for your patience.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Desktop section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cancellation Form"
+    }
+  ]
+}
+{% endschema %}

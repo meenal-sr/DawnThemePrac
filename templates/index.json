@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "image_banner": {
@@ -29,33 +38,32 @@
       "settings": {
         "image_overlay_opacity": 40,
         "image_height": "large",
-        "desktop_content_position": "bottom-center",
-        "show_text_box": false,
         "image_behavior": "none",
+        "desktop_content_position": "bottom-center",
         "desktop_content_alignment": "center",
+        "show_text_box": false,
         "color_scheme": "scheme-3",
-        "mobile_content_alignment": "center",
         "stack_images_on_mobile": false,
+        "mobile_content_alignment": "center",
         "show_text_below": false
       }
     },
     "featured_collection": {
       "type": "featured-collection",
       "settings": {
+        "collection": "all",
+        "products_to_show": 8,
         "title": "Featured products",
         "heading_size": "h2",
         "description": "",
         "show_description": false,
         "description_style": "body",
-        "collection": "all",
-        "products_to_show": 8,
         "columns_desktop": 4,
-        "color_scheme": "scheme-1",
+        "enable_desktop_slider": false,
         "full_width": false,
         "show_view_all": true,
         "view_all_style": "solid",
-        "enable_desktop_slider": false,
-        "swipe_on_mobile": false,
+        "color_scheme": "scheme-1",
         "image_ratio": "adapt",
         "image_shape": "default",
         "show_secondary_image": true,
@@ -63,13 +71,63 @@
         "show_rating": false,
         "quick_add": "none",
         "columns_mobile": "2",
+        "swipe_on_mobile": false,
         "padding_top": 44,
         "padding_bottom": 36
+      }
+    },
+    "careers_hero_D4DkpE": {
+      "type": "careers-hero",
+      "name": "Careers Hero",
+      "settings": {
+        "heading": "Join the Team Behind Better Home Comfort",
+        "location": "Hollywood, FL",
+        "body": "<p>The AC Outlet is at the center of the home comfort heating and cooling industry in America! If you want to excel fast, it's essential that your career is a good fit. How will you know? If you enjoy a fast paced environment and talking with customers about the latest in home comfort heating and cooling technology, you'll love The AC Outlet.</p>",
+        "button_label": "View Open Positions",
+        "button_link": "",
+        "image": "shopify://shop_images/DesignTrainingStore.png",
+        "color_scheme": "scheme-1",
+        "padding_top": 80,
+        "padding_bottom": 80
+      }
+    },
+    "image_text_with_badge_PrEaJt": {
+      "type": "image-text-with-badge",
+      "name": "Image Text with Badge",
+      "settings": {
+        "image": "shopify://shop_images/Mask_group_1.png",
+        "eyebrow": "The Need for Change",
+        "heading": "Transitioning from R410A to R32 and R454 Refrigerants",
+        "heading_size": "h2",
+        "body": "<p>As environmental regulations tighten and the need for sustainable solutions grows, the HVAC industry is shifting from traditional refrigerants like R410A to newer, more environmentally friendly alternatives.</p><p>R410A has been a popular choice in HVAC systems due to its efficiency and effectiveness. However, with a high global warming potential (GWP) of 2088, it contributes substantially to global warming.</p>",
+        "image_position": "left",
+        "show_badge": true,
+        "badge_text": "R32 & R454 Refrigerant",
+        "color_scheme": "",
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
+    },
+    "text_with_image_LDEEmr": {
+      "type": "text-with-image",
+      "name": "Text with Image",
+      "settings": {
+        "heading": "How will SEER2 impact Homeowners?",
+        "heading_size": "h2",
+        "body": "<p>There are a couple of ways that homeowners will be affected by the new SEER standards:</p><p><strong>You will save money.</strong></p><p>About 76 million US homes use central air, and 13 million use heat pumps. Once the new standards go into effect, those households collectively will reduce their energy bills by $2.5 - $12 billion over the next 30 years.</p><p><strong>The values that measure a unit or system's efficiency are changing.</strong></p><p>\"SEER\" as you know it will no longer exist as measurement of an HVAC system's efficiency. This will be completely replaced by \"SEER2\". The values are also changing. For example, 14 SEER will become 13.4 - 14.3 SEER2. 16 SEER will become 15.2-15.4 SEER2.</p>",
+        "image": "shopify://shop_images/Mask_group_2.png",
+        "image_position": "right",
+        "color_scheme": "",
+        "padding_top": 52,
+        "padding_bottom": 52
       }
     }
   },
   "order": [
     "image_banner",
-    "featured_collection"
+    "featured_collection",
+    "careers_hero_D4DkpE",
+    "image_text_with_badge_PrEaJt",
+    "text_with_image_LDEEmr"
   ]
 }
