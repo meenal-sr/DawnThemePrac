@@ -1,0 +1,15 @@
+{%- comment -%}
+  Renders a 10X Health shadow card container.
+  Accepts:
+  - radius: {String} Border radius size - "lg" (40px) or "md" (24px). Default: "lg"
+  - class: {String} Additional CSS classes (optional)
+  - content: {String} HTML content to render inside the card
+{%- endcomment -%}
+
+{%- liquid
+  assign card_radius = radius | default: 'lg'
+-%}
+
+<div class="tenx-shadow-card tenx-shadow-card--{{ card_radius }}{% if class %} {{ class }}{% endif %}">
+  {{ content }}
+</div>

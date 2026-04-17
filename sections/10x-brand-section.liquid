@@ -1,0 +1,197 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .tenx-brand-{{ section.id }} {
+    padding: 24px 16px;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .tenx-brand-{{ section.id }} .tenx-brand__heading {
+    font-size: 32px;
+    font-weight: 800;
+    color: #28282a;
+    text-align: center;
+    margin: 0 0 24px;
+    line-height: 1.2;
+  }
+
+  .tenx-brand-{{ section.id }} .tenx-brand__visual {
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+    border-radius: 24px;
+    overflow: hidden;
+    background-color: {{ section.settings.background_color }};
+  }
+
+  .tenx-brand-{{ section.id }} .tenx-brand__bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+
+  .tenx-brand-{{ section.id }} .tenx-brand__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .tenx-brand-{{ section.id }} .tenx-brand__overlay img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+  }
+
+  .tenx-brand-{{ section.id }} .tenx-brand__body {
+    font-size: 16px;
+    font-weight: 400;
+    color: #28282a;
+    text-align: center;
+    margin: 24px auto 0;
+    max-width: 780px;
+    line-height: 1.5;
+  }
+
+  .tenx-brand-{{ section.id }} .tenx-brand__body p {
+    margin: 0;
+  }
+
+  /* ========================================
+     TABLET (768px+)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .tenx-brand-{{ section.id }} {
+      padding: 40px 0;
+    }
+
+    .tenx-brand-{{ section.id }} .tenx-brand__heading {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .tenx-brand-{{ section.id }} .tenx-brand__visual {
+      min-height: 400px;
+      border-radius: 0;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (1024px+)
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .tenx-brand-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px;
+    }
+
+    .tenx-brand-{{ section.id }} .tenx-brand__heading {
+      font-size: 42px;
+    }
+
+    .tenx-brand-{{ section.id }} .tenx-brand__visual {
+      min-height: 560px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="tenx-brand-{{ section.id }}" aria-label="{{ section.settings.heading | default: 'Brand' | escape }}">
+  {%- if section.settings.heading != blank -%}
+    <h2 class="tenx-brand__heading">{{ section.settings.heading }}</h2>
+  {%- endif -%}
+
+  <div class="tenx-brand__visual">
+    {%- if section.settings.background_image != blank -%}
+      <img
+        class="tenx-brand__bg-image"
+        src="{{ section.settings.background_image | image_url: width: 1920 }}"
+        alt="{{ section.settings.background_image.alt | escape }}"
+        width="1440"
+        height="560"
+        loading="lazy"
+      >
+    {%- endif -%}
+
+    {%- if section.settings.overlay_image != blank -%}
+      <div class="tenx-brand__overlay">
+        <img
+          src="{{ section.settings.overlay_image | image_url: width: 1200 }}"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+        >
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if section.settings.body_text != blank -%}
+    <div class="tenx-brand__body">{{ section.settings.body_text }}</div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "10X Brand Section",
+  "tag": "section",
+  "class": "section tenx-brand-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Talk about your brand"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "image_picker",
+      "id": "overlay_image",
+      "label": "Overlay image (SVG artwork)"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#1e1e1e"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "10X Brand Section"
+    }
+  ]
+}
+{% endschema %}

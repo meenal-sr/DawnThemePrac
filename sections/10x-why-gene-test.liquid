@@ -1,0 +1,306 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .tenx-why-{{ section.id }} {
+    padding: 24px 16px;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 1356px;
+    margin: 0 auto;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__card {
+    background: #ffffff;
+    border-radius: 40px;
+    box-shadow: 0px 16px 20px rgba(0, 0, 0, 0.08);
+    padding: 47px 32px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__heading {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.3;
+    color: #28282a;
+    margin: 0 0 15px;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__body {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: #28282a;
+    margin: 0 0 32px;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__body p {
+    margin: 0;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__media {
+    border-radius: 24px;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    background: #f0f0f0;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__media-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    z-index: 2;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__play:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__play svg {
+    width: 28px;
+    height: 28px;
+    fill: #ffffff;
+    margin-left: 4px;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-why__iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: 3;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 14px 37px;
+    min-width: 122px;
+    max-width: 296px;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-cta-button:hover {
+    opacity: 0.85;
+  }
+
+  .tenx-why-{{ section.id }} .tenx-cta-button--primary {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    box-shadow: 0px 16px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  /* ========================================
+     TABLET (768px+)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .tenx-why-{{ section.id }} {
+      padding: 80px 42px;
+    }
+
+    .tenx-why-{{ section.id }} .tenx-why__grid {
+      grid-template-columns: 1.5fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .tenx-why-{{ section.id }} .tenx-why__card {
+      padding: 47px 56px 48px;
+    }
+
+    .tenx-why-{{ section.id }} .tenx-why__heading {
+      font-size: 37.3px;
+    }
+
+    .tenx-why-{{ section.id }} .tenx-why__body {
+      font-size: 18px;
+      line-height: 1.4;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (1024px+)
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .tenx-why-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 42px {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="tenx-why-{{ section.id }}" aria-label="{{ section.settings.heading | escape }}">
+  <div class="tenx-why__grid">
+    <div class="tenx-why__card">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="tenx-why__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+      {%- if section.settings.body_text != blank -%}
+        <div class="tenx-why__body">{{ section.settings.body_text }}</div>
+      {%- endif -%}
+      {%- if section.settings.cta_label != blank -%}
+        {% render '10x-cta-button',
+          label: section.settings.cta_label,
+          url: section.settings.cta_url,
+          style: 'primary'
+        %}
+      {%- endif -%}
+    </div>
+    <div class="tenx-why__media" id="tenx-why-media-{{ section.id }}">
+      {%- if section.settings.image != blank -%}
+        <img
+          class="tenx-why__media-image"
+          src="{{ section.settings.image | image_url: width: 1100 }}"
+          alt="{{ section.settings.image.alt | escape }}"
+          width="526"
+          height="526"
+          loading="lazy"
+        >
+      {%- else -%}
+        {{ 'product-2' | placeholder_svg_tag: 'tenx-why__media-image' }}
+      {%- endif -%}
+
+      {%- if section.settings.video_url != blank -%}
+        <button
+          class="tenx-why__play"
+          aria-label="Play video"
+          data-video-url="{{ section.settings.video_url | escape }}"
+        >
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.settings.video_url != blank -%}
+    <script>
+      (function() {
+        var container = document.getElementById('tenx-why-media-{{ section.id }}');
+        var btn = container.querySelector('.tenx-why__play');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          var url = btn.getAttribute('data-video-url');
+          var embedUrl = '';
+          if (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1) {
+            var id = url.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (id) embedUrl = 'https://www.youtube.com/embed/' + id[1] + '?autoplay=1';
+          } else if (url.indexOf('vimeo.com') !== -1) {
+            var vid = url.match(/vimeo\.com\/(\d+)/);
+            if (vid) embedUrl = 'https://player.vimeo.com/video/' + vid[1] + '?autoplay=1';
+          }
+          if (embedUrl) {
+            var iframe = document.createElement('iframe');
+            iframe.className = 'tenx-why__iframe';
+            iframe.src = embedUrl;
+            iframe.setAttribute('allow', 'autoplay; encrypted-media');
+            iframe.setAttribute('allowfullscreen', '');
+            container.appendChild(iframe);
+            btn.style.display = 'none';
+          }
+        });
+      })();
+    </script>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "10X Why Gene Test",
+  "tag": "section",
+  "class": "section tenx-why-gene-test",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Why you need this gene test"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "<p>There is not a single compound known to mankind that is used in its original format. We can't change your genes but we can improve how they function. Did you realize that EVERYTHING you put into your body must be transformed into its usable format?</p>"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "ORDER MY GENETIC TEST"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button link"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Thumbnail image"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL (YouTube or Vimeo)"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "10X Why Gene Test"
+    }
+  ]
+}
+{% endschema %}

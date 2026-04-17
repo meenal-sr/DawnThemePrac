@@ -1,0 +1,185 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .tenx-video-banner-{{ section.id }} {
+    padding: 24px 16px;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .tenx-video-banner-{{ section.id }} .tenx-video-banner__container {
+    max-width: 1408px;
+    margin: 0 auto;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 1408 / 400;
+    background-color: #f0f0f0;
+  }
+
+  .tenx-video-banner-{{ section.id }} .tenx-video-banner__media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .tenx-video-banner-{{ section.id }} .tenx-video-banner__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    z-index: 2;
+  }
+
+  .tenx-video-banner-{{ section.id }} .tenx-video-banner__play:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .tenx-video-banner-{{ section.id }} .tenx-video-banner__play svg {
+    width: 28px;
+    height: 28px;
+    fill: #ffffff;
+    margin-left: 4px;
+  }
+
+  .tenx-video-banner-{{ section.id }} .tenx-video-banner__iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: 3;
+  }
+
+  /* ========================================
+     TABLET (768px+)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .tenx-video-banner-{{ section.id }} {
+      padding: 36px 42px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (1024px+)
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .tenx-video-banner-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 16px {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="tenx-video-banner-{{ section.id }}" aria-label="Media banner">
+  <div class="tenx-video-banner__container" id="tenx-video-banner-{{ section.id }}">
+    {%- if section.settings.image != blank -%}
+      <img
+        class="tenx-video-banner__media"
+        src="{{ section.settings.image | image_url: width: 1500 }}"
+        alt="{{ section.settings.image.alt | escape }}"
+        width="1408"
+        height="400"
+        loading="lazy"
+      >
+    {%- else -%}
+      {{ 'lifestyle-1' | placeholder_svg_tag: 'tenx-video-banner__media' }}
+    {%- endif -%}
+
+    {%- if section.settings.video_url != blank -%}
+      <button
+        class="tenx-video-banner__play"
+        aria-label="Play video"
+        data-video-url="{{ section.settings.video_url | escape }}"
+        data-container="tenx-video-banner-{{ section.id }}"
+      >
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+    {%- endif -%}
+  </div>
+
+  {%- if section.settings.video_url != blank -%}
+    <script>
+      (function() {
+        var container = document.getElementById('tenx-video-banner-{{ section.id }}');
+        var btn = container.querySelector('.tenx-video-banner__play');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          var url = btn.getAttribute('data-video-url');
+          var embedUrl = '';
+          if (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1) {
+            var id = url.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (id) embedUrl = 'https://www.youtube.com/embed/' + id[1] + '?autoplay=1';
+          } else if (url.indexOf('vimeo.com') !== -1) {
+            var vid = url.match(/vimeo\.com\/(\d+)/);
+            if (vid) embedUrl = 'https://player.vimeo.com/video/' + vid[1] + '?autoplay=1';
+          }
+          if (embedUrl) {
+            var iframe = document.createElement('iframe');
+            iframe.className = 'tenx-video-banner__iframe';
+            iframe.src = embedUrl;
+            iframe.setAttribute('allow', 'autoplay; encrypted-media');
+            iframe.setAttribute('allowfullscreen', '');
+            container.appendChild(iframe);
+            btn.style.display = 'none';
+          }
+        });
+      })();
+    </script>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "10X Video Banner",
+  "tag": "section",
+  "class": "section tenx-video-banner",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Thumbnail image"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL (YouTube or Vimeo)"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "10X Video Banner"
+    }
+  ]
+}
+{% endschema %}

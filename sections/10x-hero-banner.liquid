@@ -1,0 +1,101 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .tenx-hero-{{ section.id }} {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .tenx-hero-{{ section.id }} .tenx-hero__image {
+    width: 100%;
+    height: {{ section.settings.height_mobile }}px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ========================================
+     TABLET (768px+)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .tenx-hero-{{ section.id }} .tenx-hero__image {
+      height: {{ section.settings.height_desktop }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="tenx-hero-{{ section.id }}" aria-label="{{ section.settings.image.alt | default: 'Hero banner' }}">
+  {%- if section.settings.image != blank -%}
+    {%- if section.settings.image_mobile != blank -%}
+      <picture>
+        <source media="(min-width: 768px)" srcset="{{ section.settings.image | image_url: width: 1920 }}">
+        <img
+          class="tenx-hero__image"
+          src="{{ section.settings.image_mobile | image_url: width: 800 }}"
+          alt="{{ section.settings.image.alt | escape }}"
+          width="1440"
+          height="{{ section.settings.height_desktop }}"
+          fetchpriority="high"
+          loading="eager"
+        >
+      </picture>
+    {%- else -%}
+      <img
+        class="tenx-hero__image"
+        src="{{ section.settings.image | image_url: width: 1920 }}"
+        alt="{{ section.settings.image.alt | escape }}"
+        width="1440"
+        height="{{ section.settings.height_desktop }}"
+        fetchpriority="high"
+        loading="eager"
+      >
+    {%- endif -%}
+  {%- else -%}
+    {{ 'lifestyle-2' | placeholder_svg_tag: 'tenx-hero__image' }}
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "10X Hero Banner",
+  "tag": "section",
+  "class": "section tenx-hero-banner",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Desktop image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Mobile image (optional)"
+    },
+    {
+      "type": "range",
+      "id": "height_desktop",
+      "label": "Desktop height",
+      "min": 400,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "default": 1024
+    },
+    {
+      "type": "range",
+      "id": "height_mobile",
+      "label": "Mobile height",
+      "min": 200,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 500
+    }
+  ],
+  "presets": [
+    {
+      "name": "10X Hero Banner"
+    }
+  ]
+}
+{% endschema %}

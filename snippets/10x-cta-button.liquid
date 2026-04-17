@@ -1,0 +1,21 @@
+{%- comment -%}
+  Renders a 10X Health CTA button.
+  Accepts:
+  - label: {String} Button text
+  - url: {String} Link URL
+  - style: {String} "primary" (dark) or "secondary" (red)
+  - class: {String} Additional CSS classes (optional)
+{%- endcomment -%}
+
+{%- liquid
+  assign btn_label = label | default: 'ORDER MY GENETIC TEST'
+  assign btn_url = url | default: '#'
+  assign btn_style = style | default: 'primary'
+-%}
+
+<a
+  href="{{ btn_url }}"
+  class="tenx-cta-button tenx-cta-button--{{ btn_style }}{% if class %} {{ class }}{% endif %}"
+>
+  {{- btn_label -}}
+</a>

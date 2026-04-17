@@ -1,0 +1,113 @@
+{
+  "sections": {
+    "hero_banner": {
+      "type": "10x-hero-banner",
+      "settings": {}
+    },
+    "discover_cta": {
+      "type": "10x-discover-cta",
+      "settings": {
+        "heading": "Discover your body's deficiencies",
+        "cta_label": "Order My Genetic Test",
+        "layout_direction": "text_first"
+      }
+    },
+    "video_banner": {
+      "type": "10x-video-banner",
+      "settings": {}
+    },
+    "genetic_stats": {
+      "type": "10x-genetic-stats",
+      "settings": {
+        "headline": "44% OF THE WORLD'S population has this genetic mutation",
+        "subheading": "Most common symptoms of a Nutrient Deficiency:",
+        "cta_label": "ORDER MY GENETIC TEST"
+      },
+      "blocks": {
+        "symptom_1": { "type": "symptom", "settings": { "text": "Anxiety" } },
+        "symptom_2": { "type": "symptom", "settings": { "text": "Depression" } },
+        "symptom_3": { "type": "symptom", "settings": { "text": "ADD/ADHD" } },
+        "symptom_4": { "type": "symptom", "settings": { "text": "OCD" } },
+        "symptom_5": { "type": "symptom", "settings": { "text": "Gut Issues" } },
+        "symptom_6": { "type": "symptom", "settings": { "text": "Weight Management" } },
+        "symptom_7": { "type": "symptom", "settings": { "text": "Brain Fog" } },
+        "symptom_8": { "type": "symptom", "settings": { "text": "Thyroid Problem" } },
+        "symptom_9": { "type": "symptom", "settings": { "text": "High Blood Pressure" } },
+        "symptom_10": { "type": "symptom", "settings": { "text": "Bad Temper" } },
+        "symptom_11": { "type": "symptom", "settings": { "text": "And so much more..." } }
+      },
+      "block_order": [
+        "symptom_1", "symptom_2", "symptom_3", "symptom_4",
+        "symptom_5", "symptom_6", "symptom_7", "symptom_8",
+        "symptom_9", "symptom_10", "symptom_11"
+      ]
+    },
+    "why_gene_test": {
+      "type": "10x-why-gene-test",
+      "settings": {
+        "heading": "Why you need this gene test",
+        "cta_label": "ORDER MY GENETIC TEST"
+      }
+    },
+    "features_cards": {
+      "type": "10x-features-cards",
+      "settings": {
+        "heading": "Don't Wait to Prioritize Your Health"
+      },
+      "blocks": {
+        "card_1": {
+          "type": "feature_card",
+          "settings": {
+            "title": "At Home Test",
+            "description": "<p>Conveniently test from home with a quick, painless swab.</p>"
+          }
+        },
+        "card_2": {
+          "type": "feature_card",
+          "settings": {
+            "title": "Expert Insights",
+            "description": "<p>Our specialists analyze your genetic data to provide a customized plan.</p>"
+          }
+        },
+        "card_3": {
+          "type": "feature_card",
+          "settings": {
+            "title": "Personalized Protocol",
+            "description": "<p>Achieve your full health potential with an exact supplement plan.</p>"
+          }
+        }
+      },
+      "block_order": ["card_1", "card_2", "card_3"]
+    },
+    "dont_wait_cta": {
+      "type": "10x-dont-wait-cta",
+      "settings": {
+        "heading": "Don't Wait to Prioritize Your Health",
+        "cta_label": "ORDER MY GENETIC TEST",
+        "background_color": "#1e1e1e",
+        "text_color": "#ffffff"
+      }
+    },
+    "brand_section": {
+      "type": "10x-brand-section",
+      "settings": {
+        "heading": "Talk about your brand"
+      }
+    },
+    "founder_quote": {
+      "type": "10x-founder-quote",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero_banner",
+    "discover_cta",
+    "video_banner",
+    "genetic_stats",
+    "why_gene_test",
+    "features_cards",
+    "dont_wait_cta",
+    "brand_section",
+    "founder_quote"
+  ]
+}

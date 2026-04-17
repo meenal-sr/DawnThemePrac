@@ -1,0 +1,266 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .tenx-founder-quote-{{ section.id }} {
+    padding: {{ section.settings.padding_top }}px 20px {{ section.settings.padding_bottom }}px;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__card {
+    position: relative;
+    border-radius: 40px;
+    overflow: hidden;
+    background-color: #111;
+    padding: 32px 20px;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__logo {
+    width: 100px;
+    height: auto;
+    margin-bottom: 24px;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__portrait {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 1px solid #fff;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__text {
+    color: #fff;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__quote {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    margin: 0;
+    color: #fff;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__quote p {
+    margin: 0;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__attribution {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin-top: 20px;
+  }
+
+  .tenx-founder-quote-{{ section.id }} .tenx-fq__attribution strong {
+    font-weight: 700;
+  }
+
+  /* ========================================
+     TABLET (768px+)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .tenx-founder-quote-{{ section.id }} {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__card {
+      padding: 40px 30px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__inner {
+      align-items: flex-start;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__content {
+      flex-direction: row;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__portrait {
+      width: 150px;
+      height: 150px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__quote {
+      font-size: 18px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__attribution {
+      font-size: 18px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (1024px+)
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__card {
+      padding: 40px 60px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__logo {
+      width: 125px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__portrait {
+      width: 195px;
+      height: 195px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__quote {
+      font-size: 22px;
+    }
+
+    .tenx-founder-quote-{{ section.id }} .tenx-fq__attribution {
+      font-size: 22px;
+      margin-top: 27px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="tenx-founder-quote-{{ section.id }}" aria-label="{{ section.settings.attribution_name | default: 'Founder quote' | escape }}">
+  <div class="tenx-fq__card">
+    {%- if section.settings.background_image != blank -%}
+      <img
+        class="tenx-fq__bg"
+        src="{{ section.settings.background_image | image_url: width: 1920 }}"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+      >
+    {%- endif -%}
+
+    <div class="tenx-fq__inner">
+      {%- if section.settings.logo_image != blank -%}
+        <img
+          class="tenx-fq__logo"
+          src="{{ section.settings.logo_image | image_url: width: 250 }}"
+          alt="{{ section.settings.logo_image.alt | default: '10X Health' | escape }}"
+          width="125"
+          height="40"
+          loading="lazy"
+        >
+      {%- endif -%}
+
+      <div class="tenx-fq__content">
+        {%- if section.settings.portrait_image != blank -%}
+          <img
+            class="tenx-fq__portrait"
+            src="{{ section.settings.portrait_image | image_url: width: 400 }}"
+            alt="{{ section.settings.portrait_image.alt | default: section.settings.attribution_name | default: 'Founder portrait' | escape }}"
+            width="195"
+            height="195"
+            loading="lazy"
+          >
+        {%- endif -%}
+
+        <div class="tenx-fq__text">
+          {%- if section.settings.quote_text != blank -%}
+            <blockquote class="tenx-fq__quote">
+              {{ section.settings.quote_text }}
+            </blockquote>
+          {%- endif -%}
+
+          {%- if section.settings.attribution_name != blank -%}
+            <p class="tenx-fq__attribution">
+              - <strong>{{ section.settings.attribution_name | escape }}</strong>
+            </p>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "10X Founder Quote",
+  "tag": "div",
+  "class": "section tenx-founder-quote-section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image",
+      "info": "Dark textured background (e.g. carbon fiber pattern)"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_image",
+      "label": "Logo image",
+      "info": "White logo variant (e.g. 10X Health)"
+    },
+    {
+      "type": "image_picker",
+      "id": "portrait_image",
+      "label": "Portrait image",
+      "info": "Circular portrait photo"
+    },
+    {
+      "type": "richtext",
+      "id": "quote_text",
+      "label": "Quote text",
+      "default": "<p>\"For the past decade, I have researched ways to improve my overall wellbeing, alternatives to surgery, specific medicines, and supplementing just to supplement... I was in daily chronic pain and now, at 64, I am in the best shape of my life. I am free of pain, anxiety, stress, and I am able to accomplish more than any other time in my life.\"</p>"
+    },
+    {
+      "type": "text",
+      "id": "attribution_name",
+      "label": "Attribution name",
+      "default": "Grant Cardone"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "10X Founder Quote"
+    }
+  ]
+}
+{% endschema %}

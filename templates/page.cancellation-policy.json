@@ -16,6 +16,10 @@
         "padding_bottom": 28
       }
     },
+    "cancellation_content": {
+      "type": "cancellation-policy-content",
+      "settings": {}
+    },
     "cancellation_form_c9X96A": {
       "type": "cancellation-form",
       "name": "Cancellation Form",
@@ -40,6 +44,7 @@
   },
   "order": [
     "main",
+    "cancellation_content",
     "cancellation_form_c9X96A"
   ]
 }

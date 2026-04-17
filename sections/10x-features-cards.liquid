@@ -1,0 +1,234 @@
+{%- style -%}
+  /* ========================================
+     MOBILE BASE (<768px)
+     ======================================== */
+  .tenx-features-{{ section.id }} {
+    padding: 24px 16px;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__heading {
+    font-size: 32px;
+    font-weight: 900;
+    color: #28282a;
+    text-align: center;
+    margin: 0 0 40px;
+    padding: 0 16px;
+    line-height: 1.2;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 1356px;
+    margin: 0 auto;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__card {
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0px 16px 20px rgba(0, 0, 0, 0.08);
+    padding: 56px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8.8px;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__icon {
+    width: 134px;
+    height: 133px;
+    object-fit: contain;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #28282a;
+    text-align: center;
+    margin: 0;
+    line-height: normal;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__separator {
+    width: 158px;
+    height: 2px;
+    background-color: #e2e2e2;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__description {
+    font-size: 16px;
+    font-weight: 400;
+    color: #28282a;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  .tenx-features-{{ section.id }} .tenx-features__description p {
+    margin: 0;
+  }
+
+  /* ========================================
+     TABLET (768px+)
+     ======================================== */
+  @media screen and (min-width: 768px) {
+    .tenx-features-{{ section.id }} {
+      padding: 40px 42px;
+    }
+
+    .tenx-features-{{ section.id }} .tenx-features__heading {
+      font-size: 44px;
+    }
+
+    .tenx-features-{{ section.id }} .tenx-features__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tenx-features-{{ section.id }} .tenx-features__description {
+      font-size: 18px;
+    }
+  }
+
+  /* ========================================
+     DESKTOP (1024px+)
+     ======================================== */
+  @media screen and (min-width: 1024px) {
+    .tenx-features-{{ section.id }} {
+      padding: {{ section.settings.padding_top }}px 42px {{ section.settings.padding_bottom }}px;
+    }
+
+    .tenx-features-{{ section.id }} .tenx-features__heading {
+      font-size: 54px;
+      padding: 54px 0;
+    }
+
+    .tenx-features-{{ section.id }} .tenx-features__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .tenx-features-{{ section.id }} .tenx-features__title {
+      font-size: 31px;
+    }
+  }
+{%- endstyle -%}
+
+<section class="tenx-features-{{ section.id }}" aria-label="{{ section.settings.heading | escape }}">
+  {%- if section.settings.heading != blank -%}
+    <h2 class="tenx-features__heading">{{ section.settings.heading }}</h2>
+  {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="tenx-features__grid">
+      {%- for block in section.blocks -%}
+        <div class="tenx-features__card" {{ block.shopify_attributes }}>
+          {%- if block.settings.icon != blank -%}
+            <img
+              class="tenx-features__icon"
+              src="{{ block.settings.icon | image_url: width: 268 }}"
+              alt="{{ block.settings.title | escape }}"
+              width="134"
+              height="133"
+              loading="lazy"
+            >
+          {%- endif -%}
+          {%- if block.settings.title != blank -%}
+            <h3 class="tenx-features__title">{{ block.settings.title }}</h3>
+          {%- endif -%}
+          <div class="tenx-features__separator" aria-hidden="true"></div>
+          {%- if block.settings.description != blank -%}
+            <div class="tenx-features__description">{{ block.settings.description }}</div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "10X Features Cards",
+  "tag": "section",
+  "class": "section tenx-features-cards",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Don't Wait to Prioritize Your Health"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature_card",
+      "name": "Feature Card",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "10X Features Cards",
+      "blocks": [
+        {
+          "type": "feature_card",
+          "settings": {
+            "title": "At Home Test",
+            "description": "<p>Conveniently test from home with a quick, painless swab.</p>"
+          }
+        },
+        {
+          "type": "feature_card",
+          "settings": {
+            "title": "Expert Insights",
+            "description": "<p>Our specialists analyze your genetic data to provide a customized plan.</p>"
+          }
+        },
+        {
+          "type": "feature_card",
+          "settings": {
+            "title": "Personalized Protocol",
+            "description": "<p>Achieve your full health potential with an exact supplement plan.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -103,17 +103,30 @@
 <div class="cancellation-content-{{ section.id }}">
   <div class="cancellation-content__container">
     {% render 'breadcrumbs' %}
-    {%- if page.content != blank -%}
-      <div class="cancellation-content__body rte">
-        {{ page.content }}
-      </div>
-    {%- endif -%}
+    <div class="cancellation-content__body rte">
+      <h2>Cancellation policy</h2>
+      <p>Please take all precautions when purchasing your equipment or supplies. We offer advice to you based upon your representation and the information given to us. We do not guarantee sizing or application. We recommend that you get local, professional advice to be sure of the equipment you need prior to your purchase. You may only cancel your order BEFORE it has been shipped by filling out the form below or sending us an email. WE DO NOT ACCEPT CANCELLATION REQUESTS OVER THE PHONE. Once your request is received, we will reply with approval or denial of your request. This approval can take up to 24 hours. Cancellations may be subject to the following charges:</p>
+      <ol>
+        <li>If your order is canceled prior to being packaged, it may be subject to a cancellation fee.</li>
+        <li>If your order is canceled after it has been packaged for shipping or once it has shipped it will be subject to a 10% restocking fee plus original and return shipping costs as per our Return Policy located <a href="/policies/return-policy">here</a>. Please note that orders which do not contain tracking may still have shipped as freight carriers do not update our systems in real-time.</li>
+        <li>Orders placed with Expedited Shipping cannot be canceled within the first 48 business hours of placing the order. If your order has not shipped within 48 business hours, cancellation may be requested at that time.</li>
+      </ol>
+      <p>*Original shipping costs, although not charged at time of purchase, are never refunded upon any returns accepted. The customer is responsible for shipping costs to return items to us, insuring any item(s) returned as well as any applicable restocking fees. Credits will always (NO EXCEPTIONS) be given in the same form as item(s) were paid for. Please allow 5-10 business days from the time we receive the request to receive your refund.</p>
+      <h2>Cancellation policy for orders placed via Breeze leasing</h2>
+      <ol>
+        <li>Orders placed and paid for via the Breeze Leasing payment method may only be canceled prior to shipment.</li>
+        <li>If your request is received after your order has shipped, it will be treated as a return. Your order may be returned (minus original shipping costs and a 10% restocking fee, to be paid in advance) provided the equipment is in new and unused condition within 7 days of time of receipt.</li>
+        <li>Beyond 7 days and within 30 days of receipt, orders are only subject to exchange (fees to be determined at time of exchange).</li>
+        <li>Beyond 7 days of receipt, returns without exchange can no longer be accepted by The AC Outlet. Customers will need to contact Breeze Leasing for further assistance at (855) 330-3959.</li>
+      </ol>
+      <p>Please fill out the form below to get started. We typically respond within one business day but may take longer during periods of peak activity.</p>
+    </div>
   </div>
 </div>
 
 {% schema %}
 {
-  "name": "Cancellation Policy Content",
+  "name": "Cancellation Content",
   "tag": "section",
   "class": "section cancellation-policy-content",
   "settings": [
@@ -157,7 +170,7 @@
       "max": 160,
       "step": 4,
       "unit": "px",
-      "default": 28
+      "default": 30
     },
     {
       "type": "range",
@@ -167,12 +180,12 @@
       "max": 160,
       "step": 4,
       "unit": "px",
-      "default": 0
+      "default": 30
     }
   ],
   "presets": [
     {
-      "name": "Cancellation Policy Content"
+      "name": "Cancellation Content"
     }
   ]
 }
