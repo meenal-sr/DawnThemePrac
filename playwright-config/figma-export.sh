@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Export a Figma node as PNG via the Figma REST API.
-# Usage:  scripts/figma-export.sh <fileKey> <nodeId> <outputPath> [scale]
+# Usage:  playwright-config/figma-export.sh <fileKey> <nodeId> <outputPath> [scale]
 #   <fileKey>      e.g. g3gxO3mhrniJOYTHNmotAu (from figma.com/design/<fileKey>/...)
 #   <nodeId>       e.g. 5654:4196 (convert "-" to ":" when copied from URL)
 #   <outputPath>   destination PNG, e.g. features/hero-banner/qa/figma-desktop.png

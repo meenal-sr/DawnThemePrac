@@ -35,7 +35,7 @@ Call:
 
 Then persist the reference PNG to disk via the REST-API helper (MCP `get_screenshot` does NOT write a file):
 ```bash
-scripts/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-default.png 2
+playwright-config/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-default.png 2
 ```
 Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md` in memory for usage notes.
 

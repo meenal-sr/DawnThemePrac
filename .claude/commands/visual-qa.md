@@ -16,7 +16,7 @@ Verify:
 
 If Figma screenshots missing, persist them via the REST-API helper (the MCP `get_screenshot` tool does NOT write files):
 ```bash
-scripts/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png 2
+playwright-config/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png 2
 ```
 One invocation per breakpoint node listed in `brief.md`. Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md`.
 

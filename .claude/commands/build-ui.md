@@ -25,7 +25,7 @@ Call for **each** node ID listed in brief:
 
 Then persist each breakpoint's reference PNG via the REST-API helper (MCP `get_screenshot` does NOT write a file):
 ```bash
-scripts/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png 2
+playwright-config/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png 2
 ```
 One call per breakpoint node. Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md`.
 
