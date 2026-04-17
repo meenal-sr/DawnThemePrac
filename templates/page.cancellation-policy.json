@@ -1,13 +1,45 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
-    "content": {
-      "type": "cancellation-policy-content",
-      "settings": {}
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
     },
-    "form": {
+    "cancellation_form_c9X96A": {
       "type": "cancellation-form",
-      "settings": {}
+      "name": "Cancellation Form",
+      "settings": {
+        "heading": "Cancellation request form",
+        "order_placeholder": "2016XXXX",
+        "name_placeholder": "Full Name",
+        "email_placeholder": "Email",
+        "phone_placeholder": "Phone",
+        "reason_placeholder": "Enter reason for cancellation",
+        "additional_placeholder": "Enter additional information",
+        "button_label": "Submit",
+        "button_color": "#027DB3",
+        "background_color": "#F4F6F8",
+        "input_bg_color": "#E6E6E6",
+        "form_max_width": 1000,
+        "bottom_note": "<p><strong>Please note:</strong> Once we receive this information, we will contact you via email to proceed with your cancellation if your request meets our criteria. Cancellation Requests can only be considered if your order has not shipped/left our facility. We value your business and will process your return as quickly as possible. Thank you for your patience.</p>",
+        "padding_top": 0,
+        "padding_bottom": 80
+      }
     }
   },
-  "order": ["content", "form"]
+  "order": [
+    "main",
+    "cancellation_form_c9X96A"
+  ]
 }
