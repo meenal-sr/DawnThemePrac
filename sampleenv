@@ -1,2 +1,9 @@
-STORE_URL = store_url.myshopify.com 
-THEME_ID =  your_dev_theme_id
+STORE_URL=umesh-dev-store.myshopify.com
+THEME_ID=187641397527
+STORE_PASSWORD=umesh
+GLOBAL_PAGE_PATH=/pages/contact
+DEFAULT_PRODUCT_PATH=/products/example-product
+DEFAULT_COLLECTION_PATH=/collections/all
+TEST_PAGE_TEMPLATE=page.test
+TEST_PRODUCT_TEMPLATE=product.test
+TEST_COLLECTION_TEMPLATE=collection.test
