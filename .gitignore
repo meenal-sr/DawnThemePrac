@@ -14,11 +14,11 @@ playwright-config/.auth/
 
 # Shopify theme artifacts (pulled from store or merchant-edited — not source)
 .shopify/
-assets/
-blocks/
-config/
-layout/
-locales/
-sections/
-snippets/
-templates/
+/assets/
+/blocks/
+/config/
+/layout/
+/locales/
+/sections/
+/snippets/
+/templates/
