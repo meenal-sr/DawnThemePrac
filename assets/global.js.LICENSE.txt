@@ -1,27 +1,27 @@
 /*! @babel/runtime/helpers/defineProperty */
 
-/*! TsComponents/carousel-swiper */
+/*! JsComponents/carousel-swiper */
 
-/*! TsComponents/migrate-section */
+/*! JsComponents/migrate-section */
 
-/*! TsComponents/ui-components */
+/*! JsComponents/ui-components */
 
 /*! swiper */
 
 /*! swiper/modules */
 
 /*!*******************************!*\
-  !*** ./ts/sections/global.ts ***!
+  !*** ./js/sections/global.js ***!
   \*******************************/
 
 /*!****************************************!*\
-  !*** ./ts/components/ui-components.ts ***!
+  !*** ./js/components/ui-components.js ***!
   \****************************************/
 
 /*!******************************************!*\
-  !*** ./ts/components/carousel-swiper.ts ***!
+  !*** ./js/components/carousel-swiper.js ***!
   \******************************************/
 
 /*!******************************************!*\
-  !*** ./ts/components/migrate-section.ts ***!
+  !*** ./js/components/migrate-section.js ***!
   \******************************************/
