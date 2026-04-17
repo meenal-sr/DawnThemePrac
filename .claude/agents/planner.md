@@ -163,40 +163,120 @@ Write a self-contained `brief.md` informed by the Architect's confirmed technica
 - Any assumptions made during planning and why they are safe
 
 ### Step 7 — Write test-scenarios.md
-Derive test scenarios from the Figma variants and data edge cases. Include:
-- All visual states (default, hover, loading, error, empty, OOS, etc.)
-- Variant switching behaviour
-- Responsive breakpoint differences
-- Data edge cases (long text, missing image, zero price, etc.)
-- JS interaction flows (add to cart, open drawer, etc.)
-- Cross-component event scenarios if applicable
+`test-scenarios.md` enumerates exactly what `ui.spec.js` must emit — nothing more, nothing less. The spec has FIVE groups (A / B / C / D / E):
 
-### Step 8 — Add section to test template
-Based on the template type from the brief (`page`, `product`, or `collection`), add the section to the corresponding test template:
+- **A — Content completeness.** First test in every spec. Single assertion: verify the test template has non-blank values for every design-required setting. Fails fast under `maxFailures: 1`, aborting the whole run before typography / layout / screenshot tests produce misleading partial-data results. Document the list under a "Required template content" heading in test-scenarios.md — every `image_picker`, text, richtext, url, color, range setting the design visually depends on. The test-agent inlines that list into the A-1 test body.
+
+
+- **B — Typography + color parity at design breakpoints** (`mobile` 375 + `desktop` 1440). For every text-bearing element, list the exact computed-style targets: font-size, line-height, font-weight, color, text-transform, opacity, border-radius, background-color. Source values from the Figma design context. No strict typography at intermediates.
+- **C — Layout integrity at intermediates** (`tablet` 768 + `tablet-lg` 1280). Structural-only checks: no horizontal scroll, no sibling-stack vertical overlap, content container fits within viewport width. No typography here.
+- **D — Live screenshots at design breakpoints.** Save `live-mobile.png` + `live-desktop.png` for pixelmatch. visual-qa-agent consumes these against `qa/figma-*.png`.
+- **E — Content placement parity at design breakpoints** (`mobile` 375 + `desktop` 1440). Structural assertions that protect against layout shifts when pixelmatch is noisy (e.g. image_picker fields blank, mobile Figma missing). Include ONLY:
+  - **Line count per text element**: heading / subhead / eyebrow / CTA — how many wrapped lines at each design breakpoint. Compute via `Math.round(el.offsetHeight / parseFloat(getComputedStyle(el).lineHeight))`. Source from the Figma frame.
+  - **Content container bounding width**: measure via `el.offsetWidth` or `getBoundingClientRect().width` and assert `≤ <Figma max-width>` (e.g. `≤ 940` for a 938px design). Source from the Figma frame's content container.
+  - **Skip padding/margin/gap assertions** — spacing can be achieved via padding, margin, gap, flex/grid spacing, transforms, or parent spacing; asserting a specific `padding-left` value is implementation-specific and breaks on equivalent-visual refactors. If pixelmatch shows the spacing is wrong, the diff % catches it. If pixelmatch can't see it (blank image fields), the line-count and width assertions still constrain the envelope enough to catch real shifts.
+  - Skip E entirely if the design has no multi-line text AND no specific content-container width worth pinning.
+
+**Do NOT author scenarios for (and therefore test-agent must NOT emit):**
+- Standalone presence tests — section-root-exists, heading-exists, CTA-href-non-empty, eyebrow-exists, subhead-exists, bg-exists, overlay-exists-when-opacity>0. Pixelmatch catches any of these that actually regress.
+- Conditional rendering — eyebrow-hidden-when-blank, CTA-hidden-when-blank, foreground-hidden-at-mobile, logo-hidden-at-mobile, overlay-hidden-when-opacity=0. The test template is always fully populated (Step 8 below), so these only ever exercise the populated branch — the negative case is never testable without template mutation. Skip the group entirely.
+- No-console-errors observer. Catches theme-environment noise (missing asset bundles, analytics failures) orthogonal to section correctness; under `maxFailures: 1` it aborts the run on unrelated issues.
+- Hover / focus / active state tests — pure CSS, measured via pixelmatch hover screenshots if ever needed.
+- Content-string assertions (heading text, CTA label, etc.) — content comes from templates.
+- Variant / data-state / error / empty / OOS / loading tests in ui-only mode — those are functional-spec concerns (full mode only).
+
+**Structure the file as:**
+
+```markdown
+# <Section> — Test Scenarios
+
+Relevant authoring rules:
+- Four projects: mobile 375 / tablet 768 / tablet-lg 1280 / desktop 1440.
+- Strict assertions only at mobile + desktop. tablet + tablet-lg assert layout integrity only.
+- Pixelmatch screenshots saved at mobile + desktop only.
+- No standalone presence group, no conditional-rendering tests, no console-error observer.
+- No content-string assertions — never toHaveText().
+- A11y: <skip | required — match brief>.
+- yarn playwright:test ... --reporter=list.
+
+## Section under test
+- Type / URL helper / Template / Section selector
+
+## Required template content
+<list every setting the design visually depends on — image_picker / text / richtext / url / color / range. The test-agent inlines this list into A-1 to fail fast if any are blank.>
+
+## A — Content completeness
+Single assertion: `loadTemplate(SECTION_TYPE).sections[SECTION].settings` has a non-blank value for every key in "Required template content".
+
+## B — Typography + color parity (mobile + desktop)
+<enumerate every element × breakpoint with exact computed-style targets>
+
+## C — Layout integrity (tablet + tablet-lg)
+<structural checks only>
+
+## D — Live screenshots (mobile + desktop)
+<saveScreenshot call per breakpoint>
+
+## E — Content placement (mobile + desktop)
+<line counts per text element, content container max-width, content paddings — skip group entirely if nothing worth pinning>
+
+## Design content reference
+Labeled "reference only, NOT test assertions." Document copy + design tokens for the test-template-populate step and for visual QA.
+
+## Test runner checklist
+- yarn playwright:test ... --reporter=list
+- live-mobile.png + live-desktop.png produced
+- a11y-skipped.marker or a11y-<bp>.json produced (per brief)
+- maxFailures: 1 active
+```
+
+### Step 8 — Add section to test template (FULLY populated)
+Based on the template type from the brief (`page`, `product`, or `collection`), add the section to the corresponding test template with **every schema setting populated** — not just the bare-minimum defaults.
 
 1. Read the template type from the brief
 2. Map to template file:
    - `page` → `templates/{TEST_PAGE_TEMPLATE}.json` (from `.env`, default `page.test`)
    - `product` → `templates/{TEST_PRODUCT_TEMPLATE}.json` (from `.env`, default `product.test`)
    - `collection` → `templates/{TEST_COLLECTION_TEMPLATE}.json` (from `.env`, default `collection.test`)
-3. Read the template JSON
-4. Add the section with its default settings from the schema
-5. Write back the updated template
+3. Read the template JSON (use `playwright-config/helpers.js::loadTemplate` semantics — Shopify prepends a `/* ... */` block comment that must be stripped before `JSON.parse`)
+4. For every setting in the section's schema, emit a dummy value drawn from the brief's "Design content reference" block:
+   - text → the Figma copy string (e.g. `"NEW ARRIVALS"`, `"Unlock Exclusive Savings"`)
+   - richtext → wrap copy in `<p>…</p>`
+   - url → sensible target (e.g. `/collections/all` for CTA links)
+   - color → Figma hex values (e.g. `#ffffff`, `#027db3`)
+   - range / number → the brief default (e.g. `50` for overlay opacity)
+   - font_picker → the brief default handle (e.g. `dm_sans_n7`)
+   - image_picker → leave empty ONLY when no real uploaded asset is available; otherwise reference a placeholder. Expect visual-qa-agent to document the resulting diff.
+5. Write back with the Shopify block-comment header preserved.
 
-Example — adding hero-banner to `page.test.json`:
+Example — adding hero-banner to `page.test.json` (ALL settings populated):
 ```json
 {
   "sections": {
     "hero-banner": {
       "type": "hero-banner",
-      "settings": { /* defaults from schema */ }
+      "settings": {
+        "eyebrow_text": "NEW ARRIVALS",
+        "heading_text": "Unlock Exclusive Savings",
+        "subheading_text": "<p>Get contractor pricing on top-rated systems. Add to cart to see your price.</p>",
+        "cta_label": "Shop Now",
+        "cta_link": "/collections/all",
+        "text_color": "#ffffff",
+        "cta_bg_color": "#027db3",
+        "cta_text_color": "#ffffff",
+        "overlay_opacity": 50,
+        "heading_font": "dm_sans_n7",
+        "body_font": "dm_sans_n5"
+      }
     }
   },
   "order": ["hero-banner"]
 }
 ```
 
-If the template file doesn't exist, create it with the section as the only entry. If the section already exists in the template, skip this step.
+**Why fully populated:** ui.spec.js no longer emits conditional-rendering tests (Step 7), so there is no branch-selection reason to leave settings blank. A fully populated template also means pixelmatch compares against a content-complete render — any unexpected missing elements show up as real diffs instead of content-gap noise.
+
+If the template file doesn't exist, create it with the section as the only entry. If the section already exists in the template, overwrite with the full settings block.
 
 ### Step 9 — Hand off
 Tell the human:

@@ -59,7 +59,7 @@ Approve to start."
 
 ## Step 4 — Execute groups
 
-For each group, follow section-build-checklist.md per section:
+For each group, run `/build-section` per section (or its sub-commands for fine control):
 
 ```
 Group 1 (parallel):

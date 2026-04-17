@@ -24,7 +24,8 @@ const TEST_CONFIG = {
 function sectionTestUrl(type) {
   const { basePath, template } = TEST_CONFIG[type];
   const clean = basePath.startsWith('/') ? basePath : `/${basePath}`;
-  return `https://${STORE_URL}${clean}?view=${template}&preview_theme_id=${THEME_ID}`;
+  const view = template.includes('.') ? template.split('.').slice(1).join('.') : template;
+  return `https://${STORE_URL}${clean}?view=${view}&preview_theme_id=${THEME_ID}`;
 }
 
 /**
@@ -34,6 +35,21 @@ function sectionTestUrl(type) {
 function previewUrl(pagePath) {
   const clean = pagePath.startsWith('/') ? pagePath : `/${pagePath}`;
   return `https://${STORE_URL}${clean}?preview_theme_id=${THEME_ID}`;
+}
+
+/**
+ * Load a Shopify template JSON file. Shopify auto-prepends a `/* ... *\/`
+ * block comment to template JSON files; strip it before JSON.parse.
+ *
+ * @param {'page'|'product'|'collection'} type
+ * @returns {object}
+ */
+function loadTemplate(type) {
+  const { template } = TEST_CONFIG[type];
+  const filePath = path.join(process.cwd(), 'templates', `${template}.json`);
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const stripped = raw.replace(/^\s*\/\*[\s\S]*?\*\/\s*/, '');
+  return JSON.parse(stripped);
 }
 
 /**
@@ -65,13 +81,23 @@ async function saveScreenshot(page, selector, sectionName, name) {
  * @param {import('@playwright/test').TestInfo} testInfo
  * @param {string} sectionName
  */
-async function saveOnFailure(page, testInfo, sectionName) {
-  if (testInfo.status !== testInfo.expectedStatus) {
-    const dir = qaDir(sectionName);
-    const safeName = testInfo.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    const filePath = path.join(dir, `fail-${safeName}.png`);
-    await page.screenshot({ path: filePath, fullPage: true });
-  }
+/**
+ * Fail the test immediately with `element not found: <selector>` when the
+ * selector matches nothing. Returns the first match locator otherwise.
+ *
+ * Every spec should use this instead of `if (count > 0)` guards — silent
+ * skipping hides regressions.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} selector
+ */
+async function requireElement(page, selector) {
+  // eslint-disable-next-line global-require
+  const { expect } = require('@playwright/test');
+  const locator = page.locator(selector);
+  const count = await locator.count();
+  expect(count, `element not found: ${selector}`).toBeGreaterThan(0);
+  return locator.first();
 }
 
 module.exports = {
@@ -79,5 +105,6 @@ module.exports = {
   previewUrl,
   qaDir,
   saveScreenshot,
-  saveOnFailure,
+  requireElement,
+  loadTemplate,
 };

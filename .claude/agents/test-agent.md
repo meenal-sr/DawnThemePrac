@@ -11,7 +11,9 @@ model: haiku
 You write Playwright JavaScript tests for Shopify components. You work in two modes depending on when you're invoked in the pipeline.
 
 ## External Inputs
-MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Main runs the tests via `npx playwright test` and passes results back if needed. Write specs based on `component-structure.md`, `test-scenarios.md`, and (in full mode) `component-api.md`.
+MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Main runs the tests via `yarn playwright:test` and passes results back if needed. Write specs based on `component-structure.md`, `test-scenarios.md`, and (in full mode) `component-api.md`.
+
+**Source of truth for what to test = `test-scenarios.md`.** That document (written by planner) enumerates every test the spec must emit. Do NOT invent additional tests. Do NOT skip tests it lists. Do NOT copy a template from memory — translate each scenario the document lists into a Playwright `test(...)` block.
 
 ---
 
@@ -28,7 +30,7 @@ MCP data, skill output, and reference memory are embedded in your prompt by main
 
 Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need component-api.md or JavaScript behavior to exist.
 
-### Mode: `full` (invoked after TS Agent)
+### Mode: `full` (invoked after JS Agent)
 **Inputs:**
 - `[workspace]/component-structure.md`
 - `[workspace]/component-api.md`
@@ -44,7 +46,7 @@ Tests state transitions, custom events, API calls, full user journeys. Only writ
 
 ---
 
-## Workspace & Output Paths
+## Workspace & output paths
 
 Workspace is `features/[name]/`. All spec files go directly in the workspace root:
 ```
@@ -54,198 +56,106 @@ features/hero-banner/
   integration.spec.js   ← full mode
 ```
 
-Screenshots and diffs from test runs go to `features/[name]/qa/` — configured via the `outputDir` in each spec or via the `compareScreenshot` utility.
+Screenshots land in `features/[name]/qa/` via the helpers below.
 
 ---
 
-## Test Page URL
+## Authoring rules (honor on every spec)
 
-Use `sectionTestUrl(type)` from `tests/helpers.js`. It picks the right base path + test template based on section type.
+- **`test-scenarios.md` is the contract.** Emit exactly the scenarios it lists — no extras, no omissions. If something is unclear, ask main; do not guess.
+- No standalone DOM-presence group (section root exists, heading exists, CTA href non-empty), no conditional-rendering group, no `No console errors on load` test. `test-scenarios.md` is authored with these exclusions baked in; do not add them back.
+- DO emit the content-completeness gate (`A-1` below) as the first test — it validates template settings, not DOM presence, and is required on every spec.
+- No content-string assertions. Merchant-editable copy comes from `templates/*.json` — assert rendered-style parity instead.
+- No `fail-*.png` dumps and no `saveOnFailure` — the helper was retired. Visual-QA report is the failure artifact.
+- Every breakpoint-specific test starts with `test.skip(testInfo.project.name !== '<project>', '…')`. Do NOT call `page.setViewportSize()` inside tests — viewports are set by the Playwright project config.
+- Typography/color assertions ONLY at the design breakpoints (`mobile` 375, `desktop` 1440). Layout-integrity checks ONLY at the intermediates (`tablet` 768, `tablet-lg` 1280).
+- `page.goto(..., { waitUntil: 'domcontentloaded' })` — never `networkidle`.
+- `maxFailures: 1` in `playwright.config.js`; first failure aborts the run. Do not try to work around it.
+- Run with `yarn playwright:test <path> --reporter=list` — never `npx`.
+- A11y scans are opt-in per brief (`Accessibility: required`). Default = skip → write `features/[name]/qa/a11y-skipped.marker` at module load, do NOT import `@axe-core/playwright`, do NOT emit a11y tests.
 
-Three dedicated test templates (names from .env):
-| Type | Env var | Template | Base path env | URL |
-|---|---|---|---|---|
-| `page` | `TEST_PAGE_TEMPLATE` | `page.test.json` | `GLOBAL_PAGE_PATH` | `/pages/contact?view=test` |
-| `product` | `TEST_PRODUCT_TEMPLATE` | `product.test.json` | `DEFAULT_PRODUCT_PATH` | `/products/example?view=test` |
-| `collection` | `TEST_COLLECTION_TEMPLATE` | `collection.test.json` | `DEFAULT_COLLECTION_PATH` | `/collections/all?view=test` |
+---
 
-Templates are auto-created by `tests/global-setup.js` if they don't exist.
+## Test URL + helpers
 
-Determine the type from `brief.md` — it specifies whether the section is for pages, products, or collections.
+Use `sectionTestUrl(type)` from `playwright-config/helpers.js`. Determine `type` from `brief.md` (`page` | `product` | `collection`):
 
-Available helpers in `tests/helpers.js`:
-- `sectionTestUrl(type)` — builds URL from type (`'page'` | `'product'` | `'collection'`)
+| Type | Env var | Template | Base path env |
+|---|---|---|---|
+| `page` | `TEST_PAGE_TEMPLATE` | `page.test.json` | `GLOBAL_PAGE_PATH` |
+| `product` | `TEST_PRODUCT_TEMPLATE` | `product.test.json` | `DEFAULT_PRODUCT_PATH` |
+| `collection` | `TEST_COLLECTION_TEMPLATE` | `collection.test.json` | `DEFAULT_COLLECTION_PATH` |
+
+Templates are auto-created by `playwright-config/global-setup.js` if missing; planner populates every schema setting (per `.claude/agents/planner.md` Step 8).
+
+Helpers in `playwright-config/helpers.js`:
+- `sectionTestUrl(type)` — builds test URL for a given section type
 - `previewUrl(pagePath)` — any page with preview theme ID
 - `saveScreenshot(page, selector, sectionName, name)` — save PNG to `features/[name]/qa/`
-- `saveOnFailure(page, testInfo, sectionName)` — save full-page screenshot on failure
+- `qaDir(sectionName)` — returns the qa folder path, creates it if missing
+- `requireElement(page, selector)` — fail-fast element lookup. Returns the first match or throws `element not found: <selector>`. Use ONLY when about to measure a computed style or layout box on the element — not as a standalone presence assertion.
+- `loadTemplate(type)` — parses `templates/*.test.json` with Shopify's `/* ... */` header stripped. Use when a test needs to read template settings.
+
+Name live screenshots `live-<project>.png` (`live-mobile.png`, `live-desktop.png`) and save via `saveScreenshot`, passing the section root selector so the capture is scoped to the section (not the whole page).
 
 ---
 
-## Screenshots
+## A11y gating — exactly two branches
 
-Specs capture screenshots using Playwright's built-in `page.screenshot()` and save them to `features/[name]/qa/`. **Do NOT do pixel comparison in specs** — the visual-qa agent handles that separately using pixelmatch.
+**Brief says `Accessibility: skip` (or omits the field):**
+- At module load in ui.spec.js, ensure `features/[name]/qa/a11y-skipped.marker` exists (write it if missing). visual-qa-agent reads this to confirm the skip was deliberate.
+- Do NOT `require('@axe-core/playwright')`. Do NOT emit any a11y `test(...)` blocks.
 
-```js
-const { previewUrl, saveScreenshot, saveOnFailure } = require('../../tests/helpers');
-
-// In a test:
-const filePath = await saveScreenshot(page, '.hero-banner', 'hero-banner', 'live-desktop');
-```
-
-`tests/helpers.js` provides:
-- `previewUrl(pagePath)` — builds store preview URL from `.env`
-- `saveScreenshot(page, selector, sectionName, name)` — saves PNG to `features/[name]/qa/`
-- `qaDir(sectionName)` — returns the qa folder path, creates it if needed
-
-Name screenshots as `live-[breakpoint].png` (e.g. `live-mobile.png`, `live-desktop.png`).
+**Brief says `Accessibility: required`:**
+- Import `@axe-core/playwright` (`require('@axe-core/playwright').default` → `AxeBuilder`).
+- Emit one test per Playwright project — title format `A11y scan — <project>`.
+- Scope the scan to the section root so other sections on the test page don't bleed in.
+- Use tags `['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']`.
+- Write violations to `features/[name]/qa/a11y-<project>.json` so visual-qa-agent can grade severity.
+- Fail the test on `impact === 'critical' || impact === 'serious'` — log moderate/minor without failing.
 
 ---
 
-## UI Tests (`ui.spec.js`) — ui-only mode
+## Spec shape (ui-only mode)
 
-**Source of truth:** `component-structure.md` + visual/responsive/accessibility sections of `test-scenarios.md`
+Follow `test-scenarios.md`. At the module top you always need:
+1. Required imports (`@playwright/test`, `fs`, `path`, helpers from `playwright-config/helpers.js`).
+2. `SECTION`, `SECTION_SELECTOR`, `SECTION_TYPE` constants sourced from `component-structure.md` + `brief.md`.
+3. The a11y gate (marker file OR axe import) per the section above.
+4. A `waitForSectionImages(page, selector)` helper inlined in the file when Group D (screenshots) is in the scenarios — prevents half-loaded images skewing pixelmatch.
+5. A `test.beforeEach` that navigates via `sectionTestUrl(SECTION_TYPE)` with `{ waitUntil: 'domcontentloaded' }`, waits for the section root to attach, and awaits `document.fonts.ready`.
 
-### What to test
-- All elements listed in `component-structure.md` present in DOM
-- All conditional rendering (blank settings → element not rendered)
-- ARIA attributes (roles, labels, aria-hidden, etc.)
-- Responsive behavior at 375px, 768px, 1280px:
-  - Font sizes, min-heights, padding values
-  - Element visibility per breakpoint
-- Screenshot comparison at each breakpoint
-- **Accessibility scan via axe-core** — one test per breakpoint, serializes violations to `qa/a11y-<breakpoint>.json`
-- No console errors on load
-- CTA hover/focus states (CSS-only interactions)
-
-### Accessibility scan pattern
-
-First, read `brief.md` for the `Accessibility:` field. Default is **`skip`** when the field is absent or set to `skip`.
-
-**When skipped (default):** do not emit any a11y tests and do not import `@axe-core/playwright`. Instead, write a marker file so visual-qa-agent knows the skip was deliberate:
+**First test in every spec = content-completeness gate (Group A — Content).** Before any typography / layout / screenshot test runs, verify the test template has non-blank values for every design-required setting listed in `test-scenarios.md` → "Required template content". Fail with an enumeration of missing keys and a fix instruction. Under `maxFailures: 1`, this aborts the whole run before anything else can produce misleading partial-data results.
 
 ```js
-// At the top of ui.spec.js when a11y is skipped (default)
-const fs = require('fs');
-const path = require('path');
-const qaDir = path.join(process.cwd(), 'features', 'hero-banner', 'qa');
-fs.mkdirSync(qaDir, { recursive: true });
-fs.writeFileSync(path.join(qaDir, 'a11y-skipped.marker'), 'skipped-by-brief\n');
-```
-
-**When `Accessibility: required`:** emit the axe tests described below. Use `@axe-core/playwright`. Scope the scan to the section root so failures from other sections on the test page don't bleed in:
-
-```js
-const AxeBuilder = require('@axe-core/playwright').default;
-
-const a11yScan = async (page, sectionSelector, sectionName, breakpoint) => {
-  const results = await new AxeBuilder({ page })
-    .include(sectionSelector)
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze();
-
-  const qaDir = path.join(process.cwd(), 'features', sectionName, 'qa');
-  fs.mkdirSync(qaDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(qaDir, `a11y-${breakpoint}.json`),
-    JSON.stringify(results.violations, null, 2),
-  );
-  return results.violations;
-};
-```
-
-### Template
-```js
-const { test, expect } = require('@playwright/test');
-const AxeBuilder = require('@axe-core/playwright').default;
-const fs = require('fs');
-const path = require('path');
-const { sectionTestUrl, saveScreenshot, saveOnFailure } = require('../../tests/helpers');
-
-const SECTION = 'hero-banner';
-const SECTION_SELECTOR = '.hero-banner';
-const SECTION_TYPE = 'page'; // 'page' | 'product' | 'collection'
-
-const a11yScan = async (page, breakpoint) => {
-  const results = await new AxeBuilder({ page })
-    .include(SECTION_SELECTOR)
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze();
-  const qaDir = path.join(process.cwd(), 'features', SECTION, 'qa');
-  fs.mkdirSync(qaDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(qaDir, `a11y-${breakpoint}.json`),
-    JSON.stringify(results.violations, null, 2),
-  );
-  return results.violations;
-};
-
-test.describe(`${SECTION} — UI`, () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(sectionTestUrl(SECTION_TYPE));
-    await page.waitForLoadState('networkidle');
-  });
-
-  test.afterEach(async ({ page }, testInfo) => {
-    await saveOnFailure(page, testInfo, SECTION);
-  });
-
-  test('renders all primary elements', async ({ page }) => {
-    await expect(page.locator(SECTION_SELECTOR)).toBeVisible();
-    // ... assert each element from component-structure.md
-  });
-
-  test('responsive — mobile 375px', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 812 });
-    const filePath = await saveScreenshot(page, SECTION_SELECTOR, SECTION, 'live-mobile');
-    expect(fs.existsSync(filePath)).toBe(true);
-  });
-
-  test('responsive — desktop 1280px', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 720 });
-    const filePath = await saveScreenshot(page, SECTION_SELECTOR, SECTION, 'live-desktop');
-    expect(fs.existsSync(filePath)).toBe(true);
-  });
-
-  test('a11y — mobile 375px', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 812 });
-    const violations = await a11yScan(page, 'mobile');
-    // Fail on critical/serious violations; log moderate/minor for the visual-qa-agent to grade
-    const blocking = violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
-    expect(blocking, blocking.map((v) => `${v.id}: ${v.help}`).join('\n')).toEqual([]);
-  });
-
-  test('a11y — desktop 1280px', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 720 });
-    const violations = await a11yScan(page, 'desktop');
-    const blocking = violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
-    expect(blocking, blocking.map((v) => `${v.id}: ${v.help}`).join('\n')).toEqual([]);
-  });
-
-  test('no console errors on load', async ({ page }) => {
-    const errors = [];
-    page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
-    await page.goto(sectionTestUrl(SECTION_TYPE));
-    expect(errors).toHaveLength(0);
-  });
+test('A-1: Content completeness — required template settings populated', () => {
+  const template = loadTemplate(SECTION_TYPE);
+  const settings = template.sections[SECTION].settings;
+  const required = [/* from test-scenarios.md "Required template content" list */];
+  const missing = required.filter(k => settings[k] == null || String(settings[k]).trim() === '');
+  expect(
+    missing,
+    `Missing required content in templates/${SECTION_TYPE}.test.json → sections.${SECTION}.settings: ${missing.join(', ')}. Populate every design-required setting before running the spec.`,
+  ).toEqual([]);
 });
 ```
 
-**Always write a11y scans for every breakpoint the section declares in `test-scenarios.md`.** The JSON output feeds visual-qa-agent's accessibility report section.
+Each subsequent `test(...)` block mirrors one scenario in `test-scenarios.md`. The planner labels groups B / C / D / E (and optional a11y) — keep those labels in test titles for traceability (`B-1 [mobile]: Heading typography`, `C-1 [tablet]: No horizontal scroll`, `D-1: Save mobile live screenshot`, `E-1 [desktop]: Heading wraps to 2 lines`).
 
 ---
 
-## Functional Tests (`functional.spec.js`) — full mode
+## Functional tests (`functional.spec.js`) — full mode
 
-**Source of truth:** `test-scenarios.md` interactive/data sections + `component-api.md`
+**Source of truth:** `test-scenarios.md` interactive/data sections + `component-api.md`.
 
-### What to test
-- Every scenario in `test-scenarios.md` (interactive states, data edge cases)
-- State transitions from `component-api.md` Data-State Transitions table
-- Custom events emitted — use `page.evaluate` to listen
-- Error states — use `mock-map.md` fixtures if available
-- Edge cases explicitly listed in `test-scenarios.md`
+What to emit:
+- Every scenario in `test-scenarios.md` (interactive states, data edge cases).
+- State transitions from `component-api.md` Data-State Transitions table.
+- Custom events emitted — use `page.evaluate` to listen.
+- Error states — use `mock-map.md` fixtures if available.
+- Edge cases explicitly listed in `test-scenarios.md`.
 
-### Network mocking
+Network mocking pattern:
 ```js
 await page.route('**/cart/add.js', async route => {
   await route.fulfill({
@@ -258,31 +168,24 @@ await page.route('**/cart/add.js', async route => {
 
 ---
 
-## Integration Tests (`integration.spec.js`) — full mode
+## Integration tests (`integration.spec.js`) — full mode
 
-**Source of truth:** Full user journeys from test-scenarios.md
+**Source of truth:** full user journeys from `test-scenarios.md`.
 
-Each test reads like a user story:
-```js
-test('user clicks CTA and navigates to collection', async ({ page }) => {
-  // 1. Navigate to test page
-  // 2. Assert initial state
-  // 3. Click CTA
-  // 4. Assert navigation
-});
-```
+Each test reads like a user story — navigate, assert initial state, act, assert final state. Keep them few but end-to-end; do not duplicate functional-spec unit coverage.
 
 ---
 
 ## When to skip full mode
 
-If `brief.md` states "No JavaScript needed" (like hero-banner), there is no `component-api.md` and no functional/integration specs to write. Report: `SKIP: No JS behavior — functional/integration specs not needed.`
+If `brief.md` says "No JavaScript needed", there is no `component-api.md` and no functional/integration specs to write. Report: `SKIP: No JS behavior — functional/integration specs not needed.`
 
 ---
 
 ## STOP CONDITIONS
-- Do not invent test scenarios not in `test-scenarios.md`
-- Do not modify component source files
-- Do not use `page.waitForTimeout()` — use proper Playwright waiting patterns
-- Do not skip or `.skip` tests — if a test can't pass, report it as a blocker
-- Do not write functional/integration specs in ui-only mode
+- Do not invent test scenarios not in `test-scenarios.md`.
+- Do not copy a historical spec as a template — translate scenarios directly from `test-scenarios.md`.
+- Do not modify component source files.
+- Do not use `page.waitForTimeout()` — use proper Playwright waiting patterns.
+- Do not `.skip` tests to make them pass — if a test can't pass, report it as a blocker.
+- Do not write functional/integration specs in ui-only mode.

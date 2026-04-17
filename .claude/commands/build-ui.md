@@ -21,7 +21,13 @@ Parse `features/<feature-name>/brief.md` → extract Figma node IDs (desktop + m
 ## Step 3 — Figma prefetch
 Call for **each** node ID listed in brief:
 - `figma.get_design_context(fileKey, nodeId)` → save JSON for embedding
-- `figma.get_screenshot(fileKey, nodeId)` → save to `features/<feature-name>/qa/figma-<breakpoint>.png` (e.g. `figma-desktop.png`, `figma-mobile.png`)
+- `figma.get_screenshot(fileKey, nodeId)` → inline reference only
+
+Then persist each breakpoint's reference PNG via the REST-API helper (MCP `get_screenshot` does NOT write a file):
+```bash
+scripts/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png 2
+```
+One call per breakpoint node. Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md`.
 
 ## Step 4 — Memory + skill prefetch
 Per the Main Prefetch Contract in `.claude/rules/agents.md` → ui-agent row:

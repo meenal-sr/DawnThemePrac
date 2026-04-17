@@ -27,11 +27,17 @@ Ask the human in a single message:
 Wait for answers before proceeding.
 
 ## Step 3 — Figma prefetch
-Call in parallel:
-- `figma.get_design_context(fileKey, nodeId)` → save JSON for embedding
-- `figma.get_screenshot(fileKey, nodeId)` → save to `features/<feature-name>/qa/figma-default.png`
+Create the feature directory first: `mkdir -p features/<feature-name>/qa`
 
-Create the feature directory if it doesn't exist: `mkdir -p features/<feature-name>/qa`
+Call:
+- `figma.get_design_context(fileKey, nodeId)` → save JSON for embedding
+- `figma.get_screenshot(fileKey, nodeId)` → keep the inline image for visual reference
+
+Then persist the reference PNG to disk via the REST-API helper (MCP `get_screenshot` does NOT write a file):
+```bash
+scripts/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-default.png 2
+```
+Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md` in memory for usage notes.
 
 ## Step 4 — Memory + skill prefetch
 Per the Main Prefetch Contract in `.claude/rules/agents.md` → planner row:

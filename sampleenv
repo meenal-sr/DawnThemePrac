@@ -7,3 +7,9 @@ DEFAULT_COLLECTION_PATH=/collections/all
 TEST_PAGE_TEMPLATE=page.test
 TEST_PRODUCT_TEMPLATE=product.test
 TEST_COLLECTION_TEMPLATE=collection.test
+
+# Figma Personal Access Token — used by scripts/figma-export.sh to export
+# frame PNGs for visual QA when the Figma MCP cannot persist files.
+# Generate at figma.com → Settings → Security → Personal access tokens.
+# Scope: "File content: Read".
+FIGMA_TOKEN=

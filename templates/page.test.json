@@ -1,0 +1,32 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "hero-banner": {
+      "type": "hero-banner",
+      "settings": {
+        "eyebrow_text": "NEW ARRIVALS",
+        "heading_text": "Unlock Exclusive Savings",
+        "subheading_text": "<p>Get contractor pricing on top-rated systems. Add to cart to see your price.</p>",
+        "cta_label": "Shop Now",
+        "cta_link": "/collections/all",
+        "text_color": "#ffffff",
+        "cta_bg_color": "#027db3",
+        "cta_text_color": "#ffffff",
+        "overlay_opacity": 50,
+        "heading_font": "dm_sans_n7",
+        "body_font": "dm_sans_n5"
+      }
+    }
+  },
+  "order": [
+    "hero-banner"
+  ]
+}

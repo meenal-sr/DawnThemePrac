@@ -9,5 +9,5 @@ package-lock.json
 .cache
 CLAUDE.md
 test-results/
-tests/.auth/
+playwright-config/.auth/
 **/qa

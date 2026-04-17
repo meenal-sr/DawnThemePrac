@@ -104,6 +104,22 @@ You do not run pixelmatch or axe yourself — main invokes them before spawning 
 4. Note which tests passed/failed
 5. Note which screenshots exist in `qa/`
 
+### Step 1b — Content completeness gate (HARD FAIL — bail before comparison)
+
+Before any typography, pixelmatch, or layout analysis, verify the test template has content for every setting the design requires.
+
+1. Read the section's schema from `brief.md` — every `image_picker`, text, url, color, richtext, and range setting the design visually depends on. The brief's Data / Schema section is authoritative.
+2. Read the test template (`templates/{page|product|collection}.test.json` — strip the Shopify `/* ... */` header before `JSON.parse`).
+3. For each setting the design requires (image present in Figma, text visible in Figma, CTA rendered in Figma), check the template has a non-blank value.
+4. If ANY required content is missing → immediately write `Status: NEEDS_FIX` with a single "Missing content" section enumerating:
+   - The setting key (e.g. `background_image`, `cta_link`)
+   - The design source (Figma node / brief reference showing it's required)
+   - A one-line fix instruction (e.g. "upload placeholder PNG to Shopify and reference in template", "set `cta_link` to `/collections/all` in template")
+5. Do NOT run pixelmatch analysis, do NOT grade typography, do NOT write a full report. The whole run is invalid until the template is content-complete. Partial-data comparisons mislead — a 68% pixelmatch from blank images looks like a layout defect that doesn't exist, and a 2% pixelmatch from missing text looks like a pass when the section is actually missing elements.
+6. Exception: settings the brief explicitly marks OPTIONAL (e.g. "foreground_image is a merchant opt-in") do not trigger the gate when blank — as long as the Figma node they correspond to is also a documented optional variant.
+
+Only proceed to Step 2 if the content-completeness gate passes.
+
 ### Step 2 — Analyze test results
 For each test in `ui.spec.js`:
 - Pass → record in passing table
@@ -129,15 +145,16 @@ Analyze the screenshot comparison results:
 
 | Breakpoint | Diff % | Threshold | Result |
 |---|---|---|---|
-| Mobile 375px | 0.5% | <2% | Pass |
-| Desktop 1280px | 3.2% | <2% | NEEDS_FIX |
+| Mobile 375px | 0.5% | ≤2% | Pass |
+| Desktop 1440px | 3.2% | ≤2% | NEEDS_FIX |
 
-Thresholds:
-- Diff < 1% → Pass (sub-pixel rendering differences)
-- Diff 1-2% → Review — check if differences are meaningful spacing/layout issues or just font rendering
-- Diff > 2% → NEEDS_FIX — significant spacing or layout mismatch
+Thresholds (hard rule — 98% accuracy ceiling):
+- Diff ≤ 2% → Pass (sub-pixel / font-rendering tolerance)
+- Diff > 2% → NEEDS_FIX — any cause, no exceptions
 
-If diff images exist in `qa/diff-*/`, examine them to identify which areas differ. Report specific elements if identifiable.
+**No caveat overrides the threshold.** Even when the brief or test template notes a known gap (e.g. image_picker fields blank, Figma frame ≠ live viewport width, mobile Figma not supplied), a pixelmatch diff above 2% is still NEEDS_FIX. Content-complete, asset-complete screenshots are a pre-condition for PASS. If the gap cannot be closed (e.g. no mobile Figma), mark the breakpoint OUT_OF_SCOPE explicitly — do not auto-PASS with a caveat.
+
+If diff images exist in `qa/diff-*.png`, examine them to identify which areas differ. Report specific elements if identifiable.
 
 ### Step 5 — Accessibility check (axe-core violations)
 

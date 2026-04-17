@@ -1,5 +1,5 @@
 ---
-description: Prefetch diagnostics + PR context + code-review skill, spawn code-reviewer on the specified files. Argument — $1 file paths (space-separated) or feature folder.
+description: Prefetch diagnostics + PR context, spawn code-reviewer on the specified files. Argument — $1 file paths (space-separated) or feature folder. No argument = staged + unstaged changes.
 ---
 
 # Review Files: $ARGUMENTS
@@ -7,9 +7,11 @@ description: Prefetch diagnostics + PR context + code-review skill, spawn code-r
 You are main conversation. Execute verbatim.
 
 ## Step 1 — Parse arguments
-- `$1` = space-separated file paths, OR a feature folder like `features/<name>/`
+- `$1` = space-separated file paths, OR a feature folder like `features/<name>/`, OR empty
 
-Expand folders to individual files via `git ls-files $1` or `find $1 -type f`.
+If `$1` is empty → default to `git diff --name-only HEAD` (staged + unstaged changes).
+If `$1` is a folder → expand via `git ls-files $1` or `find $1 -type f`.
+Otherwise → treat as explicit file paths.
 
 ## Step 2 — Diagnostics + PR prefetch
 - `ide.getDiagnostics` on each file being reviewed
@@ -20,7 +22,7 @@ Expand folders to individual files via `git ls-files $1` or `find $1 -type f`.
 
 ## Step 3 — Skill + memory prefetch
 Per Main Prefetch Contract → code-reviewer row:
-- Skills: `code-review` (always), plus:
+- Skills:
   - `modern-javascript-patterns` if reviewing `.js`/`.jsx`
   - `vercel-react-best-practices` only if files use React (`.jsx` with JSX/hooks)
   - `web-design-guidelines` if reviewing `.liquid`/`.scss`

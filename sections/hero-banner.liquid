@@ -1,118 +1,159 @@
-{%- comment -%}
-  Hero Banner Section
-  Full-width hero with background image and text overlay.
-  Merchant-configurable content, background, and spacing.
-  No JS required — static section.
-{%- endcomment -%}
-
 {%- liquid
-  assign background_image = section.settings.background_image
-  assign subtitle         = section.settings.subtitle
-  assign heading          = section.settings.heading
-  assign description      = section.settings.description
-  assign button_text      = section.settings.button_text
-  assign button_link      = section.settings.button_link
-  assign overlay_opacity  = section.settings.overlay_opacity
-  assign content_max_width = section.settings.content_max_width
-  assign pt_desktop       = section.settings.padding_top_desktop
-  assign pb_desktop       = section.settings.padding_bottom_desktop
-  assign pt_mobile        = section.settings.padding_top_mobile
-  assign pb_mobile        = section.settings.padding_bottom_mobile
+  assign bg_image        = section.settings.background_image
+  assign fg_image        = section.settings.foreground_image
+  assign logo_image      = section.settings.logo_image
+  assign eyebrow_text    = section.settings.eyebrow_text
+  assign heading_text    = section.settings.heading_text
+  assign subheading_text = section.settings.subheading_text
+  assign cta_label       = section.settings.cta_label
+  assign cta_link        = section.settings.cta_link
+  assign text_color      = section.settings.text_color
+  assign cta_bg_color    = section.settings.cta_bg_color
+  assign cta_text_color  = section.settings.cta_text_color
+  assign overlay_opacity = section.settings.overlay_opacity
+  assign heading_font    = section.settings.heading_font
+  assign body_font       = section.settings.body_font
+  assign overlay_decimal = overlay_opacity | divided_by: 100.0
 -%}
 
 <style>
-  #shopify-section-{{ section.id }} .hero-banner {
-    padding-top: {{ pt_mobile }}px;
-    padding-bottom: {{ pb_mobile }}px;
+  {{ heading_font | font_face: font_display: 'swap' }}
+  {{ body_font | font_face: font_display: 'swap' }}
+
+  #shopify-section-{{ section.id }} {
+    --hero-heading-font: {{ heading_font.family }}, {{ heading_font.fallback_families }}, sans-serif;
+    --hero-body-font: {{ body_font.family }}, {{ body_font.fallback_families }}, sans-serif;
+    --hero-text-color: {{ text_color }};
+    --hero-cta-bg: {{ cta_bg_color }};
+    --hero-cta-text: {{ cta_text_color }};
   }
-  @media (min-width: 1024px) {
-    #shopify-section-{{ section.id }} .hero-banner {
-      padding-top: {{ pt_desktop }}px;
-      padding-bottom: {{ pb_desktop }}px;
-    }
+
+  #shopify-section-{{ section.id }} .hero-banner__eyebrow,
+  #shopify-section-{{ section.id }} .hero-banner__subhead {
+    font-family: var(--hero-body-font);
+    color: var(--hero-text-color);
   }
-  #shopify-section-{{ section.id }} .hero-banner__container {
-    max-width: {{ content_max_width }}px;
+
+  #shopify-section-{{ section.id }} .hero-banner__heading {
+    font-family: var(--hero-heading-font);
+    color: var(--hero-text-color);
+  }
+
+  #shopify-section-{{ section.id }} .hero-banner__cta {
+    background-color: var(--hero-cta-bg);
+    color: var(--hero-cta-text);
+    font-family: var(--hero-body-font);
   }
 </style>
 
 <section
-  class="hero-banner tw-relative tw-overflow-hidden tw-w-full"
-  aria-label="{{ heading | escape }}"
+  class="hero-banner tw-relative tw-overflow-hidden tw-rounded-[10px] tw-w-full tw-min-h-[320px] md-small:tw-min-h-[400px] md:tw-min-h-[480px]"
+  data-section-type="hero-banner"
+  aria-label="Hero banner"
 >
 
-  {%- comment -%} Background image {%- endcomment -%}
-  <div class="hero-banner__bg tw-absolute tw-inset-0 tw-w-full tw-h-full">
-    {%- if background_image != blank -%}
-      {%- liquid
-        assign img_url  = background_image | image_url: width: 1920
-        assign img_url_mobile = background_image | image_url: width: 800
-        assign img_aspect = background_image.width | divided_by: background_image.height | times: 1.0
-        assign img_alt  = background_image.alt | default: heading | escape
-      -%}
-      <picture>
-        <source
-          media="(min-width: 1024px)"
-          srcset="
-            {{ background_image | image_url: width: 1200 }} 1200w,
-            {{ background_image | image_url: width: 1920 }} 1920w
-          "
-        >
-        <source
-          srcset="
-            {{ background_image | image_url: width: 600 }} 600w,
-            {{ background_image | image_url: width: 800 }} 800w
-          "
-        >
-        <img
-          class="hero-banner__bg-img tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover"
-          src="{{ img_url }}"
-          alt="{{ img_alt }}"
-          loading="eager"
-          fetchpriority="high"
-        >
-      </picture>
+  {%- comment %} Background layer — image or solid fallback {%- endcomment %}
+  <div class="hero-banner__bg tw-absolute tw-inset-0">
+    {%- if bg_image != blank -%}
+      <img
+        class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover"
+        src="{{ bg_image | image_url: width: 1340 }}"
+        srcset="
+          {{ bg_image | image_url: width: 600 }} 600w,
+          {{ bg_image | image_url: width: 900 }} 900w,
+          {{ bg_image | image_url: width: 1340 }} 1340w,
+          {{ bg_image | image_url: width: 1920 }} 1920w
+        "
+        sizes="100vw"
+        alt="{{ bg_image.alt | escape }}"
+        loading="eager"
+        fetchpriority="high"
+        width="{{ bg_image.width }}"
+        height="{{ bg_image.height }}"
+      >
+    {%- else -%}
+      <div class="tw-absolute tw-inset-0" style="background-color: #f0efeb;"></div>
     {%- endif -%}
   </div>
 
-  {%- comment -%} Optional dark overlay {%- endcomment -%}
+  {%- comment %} Foreground decorative image — desktop only {%- endcomment %}
+  {%- if fg_image != blank -%}
+    <picture class="hero-banner__foreground tw-hidden md-small:tw-block tw-absolute tw-right-0 tw-top-[-74px] tw-pointer-events-none tw-select-none">
+      <source
+        media="(min-width: 768px)"
+        srcset="
+          {{ fg_image | image_url: width: 600 }} 600w,
+          {{ fg_image | image_url: width: 900 }} 900w,
+          {{ fg_image | image_url: width: 1200 }} 1200w
+        "
+        sizes="(min-width: 1024px) 1088px, 80vw"
+      >
+      <img
+        src="{{ fg_image | image_url: width: 1088 }}"
+        alt=""
+        role="presentation"
+        class="tw-w-[1088px] tw-h-[629px] tw-object-cover"
+        loading="lazy"
+        width="1088"
+        height="629"
+      >
+    </picture>
+  {%- endif -%}
+
+  {%- comment %} Gradient overlay — only when opacity > 0 {%- endcomment %}
   {%- if overlay_opacity > 0 -%}
     <div
-      class="hero-banner__overlay tw-absolute tw-inset-0"
-      style="background-color: rgba(0,0,0,{{ overlay_opacity | divided_by: 100.0 }});"
-      aria-hidden="true"
+      class="hero-banner__overlay tw-absolute tw-inset-0 tw-bg-gradient-to-r tw-from-black tw-to-transparent tw-pointer-events-none"
+      style="opacity: {{ overlay_decimal }};"
     ></div>
   {%- endif -%}
 
-  {%- comment -%} Content container {%- endcomment -%}
-  <div class="hero-banner__container tw-relative tw-z-10 tw-mx-auto tw-px-5 tw-w-full">
-    <div class="hero-banner__inner tw-flex tw-flex-col tw-gap-4">
+  {%- comment %} Brand logo — desktop only {%- endcomment %}
+  {%- if logo_image != blank -%}
+    <img
+      class="hero-banner__logo tw-hidden md-small:tw-block tw-absolute tw-top-10 tw-right-10 tw-max-w-[271px] tw-h-auto tw-pointer-events-none tw-select-none"
+      src="{{ logo_image | image_url: width: 271 }}"
+      srcset="
+        {{ logo_image | image_url: width: 271 }} 1x,
+        {{ logo_image | image_url: width: 542 }} 2x
+      "
+      alt=""
+      role="presentation"
+      loading="lazy"
+      width="271"
+      height="64"
+    >
+  {%- endif -%}
 
-      {%- if subtitle != blank -%}
-        <p class="hero-banner__subtitle tw-text-white tw-text-[13px] md:tw-text-[16px] tw-font-medium tw-uppercase tw-tracking-[0.52px] tw-m-0">
-          {{ subtitle | escape }}
+  {%- comment %} Text content layer {%- endcomment %}
+  <div class="hero-banner__content tw-relative tw-z-10 tw-flex tw-flex-col tw-items-start tw-justify-center tw-min-h-[320px] md-small:tw-min-h-[400px] md:tw-min-h-[480px] tw-px-[20px]">
+    <div class="hero-banner__content-inner tw-flex tw-flex-col tw-items-start tw-gap-[16px] tw-max-w-[460px] tw-pt-[31px] tw-pb-[32px]">
+
+      {%- if eyebrow_text != blank -%}
+        <p class="hero-banner__eyebrow tw-text-[16px] tw-leading-[25px] tw-font-medium tw-uppercase tw-tracking-wide tw-m-0">
+          {{- eyebrow_text | escape -}}
         </p>
       {%- endif -%}
 
-      {%- if heading != blank -%}
-        <h2 class="hero-banner__heading tw-text-white tw-text-[32px] md:tw-text-[60px] tw-font-bold tw-leading-tight md:tw-leading-[66px] tw-m-0">
-          {{ heading | escape }}
-        </h2>
-      {%- endif -%}
+      <h1 class="hero-banner__heading tw-text-[32px] md-small:tw-text-[44px] md:tw-text-[60px] tw-font-bold tw-leading-[1.1] md:tw-leading-[66px] tw-m-0">
+        {{- heading_text | escape -}}
+      </h1>
 
-      {%- if description != blank -%}
-        <div class="hero-banner__description tw-text-white tw-text-[16px] tw-leading-normal tw-opacity-70">
-          {{ description }}
+      {%- if subheading_text != blank -%}
+        <div class="hero-banner__subhead tw-text-[15.9px] tw-leading-[24.9px] tw-font-medium tw-opacity-70 tw-m-0">
+          {{- subheading_text -}}
         </div>
       {%- endif -%}
 
-      {%- if button_text != blank -%}
-        <a
-          href="{{ button_link | default: '#' }}"
-          class="hero-banner__cta tw-inline-block tw-self-start tw-bg-[#027db3] tw-text-white tw-text-[16px] tw-font-bold tw-rounded-full tw-px-8 tw-py-[14px] tw-no-underline tw-leading-none tw-transition-colors"
-        >
-          {{ button_text | escape }}
-        </a>
+      {%- if cta_label != blank and cta_link != blank -%}
+        <div class="tw-pt-[16px]">
+          <a
+            class="hero-banner__cta tw-inline-flex tw-items-center tw-justify-center tw-rounded-full tw-px-8 tw-py-[10px] tw-font-bold tw-text-[16px] tw-leading-[28px] tw-capitalize tw-no-underline tw-transition-opacity hover:tw-opacity-90 focus-visible:tw-outline-none focus-visible:tw-ring-2 focus-visible:tw-ring-white/70 focus-visible:tw-ring-offset-2"
+            href="{{ cta_link | escape }}"
+          >
+            {{- cta_label | escape -}}
+          </a>
+        </div>
       {%- endif -%}
 
     </div>
@@ -128,7 +169,7 @@
   "settings": [
     {
       "type": "header",
-      "content": "Background"
+      "content": "Images"
     },
     {
       "type": "image_picker",
@@ -136,14 +177,14 @@
       "label": "Background image"
     },
     {
-      "type": "range",
-      "id": "overlay_opacity",
-      "min": 0,
-      "max": 100,
-      "step": 5,
-      "unit": "%",
-      "label": "Image overlay opacity",
-      "default": 0
+      "type": "image_picker",
+      "id": "foreground_image",
+      "label": "Foreground image (desktop only)"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_image",
+      "label": "Logo image (desktop only)"
     },
     {
       "type": "header",
@@ -151,94 +192,80 @@
     },
     {
       "type": "text",
-      "id": "subtitle",
-      "label": "Subtitle label",
+      "id": "eyebrow_text",
+      "label": "Eyebrow text",
       "default": "NEW ARRIVALS"
     },
     {
       "type": "text",
-      "id": "heading",
+      "id": "heading_text",
       "label": "Heading",
       "default": "Unlock Exclusive Savings"
     },
     {
       "type": "richtext",
-      "id": "description",
-      "label": "Description",
-      "default": "<p>Get contractor pricing on top HVAC brands. Limited time deals on AC units, heat pumps, and more.</p>"
+      "id": "subheading_text",
+      "label": "Subheading",
+      "default": "<p>Get contractor pricing on top-rated systems. Add to cart to see your price.</p>"
     },
     {
       "type": "text",
-      "id": "button_text",
-      "label": "Button label",
+      "id": "cta_label",
+      "label": "CTA label",
       "default": "Shop Now"
     },
     {
       "type": "url",
-      "id": "button_link",
-      "label": "Button link"
+      "id": "cta_link",
+      "label": "CTA link"
     },
     {
       "type": "header",
-      "content": "Layout"
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "cta_bg_color",
+      "label": "CTA background color",
+      "default": "#027db3"
+    },
+    {
+      "type": "color",
+      "id": "cta_text_color",
+      "label": "CTA text color",
+      "default": "#ffffff"
     },
     {
       "type": "range",
-      "id": "content_max_width",
-      "min": 600,
-      "max": 1200,
-      "step": 10,
-      "unit": "px",
-      "label": "Content max width",
-      "default": 938
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 50
     },
     {
       "type": "header",
-      "content": "Spacing — Desktop"
+      "content": "Typography"
     },
     {
-      "type": "range",
-      "id": "padding_top_desktop",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "label": "Top padding (desktop)",
-      "default": 32
+      "type": "font_picker",
+      "id": "heading_font",
+      "label": "Heading font",
+      "default": "dm_sans_n7"
     },
     {
-      "type": "range",
-      "id": "padding_bottom_desktop",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "label": "Bottom padding (desktop)",
-      "default": 32
-    },
-    {
-      "type": "header",
-      "content": "Spacing — Mobile"
-    },
-    {
-      "type": "range",
-      "id": "padding_top_mobile",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "label": "Top padding (mobile)",
-      "default": 20
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom_mobile",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "label": "Bottom padding (mobile)",
-      "default": 20
+      "type": "font_picker",
+      "id": "body_font",
+      "label": "Body / CTA font",
+      "default": "dm_sans_n5"
     }
   ],
   "presets": [

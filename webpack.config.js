@@ -127,7 +127,7 @@ module.exports = {
       context: path.join(__dirname, 'js'),
       extensions: ['js', 'jsx'],
       failOnError: true,
-      eslintPath: 'eslint/use-at-your-own-risk',
+      configType: 'eslintrc',
       overrideConfigFile: path.join(__dirname, '.eslintrc.cjs'),
     }),
     playFailSoundPlugin(),

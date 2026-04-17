@@ -9,12 +9,12 @@ const baseURL = storeUrl ? `https://${storeUrl}` : undefined;
 module.exports = defineConfig({
   testDir: '.',
   testMatch: [
-    'tests/**/*.spec.js',
-    'tests/**/*.spec.ts',
+    'playwright-config/**/*.spec.js',
+    'playwright-config/**/*.spec.ts',
     'features/**/*.spec.js',
     'features/**/*.spec.ts',
   ],
-  globalSetup: './tests/global-setup.js',
+  globalSetup: './playwright-config/global-setup.js',
 
   timeout: 30_000,
   expect: { timeout: 10_000 },
@@ -22,6 +22,7 @@ module.exports = defineConfig({
   fullyParallel: false,
   retries: 1,
   workers: 1,
+  maxFailures: 1,
 
   reporter: [['list']],
 
@@ -33,13 +34,23 @@ module.exports = defineConfig({
 
     viewport: { width: 1280, height: 720 },
 
-    storageState: 'tests/.auth/storage-state.json',
+    storageState: 'playwright-config/.auth/storage-state.json',
   },
 
   projects: [
     {
       name: 'desktop',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: 'tablet-lg',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+      },
     },
     {
       name: 'tablet',

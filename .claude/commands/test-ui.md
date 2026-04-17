@@ -34,7 +34,7 @@ Expected output: `features/<feature-name>/ui.spec.js`
 ## Step 4 — Run specs
 Run via Bash:
 ```
-npx playwright test features/<feature-name>/ui.spec.js --reporter=list
+yarn playwright:test features/<feature-name>/ui.spec.js --reporter=list
 ```
 
 Screenshots auto-land in `features/<feature-name>/qa/`.

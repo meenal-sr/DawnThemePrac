@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const STORAGE_STATE_PATH = 'tests/.auth/storage-state.json';
+const STORAGE_STATE_PATH = 'playwright-config/.auth/storage-state.json';
 
 const TEST_TEMPLATES = {
   TEST_PAGE_TEMPLATE: 'page',

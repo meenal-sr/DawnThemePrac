@@ -30,12 +30,8 @@ What are you doing?
 │   → /refactor-clean                          (remove dead code)
 │   → /simplify                                (reduce over-engineering — via Skill tool)
 │
-├── Reviewing before commit?
-│   → /review-files <paths>                    (spawn code-reviewer)
-│   → /code-review                             (inline review of staged changes)
-│
-└── Loading project context at session start?
-    → /load-memory                             (read MEMORY.md + references)
+└── Reviewing before commit?
+    → /review-files [<paths>]                  (spawn code-reviewer; no args = staged + unstaged diff)
 ```
 
 ---
@@ -61,8 +57,7 @@ What are you doing?
 |---|---|---|
 | `/plan` | Any non-Figma task you want aligned before coding | `/plan migrate the webpack config to support SSR` |
 | `/refactor-clean` | Just merged something, want to remove unused exports/imports | `/refactor-clean` |
-| `/code-review` | Have uncommitted changes, want review before committing | `/code-review` |
-| `/load-memory` | Start of session or when you want explicit memory refresh | `/load-memory` |
+| `/review-files` | Review uncommitted changes or specific files before commit | `/review-files` or `/review-files js/sections/cart-drawer.js` |
 
 ---
 
@@ -118,9 +113,9 @@ One command. Answers 5 intake questions. Walks the whole pipeline. Stops on any 
 
 ### "I just wrote code, want review before commit"
 ```
-/code-review
-# or for specific files:
-/review-files js/sections/cart-drawer.js features/cart-drawer/
+/review-files                                        # all uncommitted
+/review-files js/sections/cart-drawer.js             # specific files
+/review-files features/cart-drawer/                  # whole feature folder
 ```
 
 ---
@@ -129,7 +124,7 @@ One command. Answers 5 intake questions. Walks the whole pipeline. Stops on any 
 
 1. **Default entry for Shopify section build** → `/build-section`
 2. **Default entry for non-Figma work** → `/plan`
-3. **Default entry for review** → `/code-review` (staged) or `/review-files <paths>` (specific)
+3. **Default entry for review** → `/review-files` (no args = staged + unstaged; pass paths for specific)
 
 Everything else is for partial runs / debugging / fine control.
 

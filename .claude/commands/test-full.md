@@ -38,7 +38,7 @@ Expected outputs:
 
 ## Step 4 — Run specs
 ```
-npx playwright test features/<feature-name>/functional.spec.js features/<feature-name>/integration.spec.js --reporter=list
+yarn playwright:test features/<feature-name>/functional.spec.js features/<feature-name>/integration.spec.js --reporter=list
 ```
 
 ## Step 5 — Report

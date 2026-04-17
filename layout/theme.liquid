@@ -12,6 +12,7 @@
     {%- endif -%}
 
     <title>{{ page_title }}</title>
+     {{ 'common-imports.css' |  asset_url |  stylesheet_tag }}
 
     {{ content_for_header }}
 

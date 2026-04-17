@@ -10,7 +10,7 @@ Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot acc
 
 ## Main Prefetch Contract (single source of truth)
 
-Subagents cannot call MCPs, skills, or `load-memory`. Main prefetches and embeds everything in the agent's prompt. Each agent file references this table instead of repeating the contract per agent.
+Subagents cannot call MCPs or skills. Main prefetches and embeds everything in the agent's prompt. Each agent file references this table instead of repeating the contract per agent.
 
 | Agent | MCPs main calls first | Skills main invokes first | Memory subset embedded | Post-handoff checks (main) |
 |---|---|---|---|---|
@@ -21,7 +21,7 @@ Subagents cannot call MCPs, skills, or `load-memory`. Main prefetches and embeds
 | test-agent | — | — | Playwright structure for Shopify storefronts, test scenario patterns | `npx playwright test features/[name]/*.spec.js` |
 | visual-qa-agent | `figma.get_screenshot` (saved to `qa/figma-*.png`), `pixelmatch.compare` (diff each figma-*.png vs live-*.png per breakpoint, writes `qa/diff-*.png` + mismatch %) | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
 | page-integration-test | — | — | Playwright structure, cross-section event testing, full-page integration | `npx playwright test pages/[name]/tests/*.spec.js` |
-| code-reviewer | `ide.getDiagnostics`, `github.get_pull_request*` (PR context) | `code-review`, `modern-javascript-patterns`, `vercel-react-best-practices` (gated), `web-design-guidelines` | JS patterns, Shopify architecture, Tailwind organization, Playwright structure | — |
+| code-reviewer | `ide.getDiagnostics`, `github.get_pull_request*` (PR context) | `modern-javascript-patterns`, `vercel-react-best-practices` (gated), `web-design-guidelines` | JS patterns, Shopify architecture, Tailwind organization, Playwright structure | — |
 
 Workflow checkpoints (`simplify`, `refactor-clean`) are main-invoked **between agent runs**, not during. Never declared in agent skill lists.
 
@@ -39,7 +39,7 @@ Located in `.claude/agents/`:
 | code-reviewer | Code quality review | None | After writing code |
 
 ## Execution Flow (single section)
-See `section-build-checklist.md` for full details.
+See `.claude/commands/build-section.md` for full details.
 ```
 Main: Figma prefetch
   → planner agent (with Figma data) → brief.md + test-scenarios.md
