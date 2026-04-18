@@ -15,7 +15,8 @@
     "shopify:pull": "shopify theme pull -o 'templates/*.json'",
     "playwright:install": "playwright install",
     "playwright:test": "playwright test",
-    "playwright:ui": "playwright test --ui"
+    "playwright:ui": "playwright test --ui",
+    "playwright:head": "playwright test --headed"
   },
   "main": "assets/main.js",
   "keywords": [

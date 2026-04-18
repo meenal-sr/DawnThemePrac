@@ -3,8 +3,7 @@
     "allow": [
       "Bash(yarn lint:*)",
       "Bash(yarn start:*)",
-      "Bash(yarn deploy:*)",
-      "Bash(yarn shopify:*)",
+      "Bash(yarn shopify:pull:*)",
       "Bash(git commit:*)",
       "Bash(git revert:*)",
       "Bash(git log:*)",
@@ -47,6 +46,13 @@
       "mcp__firecrawl__firecrawl_scrape",
       "mcp__firecrawl__firecrawl_search"
     ],
+    "deny": [
+      "Bash(yarn deploy*)",
+      "Bash(yarn shopify:push*)",
+      "Bash(shopify theme push*)",
+      "Bash(*shopify theme push*)",
+      "Bash(*shopify:push*)"
+    ],
     "defaultMode": "default"
   },
   "hooks": {
@@ -87,6 +93,16 @@
           {
             "type": "command",
             "command": "CMD=$(jq -r '.tool_input.command // empty'); if echo \"$CMD\" | grep -qE 'git (commit|push)'; then echo '=== Commit Gate ==='; ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); LINT_OUT=$(cd \"$ROOT\" && yarn lint 2>&1); LINT_ERRS=$(echo \"$LINT_OUT\" | grep -cE '^[[:space:]]*[0-9]+:[0-9]+[[:space:]]+error' || echo 0); if [ \"$LINT_ERRS\" -gt 0 ]; then echo '--- Lint errors ---'; echo \"$LINT_OUT\" | grep -E 'error' | head -15; echo \"BLOCKED: $LINT_ERRS lint error(s) must be fixed before committing\"; exit 1; fi; SECRETS=$(git diff --staged 2>/dev/null | grep -iE '(api_key|password|access_token|private_key)[[:space:]]*[=:][[:space:]]*[A-Za-z0-9_+/=-]{16,}' || true); if [ -n \"$SECRETS\" ]; then echo 'BLOCKED: Possible secret detected in staged diff:'; echo \"$SECRETS\"; exit 1; fi; echo 'Clean: commit allowed'; fi",
+            "async": false
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(jq -r '.tool_input.command // empty'); if echo \"$CMD\" | grep -qE '(shopify theme push|shopify:push|yarn deploy)'; then echo 'BLOCKED: Theme push is handled by yarn start (webpack watch) in a separate terminal. Never run shopify theme push / yarn shopify:push / yarn deploy from Claude. See .claude/rules/theme-push.md'; exit 2; fi",
             "async": false
           }
         ]

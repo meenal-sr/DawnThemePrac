@@ -1,5 +1,5 @@
 ---
-description: Prefetch Figma data + skill output + memory subset, then spawn planner agent to produce brief.md and test-scenarios.md. Arguments — $1 feature name (kebab-case), $2 Figma URL.
+description: Prefetch Figma data + skill output + memory subset, spawn planner agent to produce brief.md, then spawn architect agent to produce architecture.md. Arguments — $1 feature name (kebab-case), $2 Figma URL.
 ---
 
 # Plan Feature: $ARGUMENTS
@@ -55,8 +55,26 @@ Embed in the prompt:
 - Memory subset (from Step 4)
 - Skill output (from Step 4)
 
-Expected output: `features/<feature-name>/brief.md` + `features/<feature-name>/test-scenarios.md`. Section added to the correct test template.
+Expected output: `features/<feature-name>/brief.md` ONLY. Planner does NOT write `test-scenarios.md` or touch `templates/*.test.json` — test-agent handles those after ui-agent finishes.
 
-## Step 6 — Report
+## Step 6 — Spawn architect agent
+Architect is now mandatory on every build — owns the codebase scan and file plan that previously lived in the brief.
+
+Per the Main Prefetch Contract in `.claude/rules/agents.md` → architect row:
+- Skills: `plan` — invoke via Skill tool
+- Memory subset: filter `MEMORY.md` `type: reference` entries tagged Shopify architecture, proven theme patterns, shared-snippet conventions
+
+Call `Agent({ subagent_type: "architect", prompt: <embed everything below> })`:
+
+Embed in the prompt:
+- Feature name + workspace path (`features/<feature-name>/`)
+- Full contents of `brief.md` (planner just wrote it)
+- Memory subset + skill output
+
+Expected output: `features/<feature-name>/architecture.md` with the file plan (create vs reuse) + reuse precedence notes + cross-section contracts (if any).
+
+If the architect returns open questions, resolve them with the human before proceeding.
+
+## Step 7 — Report
 Confirm completion to the human:
-> "Brief ready at `features/<feature-name>/brief.md`. Test scenarios at `features/<feature-name>/test-scenarios.md`. Ready for `/build-ui <feature-name>`."
+> "Brief at `features/<feature-name>/brief.md`. Architecture at `features/<feature-name>/architecture.md`. Ready for `/build-ui <feature-name>`. Test scenarios will be authored by test-agent during `/test-ui`."

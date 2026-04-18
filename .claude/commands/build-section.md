@@ -53,10 +53,12 @@ ls -la features/$1/qa/
 ```
 
 Required (always):
-- `features/$1/brief.md`
-- `features/$1/test-scenarios.md`
-- `features/$1/component-structure.md`
-- `features/$1/ui.spec.js`
+- `features/$1/brief.md` (planner)
+- `features/$1/architecture.md` (architect)
+- `features/$1/ui-plan.md` (ui-agent Phase 1)
+- `features/$1/component-structure.md` (ui-agent Phase 2 as-built)
+- `features/$1/test-scenarios.md` (test-agent — ui-only mode)
+- `features/$1/ui.spec.js` (test-agent — ui-only mode)
 - `features/$1/qa/visual-qa-report.md` ← MANDATORY. Must contain `Status: PASS`.
 - `features/$1/qa/figma-*.png` (at least one breakpoint)
 - `features/$1/qa/live-*.png` (matching breakpoints)
@@ -68,6 +70,18 @@ Required IF brief says JS needed:
 - `features/$1/integration.spec.js`
 
 If ANY required artifact is missing → do NOT proceed. Spawn the owning agent (re-run the relevant sub-command) to produce the missing file, then re-run this gate. Do not skip to Step 8.
+
+**Owner map for missing-artifact recovery:**
+| Missing | Owner | Recovery command |
+|---|---|---|
+| brief.md | planner | `/plan-feature $1 <figma-url>` |
+| architecture.md | architect | `/plan-feature $1 <figma-url>` (re-runs chain) |
+| ui-plan.md | ui-agent Phase 1 | `/build-ui $1` |
+| component-structure.md | ui-agent Phase 2 | `/build-ui $1` |
+| test-scenarios.md / ui.spec.js / templates/*.test.json populate | test-agent ui-only | `/test-ui $1` |
+| qa/*.png, qa/visual-qa-report.md | visual-qa-agent | `/visual-qa $1` |
+| component-api.md | js-agent | `/build-js $1` |
+| functional.spec.js, integration.spec.js | test-agent full | `/test-full $1` |
 
 ### Step 8 — Review
 Run `/review-files features/$1/`
@@ -85,4 +99,4 @@ Only after code-reviewer approves:
 
 ## Report
 Final status to human — MUST enumerate the verified artifact paths from Step 7:
-> "Section `$1` build complete. Verified artifacts: features/$1/{brief.md, test-scenarios.md, component-structure.md, ui.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, component-api.md, functional.spec.js, integration.spec.js]. Source: sections/<name>.liquid, js/sections/<name>.js (if applicable). Ready for review/merge."
+> "Section `$1` build complete. Verified artifacts: features/$1/{brief.md, architecture.md, ui-plan.md, component-structure.md, test-scenarios.md, ui.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, component-api.md, functional.spec.js, integration.spec.js]. Source files per architecture.md → Create list. Ready for review/merge."

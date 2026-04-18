@@ -1,5 +1,5 @@
 ---
-description: Prefetch Figma data + skills + memory, spawn ui-agent to write Liquid + Tailwind + component-structure.md, then run validate_theme loop. Argument — $1 feature name.
+description: Two-phase ui-agent run. Phase 1 writes ui-plan.md; main gates on Questions; Phase 2 writes Liquid + optional SCSS + component-structure.md; main validates Liquid. Argument — $1 feature name.
 ---
 
 # Build UI: $ARGUMENTS
@@ -9,11 +9,13 @@ You are main conversation. Execute this recipe verbatim.
 ## Step 1 — Parse arguments + check prerequisites
 - `$1` = feature name (kebab-case)
 
-Verify:
-- `features/<feature-name>/brief.md` exists (planner has run)
-- `features/<feature-name>/test-scenarios.md` exists
+Verify both prerequisite artifacts exist:
+- `features/<feature-name>/brief.md` (planner)
+- `features/<feature-name>/architecture.md` (architect)
 
-If either is missing, stop. Tell human: `BLOCKED: Run /plan-feature <name> <figma-url> first.`
+Note: `test-scenarios.md` is authored by test-agent AFTER ui-agent finishes — not a prerequisite here.
+
+If ANY is missing, stop. Tell human: `BLOCKED: Run /plan-feature <name> <figma-url> first — it chains planner + architect.`
 
 ## Step 2 — Re-read Figma references from brief.md
 Parse `features/<feature-name>/brief.md` → extract Figma node IDs (desktop + mobile if present).
@@ -30,36 +32,63 @@ playwright-config/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/
 One call per breakpoint node. Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md`.
 
 ## Step 4 — Memory + skill prefetch
-Per the Main Prefetch Contract in `.claude/rules/agents.md` → ui-agent row:
+Per the Main Prefetch Contract in `.claude/rules/agents.md` → ui-agent rows:
 - Skills: `web-design-guidelines` — invoke via Skill tool
-- Memory subset: filter `MEMORY.md` `type: reference` entries tagged section/snippet architecture, Tailwind organization, Liquid best practices, responsive + a11y patterns
+- Memory subset: filter `MEMORY.md` `type: reference` entries tagged Tailwind organization, Liquid best practices, responsive + a11y patterns
 
-## Step 5 — Spawn ui-agent
-Call `Agent({ subagent_type: "ui-agent", prompt: <embed everything> })`:
+## Step 5 — Spawn ui-agent Phase 1 (plan)
+
+Call `Agent({ subagent_type: "ui-agent", prompt: <embed everything below with PHASE=1 directive> })`:
 
 Embed in prompt:
+- **`PHASE=1 (plan only — no Liquid yet)`** as the first line
 - Feature name + workspace path (`features/<feature-name>/`)
-- Contents of `brief.md`
+- Full contents of `brief.md`
+- Full contents of `architecture.md`
 - Figma design context JSON per breakpoint
 - Figma screenshot paths
-- Memory subset
-- Skill outputs
+- Memory subset + skill outputs
 
-Expected outputs:
-- `sections/<name>.liquid` or `snippets/<name>.liquid` (per brief)
-- `scss/sections/<name>.scss` (only if escape-hatch rules apply — default: no SCSS)
-- `features/<feature-name>/component-structure.md`
+Expected output: `features/<feature-name>/ui-plan.md` only.
 
-## Step 6 — Validate Liquid (loop, max 3 cycles)
+The agent must NOT write any `.liquid` or `.scss` files in this phase.
+
+## Step 6 — Gate on ui-plan.md Questions
+
+Read `features/<feature-name>/ui-plan.md`. Inspect the `## Questions` section:
+
+- **No questions** → proceed to Step 7.
+- **Questions present** → surface them to the human. Wait for answers. If answers invalidate anything in `architecture.md` (e.g. a new file is needed), re-invoke architect with the resolution before proceeding. Otherwise, proceed to Step 7 and embed the answers in the Phase 2 prompt.
+
+## Step 7 — Spawn ui-agent Phase 2 (code)
+
+Call `Agent({ subagent_type: "ui-agent", prompt: <embed everything below with PHASE=2 directive> })`:
+
+Embed in prompt:
+- **`PHASE=2 (execute ui-plan.md)`** as the first line
+- Feature name + workspace path
+- Full contents of `brief.md`
+- Full contents of `architecture.md`
+- Full contents of `ui-plan.md`
+- Answers from Step 6 gate (if any)
+- Figma design context JSON per breakpoint
+- Memory subset + skill outputs
+
+Expected outputs (per `architecture.md` → Create + `ui-plan.md` → File targets):
+- `sections/<name>.liquid` and/or `snippets/<filename>.liquid` (one per file listed)
+- `scss/sections/<name>.scss` (only if `ui-plan.md` declared SCSS: YES)
+- `features/<feature-name>/component-structure.md` (as-built handoff doc)
+
+## Step 8 — Validate Liquid (loop, max 3 cycles)
 Per `.claude/rules/agents.md` Mandatory Liquid Validation:
 1. `shopify-dev-mcp.learn_shopify_api(api: "liquid")` → get `conversationId`
 2. `shopify-dev-mcp.validate_theme` with all created/updated `.liquid` files
 3. If errors:
-   - Re-invoke ui-agent with the errors + file paths embedded
+   - Re-invoke ui-agent Phase 2 with the errors + file paths embedded
    - Re-run validate_theme
 4. Loop until clean or 3 cycles reached.
 5. If still failing after 3 cycles: stop, escalate to human.
 
-## Step 7 — Report
+## Step 9 — Report
 Confirm completion:
-> "UI built at `sections/<name>.liquid`. Component structure at `features/<feature-name>/component-structure.md`. Ready for `/test-ui <feature-name>`."
+> "UI built per ui-plan.md. Liquid at `sections/<name>.liquid` + snippets. Component structure at `features/<feature-name>/component-structure.md`. Ready for `/test-ui <feature-name>`."

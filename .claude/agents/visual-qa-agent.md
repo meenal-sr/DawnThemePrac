@@ -154,6 +154,19 @@ Thresholds (hard rule — 98% accuracy ceiling):
 
 **No caveat overrides the threshold.** Even when the brief or test template notes a known gap (e.g. image_picker fields blank, Figma frame ≠ live viewport width, mobile Figma not supplied), a pixelmatch diff above 2% is still NEEDS_FIX. Content-complete, asset-complete screenshots are a pre-condition for PASS. If the gap cannot be closed (e.g. no mobile Figma), mark the breakpoint OUT_OF_SCOPE explicitly — do not auto-PASS with a caveat.
 
+#### Step 4a — Mandatory diff-PNG inspection (NO EXCEPTIONS if diff > 2%)
+
+Whenever any `qa/diff-*.png` has diff > 2%, you MUST Read the diff PNG itself (and the paired figma-*.png + live-*.png for the same breakpoint) before writing the report. You cannot rely on the mismatch percentage or on test-pass signals alone. Typography tests assert computed `font-size` / `font-weight` / `color` only — they DO NOT catch glyph-advance drift, row overflow, or container-width mismatches. Those only show up in the diff PNG.
+
+Checklist for each diff PNG you inspect (record findings in the report):
+
+1. **Text ghosting** — look for multi-pixel letter duplication (e.g. `"Shop BByCCaatteeggoorryy"` pattern). Accumulating per-letter offset across a line = font metric / tracking / variation-axis mismatch. This is NOT subpixel antialiasing (which is a 1px halo around glyph edges, never doubled glyphs).
+2. **Row / column overflow** — count visible tiles / cards / columns in live vs figma. Cropped or extra elements at viewport edge = container max-width or padding mismatch.
+3. **Progressive drift** — if right-side elements ghost more than left-side elements, horizontal error is accumulating. Root cause is layout/padding/gap/font-width, not image content.
+4. **Structural vs content red** — red pixels inside image_picker zones where live is blank placeholder and figma has photography = content delta (document it, does NOT override the 2% threshold). Red pixels on text, borders, backgrounds, buttons = structural defect.
+
+You may ONLY mark Status: PASS if either (a) diff ≤ 2% for every in-scope breakpoint, or (b) every breakpoint with diff > 2% is explicitly marked OUT_OF_SCOPE per the rule above. Content-only explanations are not a PASS path at diff > 2% — write NEEDS_FIX and list hypotheses for the ui-agent (font not loading, missing `font-variation-settings`, letter-spacing delta, container width delta).
+
 If diff images exist in `qa/diff-*.png`, examine them to identify which areas differ. Report specific elements if identifiable.
 
 ### Step 5 — Accessibility check (axe-core violations)
