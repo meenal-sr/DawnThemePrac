@@ -29,14 +29,21 @@ Per Main Prefetch Contract → code-reviewer row:
 - Memory subset: JS patterns, Shopify architecture, Tailwind organization, Playwright structure
 
 ## Step 4 — Spawn code-reviewer
-Call `Agent({ subagent_type: "code-reviewer", prompt: <embed> })`:
+Call `Agent({ subagent_type: "code-reviewer", prompt: <embed> })`.
 
-Embed:
-- Files to review (paths)
-- Diagnostics output per file
-- PR context if applicable
-- Skill outputs
-- Memory subset
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Skill outputs (`modern-javascript-patterns`, `vercel-react-best-practices` gated, `web-design-guidelines`)
+2. Memory subset (JS patterns, Shopify architecture, Tailwind organization, Playwright structure)
+
+**SEMI-STABLE (per-session):**
+3. PR context if applicable (body, metadata, prior review comments)
+
+**DYNAMIC (this invocation only):**
+4. Files to review (paths)
+5. Diagnostics output per file
+6. Commit history since divergence from main (for PR reviews)
 
 Expected output: structured review with CRITICAL/HIGH/MEDIUM/LOW findings + verdict.
 

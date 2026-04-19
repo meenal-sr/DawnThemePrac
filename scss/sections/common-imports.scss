@@ -2,4 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@import './homepage-collection-tiles.scss'
+
+@import 'pkg:swiper/css';
+@import 'pkg:swiper/css/navigation';
+@import 'pkg:swiper/css/pagination';
+

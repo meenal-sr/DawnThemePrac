@@ -40,6 +40,7 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'desktop',
+      grepInvert: /\[mobile\]|\[tablet\]|\[tablet-lg\]/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1440, height: 900 },
@@ -47,6 +48,7 @@ module.exports = defineConfig({
     },
     {
       name: 'tablet-lg',
+      grepInvert: /\[desktop\]|\[mobile\]|\[tablet\]/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 800 },
@@ -54,6 +56,7 @@ module.exports = defineConfig({
     },
     {
       name: 'tablet',
+      grepInvert: /\[desktop\]|\[mobile\]|\[tablet-lg\]/,
       use: {
         ...devices['iPad Mini'],
         viewport: { width: 768, height: 1024 },
@@ -61,6 +64,7 @@ module.exports = defineConfig({
     },
     {
       name: 'mobile',
+      grepInvert: /\[desktop\]|\[tablet\]|\[tablet-lg\]/,
       use: {
         ...devices['iPhone 13'],
         viewport: { width: 375, height: 812 },

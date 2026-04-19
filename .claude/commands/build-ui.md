@@ -40,14 +40,22 @@ Per the Main Prefetch Contract in `.claude/rules/agents.md` → ui-agent rows:
 
 Call `Agent({ subagent_type: "ui-agent", prompt: <embed everything below with PHASE=1 directive> })`:
 
-Embed in prompt:
-- **`PHASE=1 (plan only — no Liquid yet)`** as the first line
-- Feature name + workspace path (`features/<feature-name>/`)
-- Full contents of `brief.md`
-- Full contents of `architecture.md`
-- Figma design context JSON per breakpoint
-- Figma screenshot paths
-- Memory subset + skill outputs
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Mode directive: `PHASE=1 (plan only — no Liquid yet)`
+2. Skill output (`web-design-guidelines`)
+3. Memory subset (Tailwind organization, Liquid best practices, responsive + a11y patterns)
+
+**SEMI-STABLE (per-feature):**
+4. Feature name + workspace path (`features/<feature-name>/`)
+5. Full contents of `brief.md`
+6. Full contents of `architecture.md`
+7. Figma design context JSON per breakpoint
+8. Figma screenshot paths
+
+**DYNAMIC (this invocation only):**
+9. (Phase 1: none — no prior cycle data)
 
 Expected output: `features/<feature-name>/ui-plan.md` only.
 
@@ -64,14 +72,23 @@ Read `features/<feature-name>/ui-plan.md`. Inspect the `## Questions` section:
 
 Call `Agent({ subagent_type: "ui-agent", prompt: <embed everything below with PHASE=2 directive> })`:
 
-Embed in prompt:
-- **`PHASE=2 (execute ui-plan.md)`** as the first line
-- Feature name + workspace path
-- Full contents of `brief.md`
-- Full contents of `architecture.md`
-- Full contents of `ui-plan.md`
-- Answers from Step 6 gate (if any)
-- Figma design context JSON per breakpoint
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Mode directive: `PHASE=2 (execute ui-plan.md)`
+2. Memory subset (Liquid best practices, section/snippet architecture)
+   - (No skill output in Phase 2 — Figma + architecture.md already embedded per prefetch contract)
+
+**SEMI-STABLE (per-feature):**
+3. Feature name + workspace path
+4. Full contents of `brief.md`
+5. Full contents of `architecture.md`
+6. Full contents of `ui-plan.md`
+7. Figma design context JSON per breakpoint
+
+**DYNAMIC (this invocation only):**
+8. Answers from Step 6 gate (if any)
+9. Fix-cycle mismatches from `qa/visual-qa-report.md` (if re-invoked after NEEDS_FIX)
 - Memory subset + skill outputs
 
 Expected outputs (per `architecture.md` → Create + `ui-plan.md` → File targets):

@@ -7,6 +7,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const sass = require('sass');
 
 const mode = 'development';
 const stats = { children: false };
@@ -74,7 +75,10 @@ module.exports = {
             options: {
               sourceMap: true,
               api: 'modern',
-              implementation: require('sass'),
+              implementation: sass,
+              sassOptions: {
+                importers: [new sass.NodePackageImporter()],
+              },
             },
           },
         ],

@@ -2,7 +2,7 @@
 name: planner
 description: Upstream planning agent for Shopify theme features and pages. Captures design intent, data sources, schema, variants, and a11y decisions. Produces brief.md only. Invoke at the start of any new feature or page build before any code is written.
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash"]
-model: sonnet
+model: opus
 ---
 
 # Planner Agent

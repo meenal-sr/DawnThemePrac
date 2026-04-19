@@ -15,6 +15,29 @@ Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot acc
 2. **Skill output** — main invokes skills relevant to the agent's task, embeds output in prompt
 3. **Filtered memory** — main loads `MEMORY.md` once per session and embeds the `type: reference` subset relevant to the agent (see Skill/Memory Routing below)
 
+## Cache-friendly prompt structure (CRITICAL for token efficiency)
+
+Anthropic's automatic prompt caching grants a 90% token discount on cached prefixes > 1024 tokens. To maximize cache hits across agent invocations within a session, EVERY agent prompt main builds MUST order content STABLE-FIRST → DYNAMIC-LAST:
+
+**Section 1 — STABLE PREFIX (cacheable, identical across invocations of the same agent type within a session):**
+- Role reminder / mode directive (e.g. "PHASE=2", "Mode: ui-only")
+- Skill output (same per-agent-type per-session)
+- Memory subset (same per-agent-type per-session)
+- Hard rules applicable to this agent (e.g. "never write outside features/<name>/")
+
+**Section 2 — SEMI-STABLE (changes per-feature, cacheable across fix cycles of the same feature):**
+- Workspace path
+- Contents of brief.md + architecture.md + component-structure.md (as applicable)
+- Figma design context JSON (embedded from `figma.get_design_context`)
+
+**Section 3 — DYNAMIC (task-specific, never cached):**
+- Fix-cycle mismatches (for re-invocations after NEEDS_FIX)
+- Test output from last run
+- Pixelmatch results (for visual-qa-agent)
+- Lint diagnostics (for js-agent retries)
+
+Never interleave dynamic content into the stable prefix. A single dynamic token in the first 1024 tokens invalidates the cache for the whole run. Put "Mode: ui-only" and memory subset FIRST; put "Previous cycle mismatches" LAST.
+
 ## Main Prefetch Contract (single source of truth)
 
 Subagents cannot call MCPs or skills. Main prefetches and embeds everything in the agent's prompt. Each agent file references this table instead of repeating the contract per agent.
@@ -27,8 +50,7 @@ Subagents cannot call MCPs or skills. Main prefetches and embeds everything in t
 | ui-agent Phase 2 (code) | — (Figma + architecture.md already embedded) | — | Liquid best practices, section/snippet architecture | `shopify-dev-mcp.learn_shopify_api` + `validate_theme` (loop max 3) |
 | js-agent | `shopify-dev-mcp.search_docs_chunks` (on demand), `context7` (libs) | `modern-javascript-patterns`, `vercel-react-best-practices` (only for `.jsx`/React islands) | JS class/component patterns, Shopify section architecture, DOM lifecycle | `ide.getDiagnostics` + `yarn lint` per file (loop max 3) |
 | test-agent | — | — | Playwright structure for Shopify storefronts, test scenario patterns, Shopify template JSON shape (blocks = map + block_order) | `yarn playwright:test features/[name]/*.spec.js --reporter=list` |
-| visual-qa-agent | `figma.get_screenshot` (saved to `qa/figma-*.png`), `pixelmatch.compare` (diff each figma-*.png vs live-*.png per breakpoint, writes `qa/diff-*.png` + mismatch %) | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
-| page-integration-test | — | — | Playwright structure, cross-section event testing, full-page integration | `npx playwright test pages/[name]/tests/*.spec.js` |
+| visual-qa-agent | `pixelmatch.compare` (diff each figma-*.png vs live-*.png per breakpoint, writes `qa/diff-*.png` + mismatch %). `playwright-config/figma-export.sh` (REST) only if `qa/figma-*.png` missing. No Figma MCP — typography/color tokens come from brief.md. | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
 | code-reviewer | `ide.getDiagnostics`, `github.get_pull_request*` (PR context) | `modern-javascript-patterns`, `vercel-react-best-practices` (gated), `web-design-guidelines` | JS patterns, Shopify architecture, Tailwind organization, Playwright structure | — |
 
 Workflow checkpoints (`simplify`, `refactor-clean`) are main-invoked **between agent runs**, not during. Never declared in agent skill lists.
@@ -62,16 +84,6 @@ Main: Figma prefetch + human Q&A
   → js-agent → JavaScript + component-api.md
   → test-agent full → test-scenarios.md updated + functional.spec.js + integration.spec.js
   → Main: run specs
-```
-
-## Execution Flow (full page)
-See `page-build-checklist.md` for full details.
-```
-Main: Figma prefetch ALL sections
-  → Map dependencies → group into parallel batches
-  → Present plan → get human approval
-  → Execute groups (parallel within each group)
-  → Cross-section integration tests
 ```
 
 ## Parallel Execution

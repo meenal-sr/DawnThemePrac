@@ -81,7 +81,7 @@ For every candidate reuse target, record:
 
 If in page mode and the planner brief declares JS events consumed across sections:
 
-Build a contract table: event name, emitter section, listener sections, payload shape. This becomes the source of truth for the js-agent and page-integration-test agent.
+Build a contract table: event name, emitter section, listener sections, payload shape. This becomes the source of truth for the js-agent.
 
 If single-section (feature mode), skip this step.
 

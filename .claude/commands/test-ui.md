@@ -36,13 +36,21 @@ Wipe: `live-*.png` (test-generated), `diff-*.png` (pixelmatch-generated), `a11y-
 Rationale: live + diff + a11y must be regenerated every test run to avoid pixelmatching new design against a stale live screenshot. figma-*.png is design-side and only changes when the designer updates Figma — regen is the responsibility of `/plan-feature` or a deliberate figma-refresh step, not the fix loop.
 
 ## Step 4 — Spawn test-agent (ui-only)
-Call `Agent({ subagent_type: "test-agent", prompt: <embed> })`:
+Call `Agent({ subagent_type: "test-agent", prompt: <embed> })`.
 
-Embed:
-- Mode: `ui-only`
-- Workspace: `features/<feature-name>/`
-- Contents of `brief.md` (source of design content reference) + `component-structure.md` (authoritative selectors + schema setting IDs + block structure)
-- Memory subset
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Mode directive: `Mode: ui-only`
+2. Memory subset (Playwright structure for Shopify storefronts, test scenario patterns, Shopify template JSON shape)
+
+**SEMI-STABLE (per-feature):**
+3. Workspace: `features/<feature-name>/`
+4. Contents of `brief.md` (source of design content reference)
+5. Contents of `component-structure.md` (authoritative selectors + schema setting IDs + block structure)
+
+**DYNAMIC (this invocation only):**
+6. Fix-cycle context from prior visual-qa-report (if re-invoked after a failure)
 
 Expected outputs (in order, produced by test-agent):
 1. `features/<feature-name>/test-scenarios.md` (A/B/C/D/E scenario contract)

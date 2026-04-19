@@ -31,15 +31,22 @@ If brief specifies third-party libraries, prefetch:
 - `context7.resolve-library-id` → `context7.query-docs`
 
 ## Step 4 — Spawn js-agent
-Call `Agent({ subagent_type: "js-agent", prompt: <embed everything> })`:
+Call `Agent({ subagent_type: "js-agent", prompt: <embed> })`.
 
-Embed in prompt:
-- Feature name + workspace path
-- Contents of `brief.md`
-- Contents of `component-structure.md`
-- Memory subset
-- Skill outputs
-- Any MCP docs from Step 3
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Skill output (`modern-javascript-patterns`, + `vercel-react-best-practices` if .jsx)
+2. Memory subset (JS class/component patterns, Shopify section architecture, DOM lifecycle)
+
+**SEMI-STABLE (per-feature):**
+3. Feature name + workspace path
+4. Contents of `brief.md`
+5. Contents of `component-structure.md`
+6. MCP docs from Step 3 (shopify-dev-mcp + context7, if fetched)
+
+**DYNAMIC (this invocation only):**
+7. Lint errors from prior cycle (if re-invoked after failing lint loop)
 
 Expected outputs:
 - `js/sections/<name>.js` (entry) and/or `js/components/<name>.js` (shared)

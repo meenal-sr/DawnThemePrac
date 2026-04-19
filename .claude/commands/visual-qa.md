@@ -30,8 +30,10 @@ Re-read the output of `yarn playwright:test features/<feature-name>/ui.spec.js` 
 
 If the re-run exits non-zero, halt with the failure report — do not proceed to Step 4.
 
-## Step 4 — Re-fetch Figma design context
-For each node in `brief.md`, re-fetch `figma.get_design_context(fileKey, nodeId)` to get the typography/color values in React+Tailwind format for exact comparison.
+## Step 4 — Read typography/color tokens from brief.md (single source of truth)
+Do NOT re-fetch Figma. `brief.md` → "Design content reference → Typography tokens" and "Color tokens" tables are authoritative — planner extracted them once from Figma; every downstream consumer reads them from the brief to avoid redundant MCP calls and prompt-token waste.
+
+Extract the typography + color tables verbatim for embedding in the agent prompt. If they're missing from brief.md, halt and re-run `/plan-feature` — the brief is incomplete.
 
 ## Step 4b — Read axe-core accessibility results
 
@@ -58,14 +60,22 @@ Capture each breakpoint's mismatch percentage. Typical bindings: breakpoints are
 ## Step 6 — Spawn visual-qa-agent (single, no parallel ui-agent)
 Call `Agent({ subagent_type: "visual-qa-agent", prompt: <embed> })`:
 
-Embed:
-- Workspace: `features/<feature-name>/`
-- Test output from Step 3
-- Figma design context from Step 4
-- Axe violations JSON per breakpoint from Step 4b
-- Pixelmatch diff results from Step 5 (per-breakpoint mismatch %, paths to `diff-*.png`)
-- Paths of all `qa/figma-*.png`, `qa/live-*.png`, `qa/diff-*.png`, `qa/a11y-*.json`
-- Skill output + memory subset
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Skill output (`web-design-guidelines`)
+2. Memory subset (visual QA patterns, pixelmatch threshold conventions)
+
+**SEMI-STABLE (per-feature):**
+3. Workspace: `features/<feature-name>/`
+4. Typography + color tokens extracted from `brief.md` Design content reference (Step 4)
+5. Paths of `qa/figma-*.png`, `qa/live-*.png`, `qa/diff-*.png`, `qa/a11y-*.json`
+
+**DYNAMIC (this invocation only):**
+6. Test output from Step 3
+7. Pixelmatch diff results from Step 5 (per-breakpoint mismatch %, paths to `diff-*.png`)
+8. Axe violations JSON per breakpoint from Step 4b
+9. Fix-cycle history (prior visual-qa-report.md if this is a re-invocation)
 
 Expected output: `features/<feature-name>/qa/visual-qa-report.md` with `Status: PASS` or `NEEDS_FIX`
 

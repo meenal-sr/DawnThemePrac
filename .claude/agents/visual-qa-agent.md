@@ -2,7 +2,7 @@
 name: visual-qa-agent
 description: Visual quality gate. Typography + colors matched against Figma design data. Spacing + layout matched via pixelmatch screenshot comparison. Reports PASS or NEEDS_FIX.
 tools: ["Read", "Write", "Glob", "Grep", "Bash"]
-model: sonnet
+model: opus
 ---
 
 # Visual QA Agent

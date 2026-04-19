@@ -45,15 +45,21 @@ Per the Main Prefetch Contract in `.claude/rules/agents.md` → planner row:
 - Memory subset: filter `MEMORY.md` `type: reference` entries tagged Shopify section/snippet architecture, JS component patterns, Tailwind organization, a11y patterns
 
 ## Step 5 — Spawn planner agent
-Call `Agent({ subagent_type: "planner", prompt: <embed everything below> })`:
+Call `Agent({ subagent_type: "planner", prompt: <embed> })`.
 
-Embed in the prompt:
-- Feature name
-- Template type + human answers from Step 2
-- Figma design context JSON (from Step 3)
-- Figma screenshot path
-- Memory subset (from Step 4)
-- Skill output (from Step 4)
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Skill output (`plan`)
+2. Memory subset (Shopify section/snippet architecture, JS component patterns, Tailwind organization, a11y patterns)
+
+**SEMI-STABLE (per-feature):**
+3. Feature name
+4. Figma design context JSON (from Step 3)
+5. Figma screenshot path
+
+**DYNAMIC (this invocation only):**
+6. Template type + human answers from Step 2
 
 Expected output: `features/<feature-name>/brief.md` ONLY. Planner does NOT write `test-scenarios.md` or touch `templates/*.test.json` — test-agent handles those after ui-agent finishes.
 
@@ -64,12 +70,20 @@ Per the Main Prefetch Contract in `.claude/rules/agents.md` → architect row:
 - Skills: `plan` — invoke via Skill tool
 - Memory subset: filter `MEMORY.md` `type: reference` entries tagged Shopify architecture, proven theme patterns, shared-snippet conventions
 
-Call `Agent({ subagent_type: "architect", prompt: <embed everything below> })`:
+Call `Agent({ subagent_type: "architect", prompt: <embed> })`.
 
-Embed in the prompt:
-- Feature name + workspace path (`features/<feature-name>/`)
-- Full contents of `brief.md` (planner just wrote it)
-- Memory subset + skill output
+Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules/agents.md`):
+
+**STABLE PREFIX (cacheable):**
+1. Skill output (`plan`)
+2. Memory subset (Shopify architecture, proven theme patterns, shared-snippet conventions)
+
+**SEMI-STABLE (per-feature):**
+3. Feature name + workspace path (`features/<feature-name>/`)
+4. Full contents of `brief.md` (planner just wrote it)
+
+**DYNAMIC (this invocation only):**
+5. (Architect usually has none — runs once per feature)
 
 Expected output: `features/<feature-name>/architecture.md` with the file plan (create vs reuse) + reuse precedence notes + cross-section contracts (if any).
 
