@@ -17,19 +17,15 @@ Note: `test-scenarios.md` is authored by test-agent AFTER ui-agent finishes — 
 
 If ANY is missing, stop. Tell human: `BLOCKED: Run /plan-feature <name> <figma-url> first — it chains planner + architect.`
 
-## Step 2 — Re-read Figma references from brief.md
-Parse `features/<feature-name>/brief.md` → extract Figma node IDs (desktop + mobile if present).
+## Step 2 — Verify prefetch artifacts exist
+`/plan-feature` prefetch should have already written:
+- `features/<feature-name>/figma-context.md` — canonical Figma extract (ui-agent reads this for tokens + breakpoint deltas)
+- `features/<feature-name>/qa/figma-*.png` — one per breakpoint (visual-qa reference)
 
-## Step 3 — Figma prefetch
-Call for **each** node ID listed in brief:
-- `figma.get_design_context(fileKey, nodeId)` → save JSON for embedding
-- `figma.get_screenshot(fileKey, nodeId)` → inline reference only
+Verify both exist. If either is missing, halt with `BLOCKED: prefetch artifacts missing — re-run /plan-feature <name> <figma-url>`. Do NOT re-fetch Figma here; that's prefetch's job during `/plan-feature`.
 
-Then persist each breakpoint's reference PNG via the REST-API helper (MCP `get_screenshot` does NOT write a file):
-```bash
-playwright-config/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png 2
-```
-One call per breakpoint node. Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md`.
+## Step 3 — (No Figma fetch)
+Ui-agent reads `figma-context.md` + `qa/figma-*.png` directly. Main does not re-fetch from Figma MCP during `/build-ui`.
 
 ## Step 4 — Memory + skill prefetch
 Per the Main Prefetch Contract in `.claude/rules/agents.md` → ui-agent rows:
@@ -51,11 +47,10 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 4. Feature name + workspace path (`features/<feature-name>/`)
 5. Full contents of `brief.md`
 6. Full contents of `architecture.md`
-7. Figma design context JSON per breakpoint
-8. Figma screenshot paths
+7. Pointer: "Read `features/<feature-name>/figma-context.md` and `features/<feature-name>/qa/figma-*.png` directly — single source of truth for all Figma values."
 
 **DYNAMIC (this invocation only):**
-9. (Phase 1: none — no prior cycle data)
+8. (Phase 1: none — no prior cycle data)
 
 Expected output: `features/<feature-name>/ui-plan.md` only.
 
@@ -84,7 +79,7 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 4. Full contents of `brief.md`
 5. Full contents of `architecture.md`
 6. Full contents of `ui-plan.md`
-7. Figma design context JSON per breakpoint
+7. Pointer: "Read `features/<feature-name>/figma-context.md` and `features/<feature-name>/qa/figma-*.png` directly — single source of truth for all Figma values."
 
 **DYNAMIC (this invocation only):**
 8. Answers from Step 6 gate (if any)

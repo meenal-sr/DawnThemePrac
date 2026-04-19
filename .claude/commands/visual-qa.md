@@ -14,11 +14,13 @@ Verify:
 - `features/<feature-name>/qa/` contains `live-*.png` from test run
 - `features/<feature-name>/qa/figma-*.png` exist (main should have saved them in `/plan-feature` Step 3 or `/build-ui` Step 3)
 
-If Figma screenshots missing, persist them via the REST-API helper (the MCP `get_screenshot` tool does NOT write files):
+If Figma screenshots missing, persist them via the local MCP helper (the `figma.get_screenshot` MCP tool returns an inline image but does NOT write files):
 ```bash
-playwright-config/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png 2
+node pixelmatch-config/figma-mcp-screenshot.js <nodeId> features/<feature-name>/qa/figma-<breakpoint>.png
 ```
-One invocation per breakpoint node listed in `brief.md`. Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md`.
+One invocation per breakpoint node listed in `brief.md`. Requires Figma Desktop running with Dev Mode MCP server (default `http://127.0.0.1:3845/mcp`). No token needed.
+
+Note: the PNGs should have been persisted during `/plan-feature` prefetch. This step only runs when they are missing.
 
 ## Step 2 — Skill + memory prefetch
 Per Main Prefetch Contract → visual-qa-agent row:

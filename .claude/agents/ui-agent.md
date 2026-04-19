@@ -30,11 +30,38 @@ When in doubt about intent at either phase, write a question into the `## Questi
 ---
 
 ## External Inputs
-MCP data (Figma context + screenshots), skill output, reference memory, and the contents of `brief.md` + `architecture.md` are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Do not fetch them yourself.
+Skill output, reference memory, and the contents of `brief.md` + `architecture.md` are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`.
+
+## Design source of truth
+`features/<name>/figma-context.md` + `features/<name>/qa/figma-*.png` are written by main during `/plan-feature` prefetch. Read `figma-context.md` directly (via `Read` tool) for every typography, color, spacing, copy, token, and breakpoint-delta lookup — it's the single source of truth. The PNGs are your visual reference.
+
+Do NOT fetch Figma data via MCP tool calls — main does not grant Figma MCP access during ui-agent runs. If the file is missing or a value is ambiguous, write a Question into `## Questions` in `ui-plan.md` and stop.
 
 For unknowns (Shopify Liquid/schema, library docs), write them into `## Questions` and stop — main resolves and re-invokes.
 
 After you write `.liquid` files (Phase 2), main validates them via `shopify-dev-mcp.validate_theme` and reports errors back for you to fix.
+
+---
+
+## Figma structure is NOT prescriptive for DOM (CRITICAL)
+
+Figma's layer tree is a design-tool artifact — absolute-positioned groups, deeply-nested frames, duplicated decorative wrappers, `content-stretch flex flex-col items-start` chains that exist only to satisfy Figma's auto-layout. It is **not** a template for your HTML.
+
+You target the **visual outcome** — what a user sees at each breakpoint — following the project's Layout Structure Rules (flex + gap for inner stacks, grid at top level, `max-w-[Npx]` over `w-[Npx]`, no `min-height` on content, content-over-image `relative`/`absolute` pattern, semantic HTML, BEM naming). Restructure freely:
+
+- Collapse decorative wrappers that carry no width/padding/background/position context of their own
+- Replace absolute-positioned text groups with normal flow + `absolute inset-0` overlay containers when the design intent is "text sits on top of image"
+- Use one semantic `<article>` per card, one `<h3>` per card title — even if Figma shows a dozen nested `<div>`s around each
+- Map Figma's `content-stretch` idiom to `flex flex-col gap-[Npx]` with no per-child margin
+- Drop Figma variant-frame scaffolding (the outer node containing all variants) — render a single variant per invocation
+
+What you DO preserve from Figma:
+- **Values** (pixels, colors, copy) from `figma-context.md`
+- **Visual outcome** at each breakpoint (verified by visual-qa's pixelmatch against `qa/figma-*.png`)
+- **Width constraints** on elements that visibly cap at specific px ceilings
+- **Breakpoint deltas** (what visually changes from mobile → desktop)
+
+Every `## Reuse references followed` item in `ui-plan.md` still takes precedence — when brief/architecture says "match hero-banner pattern", that wins over anything here.
 
 ---
 
@@ -144,8 +171,8 @@ Main invokes you in plan mode when `architecture.md` exists but `ui-plan.md` doe
 3. Read `features/[name]/architecture.md` — file plan (create + reuse), reuse precedence notes, cross-section contracts
 4. If architecture.md is missing, write `BLOCKED: architecture.md not found — architect must run first` and stop
 
-### Phase 1 Step 2 — Parse Figma data from prompt
-Main embeds Figma design context JSON + screenshot paths. Extract layout, spacing, typography, colors, variants. If desktop AND mobile nodes were provided, identify the delta.
+### Phase 1 Step 2 — Read figma-context.md
+Read `features/<name>/figma-context.md` for layout, spacing, typography, colors, variants, and breakpoint deltas. Cross-reference `features/<name>/qa/figma-*.png` for visual context (both persist from `/plan-feature` prefetch — do not re-fetch Figma).
 
 ### Phase 1 Step 3 — Reconcile tokens with `tailwind.config.js`
 For every color, spacing, typography, radius token in Figma, search `tailwind.config.js` `theme.extend` for a match. Record the map: Figma value → existing utility OR new token to add. Do not add tokens yet — just plan them.
@@ -269,16 +296,17 @@ Main invokes Phase 2 only after `ui-plan.md` exists and any Questions are resolv
 4. Read `ui-plan.md` — your own plan is authoritative for DOM structure, tokens, responsive, SCSS
 5. For images, use the responsive image snippet listed in `architecture.md` → Reuse. Parameters (fill/cover/contain) depend on image purpose.
 
-### Step 2 — Parse Figma data from prompt
-Main conversation has prefetched all required Figma nodes and embedded the design context JSON + screenshot file paths in your invocation prompt. Do not attempt to call Figma MCP.
+### Step 2 — Read figma-context.md (single source of truth)
+`features/<name>/figma-context.md` was written by main during `/plan-feature` prefetch and contains every per-breakpoint node extract: layout (flex/grid, spacing, sizing), color tokens, typography tokens, copy strings, Figma variables, cross-breakpoint deltas. Read it directly — do NOT call Figma MCP.
 
-1. Locate **every Figma node payload** passed in the prompt — if desktop and mobile were provided as separate nodes, both will be present
-2. Extract from each payload: layout (flex/grid, spacing, sizing), color tokens, typography tokens, all variants and their property values
-3. If both desktop and mobile payloads are present, note the delta — elements that move, appear, disappear, or change structure across breakpoints
-4. Note every interactive variant (hover, focus, disabled, loading, error, empty, OOS) — these become JS-controlled states, not static renders
-5. Note every static variant — these become Liquid conditionals or section schema settings
-6. Use the responsive strategy documented in brief.md (CSS-only or DOM duplication) to guide how you apply the delta between desktop and mobile designs
-7. If a node referenced in brief.md is **missing from the prompt**, write `BLOCKED: Figma payload for node [id] not provided by main` into `ui-plan.md` `## Questions` and stop. Do not improvise from the screenshot alone.
+`features/<name>/qa/figma-*.png` are the paired visual references (also persisted during prefetch).
+
+1. Read `figma-context.md` end to end
+2. Cross-reference the PNGs in `qa/` for visual context
+3. Note every interactive variant (hover, focus, disabled, loading, error, empty, OOS) — these become JS-controlled states, not static renders
+4. Note every static variant — these become Liquid conditionals or section schema settings
+5. Use the responsive strategy documented in brief.md (CSS-only or DOM duplication) to guide how you apply the delta between desktop and mobile
+6. If `figma-context.md` is missing or the file is missing a node referenced in `brief.md`, write `BLOCKED: figma-context.md missing node [id] — re-run /plan-feature prefetch` into `ui-plan.md` `## Questions` and stop. Do not improvise from the screenshot alone.
 
 ### Step 2b — Reconcile design tokens with project config (Tailwind-first)
 

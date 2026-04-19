@@ -11,9 +11,16 @@ model: haiku
 You write Playwright JavaScript tests for Shopify components. You work in two modes depending on when you're invoked in the pipeline.
 
 ## External Inputs
-MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Main runs the tests via `yarn playwright:test` and passes results back if needed. Inputs vary by mode — see below.
+Skill output and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Main runs the tests via `yarn playwright:test` and passes results back if needed. Inputs vary by mode — see below.
 
-**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + design content reference) + `ui-plan.md` (as-built selectors + state contract). You also populate `templates/[type].test.json` in the same step. Only after the scenarios + template are in place do you translate them into `[name].spec.js`.
+## Design source of truth
+`features/<name>/figma-context.md` is the canonical Figma extract (typography, colors, spacing, copy strings, Figma tokens, breakpoint deltas). Written by main during `/plan-feature` prefetch. Read it directly for:
+- Ground-truth copy strings when populating `templates/[type].test.json`
+- Typography + color exact values when writing Group B parity assertions
+
+`brief.md` records intent + schema; `figma-context.md` records pixel values. Do not pull typography/colors from the brief — go to `figma-context.md`.
+
+**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + schema) + `ui-plan.md` (as-built selectors + state contract) + `figma-context.md` (copy + typography/color ground truth). You also populate `templates/[type].test.json` in the same step. Only after the scenarios + template are in place do you translate them into `[name].spec.js`.
 
 In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augment it with functional/integration scenarios sourced from `the `## JS handoff` section of ui-plan.md` before writing `[name].functional.spec.js` / `[name].integration.spec.js`.
 
@@ -204,11 +211,11 @@ Pulled from brief — for test-template populate step + visual QA reference.
 ### Step 3 — Populate `templates/[type].test.json`
 Based on brief template type → map to `page.test.json` / `product.test.json` / `collection.test.json`. Read via helper semantics (strip `/* ... */` block-comment prefix before `JSON.parse`).
 
-For every setting in the section schema, emit a dummy value from brief's Design content reference:
-- text → Figma copy string
-- richtext → `<p>…</p>` wrap
+For every setting in the section schema, emit a dummy value. Copy strings and exact Figma-derived values come from `features/<name>/figma-context.md` (canonical); schema defaults come from `brief.md`:
+- text → Figma copy string (from `figma-context.md`)
+- richtext → `<p>…</p>` wrapping a Figma copy string (from `figma-context.md`)
 - url → sensible target (e.g. `/collections/all`)
-- color → Figma hex
+- color → Figma hex (from `figma-context.md`)
 - range/number → brief default
 - font_picker → brief default handle (e.g. `dm_sans_n7`)
 - image_picker → placeholder URL if available, otherwise blank (visual-qa documents the diff)

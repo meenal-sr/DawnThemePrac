@@ -26,18 +26,37 @@ Ask the human in a single message:
 
 Wait for answers before proceeding.
 
-## Step 3 — Figma prefetch
+## Step 3 — Figma prefetch + write figma-context.md (single source of truth)
+
 Create the feature directory first: `mkdir -p features/<feature-name>/qa`
 
-Call:
-- `figma.get_design_context(fileKey, nodeId)` → save JSON for embedding
-- `figma.get_screenshot(fileKey, nodeId)` → keep the inline image for visual reference
+For EVERY distinct breakpoint / variant node the human provided (desktop, mobile, tablet if any), call:
+- `figma.get_design_context(fileKey, nodeId)` → returns layout hints + typography + colors + copy
+- `figma.get_variable_defs(fileKey, nodeId)` → returns Figma variable tokens
 
-Then persist the reference PNG to disk via the REST-API helper (MCP `get_screenshot` does NOT write a file):
+(No `figma.get_screenshot` MCP call — the PNG script below handles persistence.)
+
+Write `features/<feature-name>/figma-context.md` — this is the **canonical design reference** that every downstream agent reads. Capture VALUES (what the design says), NOT structure prescriptions (how to build it). Must contain, per breakpoint:
+- Source URL + node ID
+- Typography per text layer (font family, weight, size, line-height, letter-spacing, color)
+- Colors (section bg, surface bg, text, border, overlay, button bg/label)
+- Spacing / sizing values (section padding, card dimensions, internal gaps, image dimensions, border radius)
+- Copy strings (exact text from Figma — ground truth for test-agent)
+- Figma tokens (from `get_variable_defs` — e.g. `radius/xl: 12`)
+- Cross-breakpoint delta notes — what VISUALLY changes between desktop and mobile (typography sizes, colors, element appearance/disappearance, layout mode flips). Do NOT describe DOM nesting or layer hierarchy — ui-agent decides structure independently.
+
+This file is the SINGLE SOURCE OF TRUTH for design data. `brief.md`, `ui-plan.md`, `test-scenarios.md`, and visual-qa reports REFERENCE it by path + node ID — they do NOT duplicate its contents.
+
+**Crucially: `figma-context.md` does NOT prescribe HTML/DOM structure.** Figma's layer tree is a design-tool artifact (absolute-positioned groups, deeply-nested frames, duplicated wrappers). Ui-agent is free to restructure — it targets the visual outcome + the project's layout rules (flex+gap for inner stacks, grid at top level, content-over-image absolute/relative pattern, semantic HTML, BEM naming), not Figma's node tree.
+
+If the designer updates Figma, regenerate only `figma-context.md` — downstream artifacts stay valid.
+
+Then persist reference PNGs to disk via the MCP script (talks to the local Figma Desktop MCP server):
 ```bash
-playwright-config/figma-export.sh <fileKey> <nodeId> features/<feature-name>/qa/figma-default.png 2
+node pixelmatch-config/figma-mcp-screenshot.js <desktopNodeId> features/<feature-name>/qa/figma-desktop.png
+node pixelmatch-config/figma-mcp-screenshot.js <mobileNodeId>  features/<feature-name>/qa/figma-mobile.png
 ```
-Requires `FIGMA_TOKEN` in `.env`. See `reference_figma_export_script.md` in memory for usage notes.
+Requires Figma Desktop running with the Dev Mode MCP server enabled (default `http://127.0.0.1:3845/mcp`). Override the endpoint with `FIGMA_MCP_URL` env var if needed. No Figma token required.
 
 ## Step 4 — Memory + skill prefetch
 Per the Main Prefetch Contract in `.claude/rules/agents.md` → planner row:
@@ -55,8 +74,7 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 **SEMI-STABLE (per-feature):**
 3. Feature name
-4. Figma design context JSON (from Step 3)
-5. Figma screenshot path
+4. Instruction: "Read `features/<feature-name>/figma-context.md` for full design data + `features/<feature-name>/qa/figma-*.png` for visual reference. Do NOT duplicate context-file contents in brief.md; reference it by path + node IDs."
 
 **DYNAMIC (this invocation only):**
 6. Template type + human answers from Step 2

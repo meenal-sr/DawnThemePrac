@@ -21,6 +21,9 @@ Skill output and reference memory are embedded in your prompt by main per the **
 
 You have `Read`, `Grep`, `Glob`, `Write` tools — scan the codebase directly. Do not guess file paths; verify they exist before writing them into `architecture.md`.
 
+## Design source of truth
+Main writes `features/<name>/figma-context.md` + `features/<name>/qa/figma-*.png` during `/plan-feature` prefetch — BEFORE you run. That file is the canonical design reference (typography, colors, spacing, copy, tokens, breakpoint deltas). If you need a Figma value to make a reuse/file-boundary decision (e.g. is this a shared asset pattern?), read `figma-context.md` directly — do NOT re-fetch from Figma MCP.
+
 ---
 
 ## Inputs

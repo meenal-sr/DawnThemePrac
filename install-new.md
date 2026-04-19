@@ -32,7 +32,7 @@ After install:
 
 ## Environment prerequisites
 
-- `.env` populated from `sampleenv` — `STORE_URL`, `THEME_ID`, `STORE_PASSWORD`, `GLOBAL_PAGE_PATH`, `DEFAULT_PRODUCT_PATH`, `DEFAULT_COLLECTION_PATH`, `TEST_*_TEMPLATE`, `FIGMA_TOKEN`
+- `.env` populated from `sampleenv` — `STORE_URL`, `THEME_ID`, `STORE_PASSWORD`, `GLOBAL_PAGE_PATH`, `DEFAULT_PRODUCT_PATH`, `DEFAULT_COLLECTION_PATH`, `TEST_*_TEMPLATE`
 - Figma Desktop running (MCP listens on `127.0.0.1:3845`)
 - Dev theme synced — `yarn start` running, or `yarn shopify:push` done once
 - Playwright installed — `yarn playwright:install` once per machine

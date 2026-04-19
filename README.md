@@ -28,7 +28,7 @@ JavaScript Shopify theme — webpack build with tree-shaking (app code + node_mo
 
 1. Clone or move this repo; install [Yarn](https://formulae.brew.sh/formula/yarn/) and [asdf](https://asdf-vm.com/guide/getting-started.html) if needed.
 2. Run `asdf install` then `yarn`.
-3. Copy `sampleenv` to `.env` and fill in `STORE_URL`, `THEME_ID`, `STORE_PASSWORD`, the `*_PATH` vars, `TEST_*_TEMPLATE` vars, and `FIGMA_TOKEN`.
+3. Copy `sampleenv` to `.env` and fill in `STORE_URL`, `THEME_ID`, `STORE_PASSWORD`, the `*_PATH` vars, and `TEST_*_TEMPLATE` vars.
 4. **`yarn start`** — webpack watch (development).
 5. **`yarn deploy`** — production webpack build then `shopify theme push`.
 6. **`yarn lint`** — ESLint on `js/`.
@@ -48,7 +48,7 @@ JavaScript Shopify theme — webpack build with tree-shaking (app code + node_mo
 
 ## Claude Code workflow
 
-This repo is set up with the CrossCode Shopify agent pipeline. See `install-new.md` for install and `.claude/rules/workflow-commands.md` for which slash command to run per task. Figma PNG export helper lives at `playwright-config/figma-export.sh`.
+This repo is set up with the CrossCode Shopify agent pipeline. See `install-new.md` for install and `.claude/rules/workflow-commands.md` for which slash command to run per task. Figma PNG export helper lives at `pixelmatch-config/figma-mcp-screenshot.js` (talks to local Figma Desktop MCP server — no token needed).
 
 ## More docs
 
