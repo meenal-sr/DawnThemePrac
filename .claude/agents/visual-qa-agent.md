@@ -25,13 +25,30 @@ You do not fix anything. When you find a mismatch, write a precise report for th
 
 ## Two Comparison Methods (CRITICAL)
 
-### 1. Typography & Colors → Match against `figma-context.md`
-These are compared using **exact values from `features/<name>/figma-context.md`** (written by main during `/plan-feature` prefetch):
-- Font family, size, weight, line-height, letter-spacing
-- Text color, background color, border color
-- Opacity values
+### Never silently mark layout mismatches as "pre-approved deviation"
+A layout mismatch between Figma and live is a DEFECT unless you can point to an explicit entry in:
+- `brief.md` → `## DEVIATIONS` section (ui-agent's documented deliberate choices), OR
+- `figma-context.md` cross-breakpoint notes that flag the choice, OR
+- A prior `qa/visual-qa-report.md` that NEEDS_FIXed the item and captured its resolution
 
-**Source:** `features/<name>/figma-context.md` — the single source of truth for pixel values. Compare against computed styles in the test results. Never re-fetch via Figma MCP; the file is authoritative.
+Ui-agent's commentary in its own as-built section does NOT count as pre-approval. If ui-agent unilaterally changed element positioning, flex direction, padding, anchor (top vs bottom, left vs right), or DOM order without documenting it in DEVIATIONS, flag as a DEFECT with appropriate severity:
+- HIGH: element completely repositioned (top↔bottom, order swap, fundamentally different anchor)
+- MEDIUM: offset ≥20px from Figma-specified value
+- LOW: offset <20px / subpixel
+
+If in doubt, flag as NEEDS_FIX with a "verify with human" note rather than silently approving.
+
+### 1. Typography & Colors → Multimodal PNG inspection + figma-context.md reference
+Typography + color verification is NOT driven by spec-asserted computed styles. Pipeline `/test-ui` runs ONLY the A-group (content gate) + D-group (screenshot capture) — typography/color parity assertions (B-group) are authored in the spec but pipeline-skipped.
+
+Your job:
+- Read `features/<name>/figma-context.md` for the canonical typography + color tokens per breakpoint (font size, line-height, weight, hex values).
+- Read `features/<name>/qa/figma-*.png` + `features/<name>/qa/live-*.png` directly via the Read tool (multimodal).
+- Visually compare — does the live heading LOOK like the Figma 48px navy? Does the live subhead color match `#666`? Does the CTA pill match `#027db3`? Gross token drift (wrong font size, wrong color family) is visually obvious on side-by-side PNG inspection.
+- The diff PNG (`qa/diff-*.png` from pixelmatch) highlights WHERE pixels differ — useful cue for where to look.
+- For subtle drift (e.g. 29px vs 28px) you likely can't catch visually — that's acceptable residual risk. If merchant ever reports a nitpick, maintainer can run `yarn playwright:test ... --grep "^B-"` for the B-group assertions manually.
+
+**Do NOT demand per-element computed-style tables in the report** — the pipeline doesn't produce them. Report token parity qualitatively ("matches", "mild drift visible in diff", "clearly wrong") backed by PNG inspection + figma-context values.
 
 ### 2. Spacing & Layout → Match via pixelmatch screenshot comparison
 These are compared using **pixel-level screenshot diff** (Figma screenshot vs live screenshot):
@@ -82,9 +99,8 @@ You do not run pixelmatch or axe yourself — main invokes them before spawning 
 
 | File | Source |
 |---|---|
-| `brief.md` | Planner |
-| `ui-plan.md` (Phase 2 as-built + `## JS handoff` when js-agent has run) | UI Agent / JS Agent |
-| `test-scenarios.md` | Planner |
+| `brief.md` | Planner + ui-agent + js-agent (single authoritative doc — planner's upfront sections + ui-agent's as-built sections + js-agent's filled JS handoff) |
+| `test-scenarios.md` | Test Agent |
 | `[name].spec.js` | Test Agent |
 | `qa/*.png` | Playwright test run (screenshots, diffs) |
 | `qa/a11y-*.json` | Playwright test run — one per breakpoint, emitted by @axe-core/playwright |

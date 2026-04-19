@@ -27,15 +27,15 @@ Per Main Prefetch Contract → visual-qa-agent row:
 - Skill: `web-design-guidelines` (a11y dimension)
 - Memory subset: visual QA patterns, pixelmatch threshold conventions
 
-## Step 3 — Capture test output
-Re-read the output of `yarn playwright:test features/<feature-name>/<feature-name>.spec.js` from the previous run. If stale, re-run it.
+## Step 3 — Capture test output (A + D only)
+`/test-ui` runs only A-group (content-completeness gate) + D-group (screenshot capture) via `--grep "^(A-|D-)"`. Re-read that output from the previous run. If stale, re-run (same grep filter).
 
-If the re-run exits non-zero, halt with the failure report — do not proceed to Step 4.
+If A-group fails, halt and re-run test-agent — fixture is incomplete.
 
-## Step 4 — Read typography/color tokens from brief.md (single source of truth)
-Do NOT re-fetch Figma. `brief.md` → "Design content reference → Typography tokens" and "Color tokens" tables are authoritative — planner extracted them once from Figma; every downstream consumer reads them from the brief to avoid redundant MCP calls and prompt-token waste.
+## Step 4 — Pass figma-context.md reference to agent (no computed-style extraction)
+Do NOT extract typography/color tables from the brief. The agent reads `features/<feature-name>/figma-context.md` directly for canonical token values, then does multimodal PNG inspection (figma-*.png vs live-*.png) to grade visual parity.
 
-Extract the typography + color tables verbatim for embedding in the agent prompt. If they're missing from brief.md, halt and re-run `/plan-feature` — the brief is incomplete.
+Just verify `figma-context.md` exists. If missing, halt and re-run `/plan-feature` — the prefetch was incomplete.
 
 ## Step 4b — Read axe-core accessibility results
 

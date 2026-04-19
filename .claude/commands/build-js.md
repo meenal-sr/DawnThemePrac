@@ -1,5 +1,5 @@
 ---
-description: Prefetch skills + memory, spawn js-agent to write JavaScript behavior layer + fill the `## JS handoff` section of ui-plan.md, then run lint loop. Argument — $1 feature name.
+description: Prefetch skills + memory, spawn js-agent to write JavaScript behavior layer + fill the `## JS handoff` section of brief.md (replaces ui-agent stub), then run lint loop. Argument — $1 feature name.
 ---
 
 # Build JS: $ARGUMENTS
@@ -10,7 +10,7 @@ You are main conversation. Execute verbatim.
 - `$1` = feature name (kebab-case)
 
 Verify:
-- `features/<feature-name>/ui-plan.md` exists (ui-agent has run)
+- `features/<feature-name>/brief.md` exists (ui-agent has run)
 - `features/<feature-name>/qa/visual-qa-report.md` exists with `Status: PASS` (visual QA cleared)
 
 If brief says "No JavaScript needed", report `SKIP: No JS behavior per brief` and stop.
@@ -20,7 +20,7 @@ If prerequisites missing: `BLOCKED: Run /build-ui and /visual-qa first.`
 ## Step 2 — Memory + skill prefetch
 Per Main Prefetch Contract → js-agent row:
 - Skills: `modern-javascript-patterns` — invoke via Skill tool
-  - Only add `vercel-react-best-practices` if `ui-plan.md` mentions `.jsx`/React islands
+  - Only add `vercel-react-best-practices` if `brief.md` mentions `.jsx`/React islands
 - Memory subset: filter for JS class/component patterns, Shopify section architecture, DOM lifecycle
 
 ## Step 3 — Optional MCP lookups
@@ -42,7 +42,7 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 **SEMI-STABLE (per-feature):**
 3. Feature name + workspace path
 4. Contents of `brief.md`
-5. Contents of `ui-plan.md`
+5. Contents of `brief.md`
 6. MCP docs from Step 3 (shopify-dev-mcp + context7, if fetched)
 
 **DYNAMIC (this invocation only):**
@@ -50,7 +50,7 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 Expected outputs:
 - `js/sections/<name>.js` (entry) and/or `js/components/<name>.js` (shared)
-- Updated `features/<feature-name>/ui-plan.md` — `## JS handoff` section filled (replaces the ui-agent stub)
+- Updated `features/<feature-name>/brief.md` — `## JS handoff` section filled (replaces the ui-agent stub)
 
 ## Step 5 — Lint loop (max 3 cycles)
 After each file js-agent writes:
@@ -63,4 +63,4 @@ After each file js-agent writes:
 5. Escalate if still failing.
 
 ## Step 6 — Report
-> "JS built at `js/sections/<name>.js`. JS handoff filled at `features/<feature-name>/ui-plan.md → ## JS handoff`. Ready for `/test-full <feature-name>`."
+> "JS built at `js/sections/<name>.js`. JS handoff filled at `features/<feature-name>/brief.md → ## JS handoff`. Ready for `/test-full <feature-name>`."

@@ -10,7 +10,7 @@ You are main conversation. Execute verbatim.
 - `$1` = space-separated file paths, OR a feature folder like `features/<name>/`, OR empty
 
 If `$1` is empty → default to `git diff --name-only HEAD`, then FILTER to SOURCE files only (see Source-only filter below).
-If `$1` is a feature folder (`features/<name>/`) → DO NOT expand to every file. Instead, read `features/<name>/ui-plan.md` and extract the "File targets" listed under the Phase 2 as-built section — those are the SOURCE files to review (section `.liquid`, optional `.js/.jsx`, optional `.scss`). Never review files inside `features/<name>/` itself (those are planning + test docs, out of scope).
+If `$1` is a feature folder (`features/<name>/`) → DO NOT expand to every file. Instead, read `features/<name>/brief.md` and extract the SOURCE files listed under `## File plan` → CREATE rows (section `.liquid`, snippets `.liquid`, optional `.js/.jsx`, optional `.scss`). Never review files inside `features/<name>/` itself (those are planning + test docs, out of scope).
 Otherwise → treat `$1` as explicit file paths. Still apply the Source-only filter.
 
 ### Source-only filter
@@ -22,7 +22,7 @@ Only send these paths to code-reviewer:
 - `tailwind.config.js`, `webpack.config.js`, `playwright.config.js` (only when changed)
 
 Reject (do NOT send):
-- `features/**/*.md` (briefs, architecture, ui-plan, test-scenarios, visual-qa-report)
+- `features/**/*.md` (briefs, test-scenarios, visual-qa-report, figma-context)
 - `features/**/*.spec.js` (Playwright specs — test-agent's territory)
 - `features/**/qa/**` (test artifacts)
 - `templates/*.test.json` (test fixtures)

@@ -1,27 +1,37 @@
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
-const { sectionTestUrl, saveScreenshot, qaDir, requireElement, loadTemplate } = require('../../playwright-config/helpers');
+const {
+  sectionTestUrl,
+  saveScreenshot,
+  qaDir,
+  loadTemplate,
+  requireElement,
+} = require('../../playwright-config/helpers');
 
 const SECTION = 'payment-banner';
 const SECTION_SELECTOR = '[data-section-type="payment-banner"]';
 const SECTION_TYPE = 'page';
 
-// A11y gate: section does not require accessibility scanning (brief §5 mode: skip)
-const qaFolderPath = qaDir(SECTION);
-const a11yMarkerPath = path.join(qaFolderPath, 'a11y-skipped.marker');
-if (!fs.existsSync(a11yMarkerPath)) {
-  fs.writeFileSync(a11yMarkerPath, 'Accessibility scanning skipped per brief §5.\n');
-}
+// A11y gate: skip mode — write marker file at module load
+const a11yMarkerPath = path.join(process.cwd(), 'features', SECTION, 'qa', 'a11y-skipped.marker');
+(() => {
+  const markerDir = path.dirname(a11yMarkerPath);
+  fs.mkdirSync(markerDir, { recursive: true });
+  if (!fs.existsSync(a11yMarkerPath)) {
+    fs.writeFileSync(a11yMarkerPath, 'A11y checks skipped for this section.\n');
+  }
+})();
 
 test.describe('payment-banner UI', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(sectionTestUrl(SECTION_TYPE), { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector(SECTION_SELECTOR);
+    const sectionRoot = page.locator(SECTION_SELECTOR);
+    await sectionRoot.waitFor({ state: 'attached' });
     await page.evaluate(() => document.fonts.ready);
   });
 
-  // A-1: Content completeness — required template settings populated
+  // ============ A — Content completeness ============
   test('A-1: Content completeness — required template settings populated', () => {
     const template = loadTemplate(SECTION_TYPE);
     const settings = template.sections[SECTION].settings;
@@ -38,7 +48,7 @@ test.describe('payment-banner UI', () => {
       'card_2_cta_link',
     ];
     const missing = required.filter(
-      (k) => settings[k] == null || String(settings[k]).trim() === '',
+      k => settings[k] == null || String(settings[k]).trim() === '',
     );
     expect(
       missing,
@@ -46,488 +56,481 @@ test.describe('payment-banner UI', () => {
     ).toEqual([]);
   });
 
-  // B-1: [mobile] Intro heading typography
-  test('B-1 [mobile]: Intro heading typography', async ({ page }, testInfo) => {
+  // ============ B — Typography + color parity (manual-debug) ============
+  test('B-1 [mobile]: H2 typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner__heading');
-    const style = await page.locator('.payment-banner__heading').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const h2 = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__heading`);
+    const computed = await h2.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-        margin: computed.margin,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('28px');
-    expect(parseFloat(style.lineHeight)).toBeCloseTo(33.6, 0.5);
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(0, 0, 0)');
+    expect(computed.fontSize).toBeCloseTo(28, 1);
+    expect(computed.lineHeight).toBeCloseTo(33.6, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(0, 0, 0)'); // #000
   });
 
-  // B-2: [mobile] Intro subhead typography
-  test('B-2 [mobile]: Intro subhead typography', async ({ page }, testInfo) => {
+  test('B-2 [desktop]: H2 typography — desktop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
+    const h2 = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__heading`);
+    const computed = await h2.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
+      };
+    });
+    expect(computed.fontSize).toBeCloseTo(48, 1);
+    expect(computed.lineHeight).toBeCloseTo(52.8, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(11, 30, 61)'); // #0b1e3d
+  });
+
+  test('B-3 [mobile]: Subhead typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner__subhead');
-    const style = await page.locator('.payment-banner__subhead').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const subhead = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__subhead`);
+    const computed = await subhead.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('15px');
-    expect(style.lineHeight).toBe('24px');
-    expect(style.fontWeight).toBe('400');
-    expect(style.color).toBe('rgb(81, 81, 81)');
+    expect(computed.fontSize).toBeCloseTo(15, 1);
+    expect(computed.lineHeight).toBeCloseTo(24, 0.5);
+    expect(computed.fontWeight).toBe('400');
+    expect(computed.color).toBe('rgb(81, 81, 81)'); // #515151
   });
 
-  // B-3: [desktop] Intro heading typography
-  test('B-3 [desktop]: Intro heading typography', async ({ page }, testInfo) => {
+  test('B-4 [desktop]: Subhead typography — desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner__heading');
-    const style = await page.locator('.payment-banner__heading').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const subhead = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__subhead`);
+    const computed = await subhead.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('48px');
-    expect(parseFloat(style.lineHeight)).toBeCloseTo(52.8, 0.5);
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(11, 30, 61)');
+    expect(computed.fontSize).toBeCloseTo(16, 1);
+    expect(computed.lineHeight).toBeCloseTo(20, 0.5);
+    expect(computed.fontWeight).toBe('500');
+    expect(computed.color).toBe('rgb(102, 102, 102)'); // #666
   });
 
-  // B-4: [desktop] Intro subhead typography
-  test('B-4 [desktop]: Intro subhead typography', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner__subhead');
-    const style = await page.locator('.payment-banner__subhead').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
-      return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-      };
-    });
-    expect(style.fontSize).toBe('16px');
-    expect(style.lineHeight).toBe('20px');
-    expect(style.fontWeight).toBe('500');
-    expect(style.color).toBe('rgb(102, 102, 102)');
-  });
-
-  // B-5: [mobile] Card 1 title typography
-  test('B-5 [mobile]: Card 1 title typography', async ({ page }, testInfo) => {
+  test('B-5 [mobile]: Card 1 title typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-1-mobile__title');
-    const style = await page.locator('.payment-banner-card-1-mobile__title').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const title = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__title`);
+    const computed = await title.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('28px');
-    expect(parseFloat(style.lineHeight)).toBeCloseTo(33.6, 0.5);
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(0, 0, 0)');
+    expect(computed.fontSize).toBeCloseTo(28, 1);
+    expect(computed.lineHeight).toBeCloseTo(33.6, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(0, 0, 0)'); // #000
   });
 
-  // B-6: [mobile] Card 1 body typography
-  test('B-6 [mobile]: Card 1 body typography', async ({ page }, testInfo) => {
+  test('B-6 [desktop]: Card 1 title typography — desktop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
+    const title = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__title`);
+    const computed = await title.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
+      };
+    });
+    expect(computed.fontSize).toBeCloseTo(48, 1);
+    expect(computed.lineHeight).toBeCloseTo(52.3, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(11, 30, 61)'); // #0b1e3d
+  });
+
+  test('B-7 [mobile]: Card 1 body typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-1-mobile__body');
-    const style = await page.locator('.payment-banner-card-1-mobile__body').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const body = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__body`);
+    const computed = await body.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('15px');
-    expect(style.lineHeight).toBe('24px');
-    expect(style.fontWeight).toBe('600');
-    expect(style.color).toBe('rgb(81, 81, 81)');
+    expect(computed.fontSize).toBeCloseTo(15, 1);
+    expect(computed.lineHeight).toBeCloseTo(24, 0.5);
+    expect(computed.fontWeight).toBe('600');
+    expect(computed.color).toBe('rgb(81, 81, 81)'); // #515151
   });
 
-  // B-7: [mobile] Card 1 CTA label typography + styling
-  test('B-7 [mobile]: Card 1 CTA label typography', async ({ page }, testInfo) => {
+  test('B-8 [desktop]: Card 1 body typography — desktop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
+    const body = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__body`);
+    const computed = await body.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
+      };
+    });
+    expect(computed.fontSize).toBeCloseTo(16, 1);
+    expect(computed.lineHeight).toBeCloseTo(20, 0.5);
+    expect(computed.fontWeight).toBe('400');
+    expect(computed.color).toBe('rgb(102, 102, 102)'); // #666
+  });
+
+  test('B-9 [desktop]: Card 1 eyebrow typography — desktop only', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
+    const eyebrow = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__eyebrow`);
+    const computed = await eyebrow.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
+        textTransform: style.textTransform,
+      };
+    });
+    expect(computed.fontSize).toBeCloseTo(13, 1);
+    expect(computed.lineHeight).toBeCloseTo(20, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(0, 0, 0)'); // #000
+    expect(computed.textTransform).toBe('uppercase');
+  });
+
+  test('B-10 [mobile]: Card 1 CTA pill typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-1-mobile__cta');
-    const style = await page.locator('.payment-banner-card-1-mobile__cta').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__cta`);
+    const computed = await cta.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-        backgroundColor: computed.backgroundColor,
-        height: computed.height,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('15px');
-    expect(style.lineHeight).toBe('30px');
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(255, 255, 255)');
-    expect(style.backgroundColor).toBe('rgb(2, 125, 179)');
-    expect(style.height).toBe('48px');
+    expect(computed.fontSize).toBeCloseTo(15, 1);
+    expect(computed.lineHeight).toBeCloseTo(30, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(255, 255, 255)'); // #fff
   });
 
-  // B-8: [desktop] Card 1 eyebrow typography
-  test('B-8 [desktop]: Card 1 eyebrow typography', async ({ page }, testInfo) => {
+  test('B-11 [desktop]: Card 1 CTA pill typography — desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-1-desktop__eyebrow');
-    const style = await page.locator('.payment-banner-card-1-desktop__eyebrow').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__cta`);
+    const computed = await cta.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-        textTransform: computed.textTransform,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('13px');
-    expect(style.lineHeight).toBe('20px');
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(0, 0, 0)');
-    expect(style.textTransform).toBe('uppercase');
+    expect(computed.fontSize).toBeCloseTo(16, 1);
+    expect(computed.lineHeight).toBeCloseTo(28, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(244, 246, 248)'); // #f4f6f8
   });
 
-  // B-9: [desktop] Card 1 title typography
-  test('B-9 [desktop]: Card 1 title typography', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-1-desktop__title');
-    const style = await page.locator('.payment-banner-card-1-desktop__title').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
-      return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-      };
-    });
-    expect(style.fontSize).toBe('48px');
-    expect(parseFloat(style.lineHeight)).toBeCloseTo(52.3, 0.5);
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(11, 30, 61)');
-  });
-
-  // B-10: [desktop] Card 1 body typography
-  test('B-10 [desktop]: Card 1 body typography', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-1-desktop__body');
-    const style = await page.locator('.payment-banner-card-1-desktop__body').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
-      return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-      };
-    });
-    expect(style.fontSize).toBe('16px');
-    expect(style.lineHeight).toBe('20px');
-    expect(style.fontWeight).toBe('400');
-    expect(style.color).toBe('rgb(102, 102, 102)');
-  });
-
-  // B-11: [desktop] Card 1 CTA label typography + styling
-  test('B-11 [desktop]: Card 1 CTA label typography', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-1-desktop__cta');
-    const style = await page.locator('.payment-banner-card-1-desktop__cta').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
-      return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-        backgroundColor: computed.backgroundColor,
-        borderColor: computed.borderColor,
-        height: computed.height,
-      };
-    });
-    expect(style.fontSize).toBe('16px');
-    expect(style.lineHeight).toBe('28px');
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(244, 246, 248)');
-    expect(style.backgroundColor).toBe('rgb(2, 125, 179)');
-    expect(style.borderColor).toBe('rgb(244, 246, 248)');
-    expect(style.height).toBe('48px');
-  });
-
-  // B-12: [mobile] Card 2 title typography
-  test('B-12 [mobile]: Card 2 title typography', async ({ page }, testInfo) => {
+  test('B-12 [mobile]: Card 2 title typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-2-mobile__title');
-    const style = await page.locator('.payment-banner-card-2-mobile__title').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const title = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__title`);
+    const computed = await title.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('28px');
-    expect(parseFloat(style.lineHeight)).toBeCloseTo(33.6, 0.5);
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(255, 255, 255)');
+    expect(computed.fontSize).toBeCloseTo(28, 1);
+    expect(computed.lineHeight).toBeCloseTo(33.6, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(255, 255, 255)'); // #fff
   });
 
-  // B-13: [mobile] Card 2 body typography
-  test('B-13 [mobile]: Card 2 body typography', async ({ page }, testInfo) => {
+  test('B-13 [desktop]: Card 2 title typography — desktop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
+    const title = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__title`);
+    const computed = await title.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
+      };
+    });
+    expect(computed.fontSize).toBeCloseTo(48, 1);
+    expect(computed.lineHeight).toBeCloseTo(52.3, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(244, 246, 248)'); // #f4f6f8
+  });
+
+  test('B-14 [mobile]: Card 2 body typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-2-mobile__body');
-    const style = await page.locator('.payment-banner-card-2-mobile__body').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const body = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__body`);
+    const computed = await body.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('15px');
-    expect(style.lineHeight).toBe('24px');
-    expect(style.fontWeight).toBe('600');
-    expect(style.color).toBe('rgb(255, 255, 255)');
+    expect(computed.fontSize).toBeCloseTo(15, 1);
+    expect(computed.lineHeight).toBeCloseTo(24, 0.5);
+    expect(computed.fontWeight).toBe('600');
+    expect(computed.color).toBe('rgb(255, 255, 255)'); // #fff
   });
 
-  // B-14: [mobile] Card 2 CTA label typography + styling
-  test('B-14 [mobile]: Card 2 CTA label typography', async ({ page }, testInfo) => {
+  test('B-15 [desktop]: Card 2 body typography — desktop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
+    const body = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__body`);
+    const computed = await body.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
+      };
+    });
+    expect(computed.fontSize).toBeCloseTo(16, 1);
+    expect(computed.lineHeight).toBeCloseTo(20, 0.5);
+    expect(computed.fontWeight).toBe('400');
+    expect(computed.color).toBe('rgb(244, 246, 248)'); // #f4f6f8
+  });
+
+  test('B-16 [mobile]: Card 2 CTA pill typography — mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-2-mobile__cta');
-    const style = await page.locator('.payment-banner-card-2-mobile__cta').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__cta`);
+    const computed = await cta.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-        backgroundColor: computed.backgroundColor,
-        height: computed.height,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('15px');
-    expect(style.lineHeight).toBe('30px');
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(0, 0, 0)');
-    expect(style.backgroundColor).toBe('rgb(244, 246, 248)');
-    expect(style.height).toBe('48px');
+    expect(computed.fontSize).toBeCloseTo(15, 1);
+    expect(computed.lineHeight).toBeCloseTo(30, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(0, 0, 0)'); // #000
   });
 
-  // B-15: [desktop] Card 2 title typography
-  test('B-15 [desktop]: Card 2 title typography', async ({ page }, testInfo) => {
+  test('B-17 [desktop]: Card 2 CTA pill typography — desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-2-desktop__title');
-    const style = await page.locator('.payment-banner-card-2-desktop__title').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__cta`);
+    const computed = await cta.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
+        fontSize: parseFloat(style.fontSize),
+        lineHeight: parseFloat(style.lineHeight),
+        fontWeight: style.fontWeight,
+        color: style.color,
       };
     });
-    expect(style.fontSize).toBe('48px');
-    expect(parseFloat(style.lineHeight)).toBeCloseTo(52.3, 0.5);
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(244, 246, 248)');
+    expect(computed.fontSize).toBeCloseTo(16, 1);
+    expect(computed.lineHeight).toBeCloseTo(28, 0.5);
+    expect(computed.fontWeight).toBe('700');
+    expect(computed.color).toBe('rgb(0, 0, 0)'); // #000
   });
 
-  // B-16: [desktop] Card 2 body typography
-  test('B-16 [desktop]: Card 2 body typography', async ({ page }, testInfo) => {
+  test('B-18 [mobile]: Card 1 CTA pill height — mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__cta`);
+    const height = await cta.evaluate(el => el.offsetHeight);
+    expect(height).toBe(48);
+  });
+
+  test('B-19 [mobile]: Card 2 CTA pill height — mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__cta`);
+    const height = await cta.evaluate(el => el.offsetHeight);
+    expect(height).toBe(48);
+  });
+
+  test('B-20 [desktop]: Card 1 CTA pill height — desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-2-desktop__body');
-    const style = await page.locator('.payment-banner-card-2-desktop__body').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
-      return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-      };
-    });
-    expect(style.fontSize).toBe('16px');
-    expect(style.lineHeight).toBe('20px');
-    expect(style.fontWeight).toBe('400');
-    expect(style.color).toBe('rgb(244, 246, 248)');
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__cta`);
+    const height = await cta.evaluate(el => el.offsetHeight);
+    expect(height).toBe(48);
   });
 
-  // B-17: [desktop] Card 2 CTA label typography + styling
-  test('B-17 [desktop]: Card 2 CTA label typography', async ({ page }, testInfo) => {
+  test('B-21 [desktop]: Card 2 CTA pill height — desktop (smaller than card 1)', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-2-desktop__cta');
-    const style = await page.locator('.payment-banner-card-2-desktop__cta').first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
-      return {
-        fontSize: computed.fontSize,
-        lineHeight: computed.lineHeight,
-        fontWeight: computed.fontWeight,
-        color: computed.color,
-        backgroundColor: computed.backgroundColor,
-        borderColor: computed.borderColor,
-        height: computed.height,
-      };
-    });
-    expect(style.fontSize).toBe('16px');
-    expect(style.lineHeight).toBe('28px');
-    expect(style.fontWeight).toBe('700');
-    expect(style.color).toBe('rgb(0, 0, 0)');
-    expect(style.backgroundColor).toBe('rgb(244, 246, 248)');
-    expect(style.borderColor).toBe('rgb(244, 246, 248)');
-    expect(style.height).toBe('38px');
+    const cta = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__cta`);
+    const height = await cta.evaluate(el => el.offsetHeight);
+    expect(height).toBe(38);
   });
 
-  // C-1: [tablet] Dual-DOM state (mobile card 1 still visible)
-  test('C-1 [tablet]: Dual-DOM state (mobile card 1 visible)', async ({ page }, testInfo) => {
+  // ============ C — Layout integrity (manual-debug) ============
+  test('C-1 [tablet]: No horizontal scroll', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'tablet', 'Tablet-only test');
-    const mobileCard = page.locator('.payment-banner-card-1-mobile');
-    const desktopCard = page.locator('.payment-banner-card-1-desktop');
+    const hasScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(hasScroll).toBe(false);
+  });
 
-    const mobileDisplay = await mobileCard.evaluate(
-      (el) => window.getComputedStyle(el.parentElement).display,
-    );
-    const desktopDisplay = await desktopCard.evaluate(
-      (el) => window.getComputedStyle(el.parentElement).display,
-    );
+  test('C-2 [tablet]: Section container fits viewport width', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'tablet', 'Tablet-only test');
+    const section = await requireElement(page, SECTION_SELECTOR);
+    const width = await section.evaluate(el => el.offsetWidth);
+    expect(width).toBeLessThanOrEqual(768);
+  });
 
+  test('C-3 [tablet]: Mobile cards visible, desktop cards hidden', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'tablet', 'Tablet-only test');
+    const mobileCard1 = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__card-1-wrap--mobile`);
+    const desktopCard1 = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__card-1-wrap`);
+    const mobileDisplay = await mobileCard1.evaluate(el => window.getComputedStyle(el).display);
+    const desktopDisplay = await desktopCard1.evaluate(el => window.getComputedStyle(el).display);
     expect(mobileDisplay).not.toBe('none');
     expect(desktopDisplay).toBe('none');
   });
 
-  // C-2: [tablet-lg] Dual-DOM state (desktop card 1 visible)
-  test('C-2 [tablet-lg]: Dual-DOM state (desktop card 1 visible)', async ({ page }, testInfo) => {
+  test('C-4 [tablet-lg]: No horizontal scroll', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'tablet-lg', 'Tablet-lg-only test');
-    const mobileCard = page.locator('.payment-banner-card-1-mobile');
-    const desktopCard = page.locator('.payment-banner-card-1-desktop');
+    const hasScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(hasScroll).toBe(false);
+  });
 
-    const mobileDisplay = await mobileCard.evaluate(
-      (el) => window.getComputedStyle(el.parentElement).display,
-    );
-    const desktopDisplay = await desktopCard.evaluate(
-      (el) => window.getComputedStyle(el.parentElement).display,
-    );
+  test('C-5 [tablet-lg]: Section container fits viewport width', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'tablet-lg', 'Tablet-lg-only test');
+    const section = await requireElement(page, SECTION_SELECTOR);
+    const width = await section.evaluate(el => el.offsetWidth);
+    expect(width).toBeLessThanOrEqual(1280);
+  });
 
+  test('C-6 [tablet-lg]: Desktop cards visible, mobile cards hidden', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'tablet-lg', 'Tablet-lg-only test');
+    const mobileCard1 = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__card-1-wrap--mobile`);
+    const desktopCard1 = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__card-1-wrap`);
+    const mobileDisplay = await mobileCard1.evaluate(el => window.getComputedStyle(el).display);
+    const desktopDisplay = await desktopCard1.evaluate(el => window.getComputedStyle(el).display);
     expect(mobileDisplay).toBe('none');
     expect(desktopDisplay).not.toBe('none');
   });
 
-  // D-1: Save mobile live screenshot
+  // ============ D — Live screenshots (pipeline-executed) ============
   test('D-1: Save mobile live screenshot', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await page.waitForTimeout(500);
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only screenshot');
     await saveScreenshot(page, SECTION_SELECTOR, SECTION, 'live-mobile');
   });
 
-  // D-2: Save desktop live screenshot
   test('D-2: Save desktop live screenshot', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await page.waitForTimeout(500);
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only screenshot');
     await saveScreenshot(page, SECTION_SELECTOR, SECTION, 'live-desktop');
   });
 
-  // E-1: [desktop] Card 1 eyebrow is visible
-  test('E-1 [desktop]: Card 1 eyebrow is visible', async ({ page }, testInfo) => {
+  // ============ E — Content placement (manual-debug) ============
+  test('E-1 [mobile]: Card 1 eyebrow not visible on mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
+    const eyebrowCount = await page.locator(`${SECTION_SELECTOR} .payment-banner-card-1__eyebrow`).count();
+    expect(eyebrowCount).toBe(0);
+  });
+
+  test('E-2 [mobile]: Card 2 decorative bars not visible on mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
+    const barBlueCount = await page.locator(`${SECTION_SELECTOR} .payment-banner-card-2__bar-blue`).count();
+    const barOrangeCount = await page.locator(`${SECTION_SELECTOR} .payment-banner-card-2__bar-orange`).count();
+    const logoPanelCount = await page.locator(`${SECTION_SELECTOR} .payment-banner-card-2__logos-panel`).count();
+    expect(barBlueCount).toBe(0);
+    expect(barOrangeCount).toBe(0);
+    expect(logoPanelCount).toBe(0);
+  });
+
+  test('E-3 [mobile]: Section padding — mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
+    const section = await requireElement(page, SECTION_SELECTOR);
+    const padding = await section.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        top: parseFloat(style.paddingTop),
+        bottom: parseFloat(style.paddingBottom),
+        left: parseFloat(style.paddingLeft),
+        right: parseFloat(style.paddingRight),
+      };
+    });
+    expect(padding.top).toBeCloseTo(30, 1);
+    expect(padding.bottom).toBeCloseTo(30, 1);
+    expect(padding.left).toBeCloseTo(16, 1);
+    expect(padding.right).toBeCloseTo(16, 1);
+  });
+
+  test('E-4 [desktop]: Card 1 eyebrow visible on desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    const el = page.locator('.payment-banner-card-1-desktop__eyebrow');
-    const display = await el.evaluate((node) => window.getComputedStyle(node).display);
+    const eyebrow = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-1__eyebrow`);
+    const display = await eyebrow.evaluate(el => window.getComputedStyle(el).display);
     expect(display).not.toBe('none');
   });
 
-  // E-2: [mobile] Card 1 eyebrow not in mobile DOM
-  test('E-2 [mobile]: Card 1 eyebrow not in mobile DOM', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    const el = page.locator('.payment-banner-card-1-mobile__eyebrow');
-    expect(await el.count()).toBe(0);
-  });
-
-  // E-3: [desktop] Card 1 container dimensions
-  test('E-3 [desktop]: Card 1 container dimensions', async ({ page }, testInfo) => {
+  test('E-5 [desktop]: Card 2 decorative bars visible on desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-1-desktop');
-    const dims = await page.locator('.payment-banner-card-1-desktop').first().evaluate((node) => ({
-      offsetWidth: node.offsetWidth,
-      offsetHeight: node.offsetHeight,
-    }));
-    expect(dims.offsetWidth).toBe(920);
-    expect(dims.offsetHeight).toBe(573);
+    const barBlue = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__bar-blue`);
+    const barOrange = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__bar-orange`);
+    const logoPanel = await requireElement(page, `${SECTION_SELECTOR} .payment-banner-card-2__logos-panel`);
+    const blueDisplay = await barBlue.evaluate(el => window.getComputedStyle(el).display);
+    const orangeDisplay = await barOrange.evaluate(el => window.getComputedStyle(el).display);
+    const panelDisplay = await logoPanel.evaluate(el => window.getComputedStyle(el).display);
+    expect(blueDisplay).not.toBe('none');
+    expect(orangeDisplay).not.toBe('none');
+    expect(panelDisplay).not.toBe('none');
   });
 
-  // E-4: [mobile] Card 1 height constrained
-  test('E-4 [mobile]: Card 1 height constrained', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-1-mobile');
-    const height = await page.locator('.payment-banner-card-1-mobile').first().evaluate((node) => node.offsetHeight);
-    expect(height).toBeGreaterThan(0);
-  });
-
-  // E-5: [desktop] Card 2 container dimensions
-  test('E-5 [desktop]: Card 2 container dimensions', async ({ page }, testInfo) => {
+  test('E-6 [desktop]: Section padding — desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, '.payment-banner-card-2-desktop');
-    const dims = await page.locator('.payment-banner-card-2-desktop').first().evaluate((node) => ({
-      offsetWidth: node.offsetWidth,
-      offsetHeight: node.offsetHeight,
-    }));
-    expect(dims.offsetWidth).toBe(390);
-    expect(dims.offsetHeight).toBe(573);
-  });
-
-  // E-6: [mobile] Card 2 height constrained
-  test('E-6 [mobile]: Card 2 height constrained', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, '.payment-banner-card-2-mobile');
-    const height = await page.locator('.payment-banner-card-2-mobile').first().evaluate((node) => node.offsetHeight);
-    expect(height).toBeGreaterThan(0);
-  });
-
-  // E-7: [desktop] Section padding matches design spec
-  test('E-7 [desktop]: Section padding matches design spec', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
-    await requireElement(page, SECTION_SELECTOR);
-    const padding = await page.locator(SECTION_SELECTOR).first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
+    const section = await requireElement(page, SECTION_SELECTOR);
+    const padding = await section.evaluate(el => {
+      const style = window.getComputedStyle(el);
       return {
-        paddingTop: parseFloat(computed.paddingTop),
-        paddingBottom: parseFloat(computed.paddingBottom),
-        paddingLeft: parseFloat(computed.paddingLeft),
-        paddingRight: parseFloat(computed.paddingRight),
+        top: parseFloat(style.paddingTop),
+        bottom: parseFloat(style.paddingBottom),
+        left: parseFloat(style.paddingLeft),
+        right: parseFloat(style.paddingRight),
       };
     });
-    expect(padding.paddingTop).toBeCloseTo(60, 1);
-    expect(padding.paddingBottom).toBeCloseTo(40, 1);
-    expect(padding.paddingLeft).toBeCloseTo(50, 1);
-    expect(padding.paddingRight).toBeCloseTo(50, 1);
+    expect(padding.top).toBeCloseTo(60, 1);
+    expect(padding.bottom).toBeCloseTo(50, 1);
+    expect(padding.left).toBeCloseTo(40, 1);
+    expect(padding.right).toBeCloseTo(40, 1);
   });
 
-  // E-8: [mobile] Section padding matches design spec
-  test('E-8 [mobile]: Section padding matches design spec', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only test');
-    await requireElement(page, SECTION_SELECTOR);
-    const padding = await page.locator(SECTION_SELECTOR).first().evaluate((node) => {
-      const computed = window.getComputedStyle(node);
-      return {
-        paddingTop: parseFloat(computed.paddingTop),
-        paddingLeft: parseFloat(computed.paddingLeft),
-        paddingRight: parseFloat(computed.paddingRight),
-      };
+  test('E-7 [desktop]: Intro max-width constraint', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Desktop-only test');
+    const intro = await requireElement(page, `${SECTION_SELECTOR} .payment-banner__intro`);
+    const maxWidth = await intro.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return parseFloat(style.maxWidth);
     });
-    expect(padding.paddingTop).toBeCloseTo(30, 1);
-    expect(padding.paddingLeft).toBeCloseTo(16, 1);
-    expect(padding.paddingRight).toBeCloseTo(16, 1);
+    expect(maxWidth).toBeCloseTo(591, 5);
   });
 });

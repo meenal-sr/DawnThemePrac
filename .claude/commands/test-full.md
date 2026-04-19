@@ -10,7 +10,7 @@ You are main conversation. Execute verbatim.
 - `$1` = feature name
 
 Verify:
-- `features/<feature-name>/ui-plan.md` contains a filled `## JS handoff` section (js-agent has run — look for real content, not the stub "js-agent appends")
+- `features/<feature-name>/brief.md` contains a filled `## JS handoff` section (js-agent has run — look for real content, not the stub "js-agent appends")
 - `features/<feature-name>/test-scenarios.md` exists
 
 If `## JS handoff` is unfilled because brief says "No JavaScript needed":
@@ -33,10 +33,9 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 **SEMI-STABLE (per-feature):**
 3. Workspace: `features/<feature-name>/`
-4. Contents of `brief.md`
-5. Full contents of `ui-plan.md` (includes Phase 2 selectors + filled `## JS handoff`)
-6. Contents of `test-scenarios.md`
-8. `mock-map.md` if it exists
+4. Full contents of `brief.md` — all sections including ui-agent's appended as-built + js-agent's filled `## JS handoff`
+5. Contents of `test-scenarios.md`
+6. `mock-map.md` if it exists
 
 **DYNAMIC (this invocation only):**
 9. Test failures from prior cycle (if re-invoked)

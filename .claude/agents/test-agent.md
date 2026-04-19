@@ -20,30 +20,29 @@ Skill output and reference memory are embedded in your prompt by main per the **
 
 `brief.md` records intent + schema; `figma-context.md` records pixel values. Do not pull typography/colors from the brief — go to `figma-context.md`.
 
-**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + schema) + `ui-plan.md` (as-built selectors + state contract) + `figma-context.md` (copy + typography/color ground truth). You also populate `templates/[type].test.json` in the same step. Only after the scenarios + template are in place do you translate them into `[name].spec.js`.
+**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + schema + as-built selectors + state contract — planner's sections + ui-agent's appended sections, all in one file) + `figma-context.md` (copy + typography/color ground truth). Then **APPEND** an entry to the shared `templates/[type].test.json` (never overwrite; never create per-feature filename). Only after scenarios + template are in place do you translate them into `[name].spec.js`.
 
-In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augment it with functional/integration scenarios sourced from `the `## JS handoff` section of ui-plan.md` before writing `[name].functional.spec.js` / `[name].integration.spec.js`.
+In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augment it with functional/integration scenarios sourced from the `## JS handoff` section of brief.md (js-agent replaced ui-agent's stub) before writing `[name].functional.spec.js` / `[name].integration.spec.js`.
 
 ---
 
 ## Two Modes
 
-### Mode: `ui-only` (invoked after UI Agent)
+### Mode: `ui-only` (invoked after ui-agent)
 **Inputs:**
-- `[workspace]/brief.md` (planner — intent + design content reference)
-- `[workspace]/ui-plan.md` (ui-agent — as-built selectors, state contract, schema settings)
+- `[workspace]/brief.md` — planner's sections (intent, schema, file plan, reuse scan, a11y, JS decision) + ui-agent's appended sections (as-built DOM, selector catalogue, data attributes, schema settings final, JS handoff stub)
+- `[workspace]/figma-context.md` — copy + typography/color ground truth
 
 **Outputs (in this order):**
 1. `[workspace]/test-scenarios.md` — authoritative A/B/C/D/E scenario contract
-2. `templates/[type].test.json` — section entry + every schema setting populated from brief's "Design content reference"
+2. `templates/[type].test.json` — **APPEND** section entry + update `order` array. Shared fixture — NEVER create per-feature filename.
 3. `[workspace]/[name].spec.js` — Playwright translation of scenarios
 
-Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need the `## JS handoff` section of ui-plan.md or JavaScript behavior to exist.
+Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need the `## JS handoff` section filled (ui-agent wrote a stub; js-agent will fill it later). Specs focus on visual/structural only.
 
-### Mode: `full` (invoked after JS Agent)
+### Mode: `full` (invoked after js-agent)
 **Inputs:**
-- `[workspace]/brief.md`
-- `[workspace]/ui-plan.md` (read all sections including `## JS handoff` — filled by js-agent in this mode)
+- `[workspace]/brief.md` — all sections including `## JS handoff` filled by js-agent
 - `[workspace]/test-scenarios.md` (from ui-only mode — you append functional + integration scenarios here)
 - `[workspace]/mock-map.md` (if exists)
 
@@ -74,7 +73,7 @@ Screenshots land in `features/[name]/qa/` via the helpers below.
 
 ## Authoring rules (honor on every spec)
 
-- **`test-scenarios.md` is the contract — and you own it.** In ui-only mode, write `test-scenarios.md` first from brief + ui-plan.md (Phase 2 sections). Then emit exactly those scenarios in `[name].spec.js` — no extras, no omissions. If something is unclear (e.g. ambiguous mobile behavior, blocking design question), add it under a `## Questions` heading in `test-scenarios.md` and ask main before writing specs.
+- **`test-scenarios.md` is the contract — and you own it.** In ui-only mode, write `test-scenarios.md` first from brief.md (planner intent + ui-agent as-built selectors + schema settings). Then emit exactly those scenarios in `[name].spec.js` — no extras, no omissions. If something is unclear (e.g. ambiguous mobile behavior, blocking design question), add it under a `## Questions` heading in `test-scenarios.md` and ask main before writing specs.
 - **Playwright fixture signature:** `testInfo` is the SECOND argument, not destructured with `page`: `async ({ page }, testInfo) => {}`. Writing `async ({ page, testInfo }) => {}` throws `Test has unknown parameter "testInfo"`.
 - No standalone DOM-presence group (section root exists, heading exists, CTA href non-empty), no conditional-rendering group, no `No console errors on load` test. `test-scenarios.md` is authored with these exclusions baked in; do not add them back.
 - DO emit the content-completeness gate (`A-1` below) as the first test — it validates template settings, not DOM presence, and is required on every spec.
@@ -133,24 +132,26 @@ Name live screenshots `live-<project>.png` (`live-mobile.png`, `live-desktop.png
 
 ### Step 1 — Read inputs
 1. `[workspace]/brief.md` — template type (page/product/collection), accessibility flag, variants, schema settings, design content reference, typography tokens
-2. `[workspace]/ui-plan.md` — authoritative selectors (BEM + data-attrs), block structure, state contract, schema setting IDs (Phase 2 sections) + responsive strategy + token map (Phase 1 sections, for BP-specific assertions)
+2. `[workspace]/brief.md` — single authoritative doc. Planner sections (intent, schema, file plan, reuse, a11y, JS decision) + ui-agent appended sections (as-built DOM, selector catalogue, data attributes, schema settings final, JS handoff stub or full).
 
 ### Step 2 — Write `test-scenarios.md`
-Enumerate exactly what `[name].spec.js` must emit — five groups A / B / C / D / E:
+Enumerate exactly what `[name].spec.js` must emit — five groups A / B / C / D / E.
 
+**Pipeline-run groups (executed on every `/test-ui`):**
 - **A — Content completeness.** First test in every spec. Single assertion: template has non-blank values for every design-required setting + required blocks (if applicable). Fails fast under `maxFailures: 1`. List under "Required template content" — every image_picker/text/richtext/url/color/range setting the design visually depends on + minimum block count if blocks exist.
+- **D — Live screenshots** at design breakpoints. `live-mobile.png` + `live-desktop.png` via `saveScreenshot`. Consumed by visual-qa-agent's pixelmatch.
 
-- **B — Typography + color parity** at design breakpoints (`mobile` 375 + `desktop` 1440). For every text-bearing element, list exact computed-style targets: font-size, line-height, font-weight, color, text-transform, opacity, border-radius, background-color. Source values from brief's Design content reference. No strict typography at intermediates.
-
-- **C — Layout integrity** at intermediates (`tablet` 768 + `tablet-lg` 1280). Structural-only: no horizontal scroll, no sibling-stack vertical overlap, content container fits within viewport width. No typography.
-
-- **D — Live screenshots** at design breakpoints. `live-mobile.png` + `live-desktop.png` via `saveScreenshot`. Consumed by visual-qa-agent.
-
-- **E — Content placement parity** at design breakpoints. Include ONLY:
+**Manual-debug-only groups (authored but pipeline-skipped — run via `yarn playwright:test ... --grep "^B-"` etc. when debugging a specific drift):**
+- **B — Typography + color parity** at design breakpoints (`mobile` 375 + `desktop` 1440). For every text-bearing element, list exact computed-style targets: font-size, line-height, font-weight, color, text-transform, opacity, border-radius, background-color. Source values from `figma-context.md`. Pipeline relies on pixelmatch + multimodal PNG inspection to catch gross token drift; B-group is here for developer debugging when pixelmatch surfaces something unclear.
+- **C — Layout integrity** at intermediates (`tablet` 768 + `tablet-lg` 1280). Structural-only: no horizontal scroll, no sibling-stack vertical overlap, content container fits within viewport width. No typography. Manual-debug only.
+- **E — Content placement parity** at design breakpoints. ONLY:
   - Line count per text element via `Math.round(el.offsetHeight / parseFloat(getComputedStyle(el).lineHeight))`
   - Content container bounding width via `el.offsetWidth` asserted `≤ <Figma max-width>`
-  - Skip padding/margin/gap assertions — pixelmatch catches those.
-  - Skip E entirely if design has no multi-line text AND no content-container width worth pinning.
+  - Skip padding/margin/gap assertions — pixelmatch catches those
+  - Skip E entirely if design has no multi-line text AND no content-container width worth pinning
+  Manual-debug only.
+
+**Test-title prefix rule (CRITICAL for the `--grep` filter):** every `test(...)` title MUST start with `A-N:` / `B-N:` / `C-N:` / `D-N:` / `E-N:` or `X-N [breakpoint]:` (e.g. `B-1 [mobile]:`). The pipeline uses `--grep "^(A-|D-)"` to run only A + D. Off-spec titles (e.g. `typography test for heading`) will either slip through the filter and run out of scope, or be skipped when they should have run.
 
 **Do NOT emit:**
 - Standalone presence tests (section-root-exists, heading-exists, CTA-href-non-empty) — pixelmatch catches regressions.
@@ -175,7 +176,7 @@ Relevant authoring rules:
 - yarn playwright:test ... --reporter=list.
 
 ## Section under test
-- Type / URL helper / Template / Section selector (from ui-plan.md)
+- Type / URL helper / Template / Section selector (from brief.md)
 
 ## Required template content
 <every design-required setting + minimum block count>
@@ -218,7 +219,7 @@ Based on brief template type → map to `page.test.json` / `product.test.json` /
 4. Preserve every pre-existing section + its order. Never delete or mutate other sections' entries.
 5. Serialize back, preserving the `/*! Test template */` comment header (Shopify's JSON-with-comments format — the helper `loadTemplate()` strips `/* ... */` before parsing).
 
-If your architect mis-wrote the file plan with a per-feature `templates/<name>-<type>.test.json` row, treat it as an instruction bug — use the shared shared `templates/<type>.test.json` instead and flag the mistake in `test-scenarios.md` → "Questions".
+If planner's File plan row mis-used a per-feature `templates/<name>-<type>.test.json` path, treat it as an instruction bug — use the shared `templates/<type>.test.json` instead and flag the mistake in `test-scenarios.md` → "Questions".
 
 For every setting in the section schema, emit a dummy value. Copy strings and exact Figma-derived values come from `features/<name>/figma-context.md` (canonical); schema defaults come from `brief.md`:
 - text → Figma copy string (from `figma-context.md`)
@@ -256,7 +257,7 @@ Translate each scenario from your `test-scenarios.md` into a Playwright `test(..
 
 At the module top you always need:
 1. Required imports (`@playwright/test`, `fs`, `path`, helpers from `playwright-config/helpers.js`).
-2. `SECTION`, `SECTION_SELECTOR`, `SECTION_TYPE` constants sourced from `ui-plan.md` + `brief.md`.
+2. `SECTION`, `SECTION_SELECTOR`, `SECTION_TYPE` constants sourced from `brief.md` + `brief.md`.
 3. The a11y gate (marker file OR axe import) per the section above.
 4. A `waitForSectionImages(page, selector)` helper inlined in the file when Group D (screenshots) is in the scenarios — prevents half-loaded images skewing pixelmatch.
 5. A `test.beforeEach` that navigates via `sectionTestUrl(SECTION_TYPE)` with `{ waitUntil: 'domcontentloaded' }`, waits for the section root to attach, and awaits `document.fonts.ready`.
@@ -282,11 +283,11 @@ Each subsequent `test(...)` block mirrors one scenario in `test-scenarios.md`. T
 
 ## Functional tests (`[name].functional.spec.js`) — full mode
 
-**Source of truth:** `test-scenarios.md` interactive/data sections + `the `## JS handoff` section of ui-plan.md`.
+**Source of truth:** `test-scenarios.md` interactive/data sections + `the `## JS handoff` section of brief.md`.
 
 What to emit:
 - Every scenario in `test-scenarios.md` (interactive states, data edge cases).
-- State transitions from `the `## JS handoff` section of ui-plan.md` Data-State Transitions table.
+- State transitions from `the `## JS handoff` section of brief.md` Data-State Transitions table.
 - Custom events emitted — use `page.evaluate` to listen.
 - Error states — use `mock-map.md` fixtures if available.
 - Edge cases explicitly listed in `test-scenarios.md`.
@@ -314,7 +315,7 @@ Each test reads like a user story — navigate, assert initial state, act, asser
 
 ## When to skip full mode
 
-If `brief.md` says "No JavaScript needed", there is no `the `## JS handoff` section of ui-plan.md` and no functional/integration specs to write. Report: `SKIP: No JS behavior — functional/integration specs not needed.`
+If `brief.md` says "No JavaScript needed", there is no `the `## JS handoff` section of brief.md` and no functional/integration specs to write. Report: `SKIP: No JS behavior — functional/integration specs not needed.`
 
 ---
 

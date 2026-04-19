@@ -1,158 +1,329 @@
 # brief.md — payment-banner
 
-## 1. Intent
+## Intent
+Decorative marketing section for page template. Intro (H2 + subhead) above two structurally-distinct promo cards: Card 1 "Member Pricing Unlocked" with composite bg image + text overlay, Card 2 "Flexible Financing" with cyan inner + decorative vertical bars + white logos panel on desktop, full-cover merchant bg image on mobile. Section stands alone — no merchandising data, no cross-section contracts.
 
-Decorative marketing section promoting two merchant finance programs side-by-side: **Member Pricing** (wholesale rates revealed post-cart-add) and **Lease-to-Own Financing** (no-credit-needed flexible payments). Targets page-template contexts where the merchant wants to surface both value props in a single screen slot. Non-interactive beyond the two CTA anchors — one per card, linking to the merchant's program landing pages. Desktop shows both cards horizontally (920+390 inner row); mobile stacks them vertically with a different bg treatment for card 2.
+## Design reference
+- Canonical values: `features/payment-banner/figma-context.md` (do NOT duplicate values here)
+- Desktop PNG: `features/payment-banner/qa/figma-desktop.png` (1440w)
+- Mobile PNG: `features/payment-banner/qa/figma-mobile.png` (390w)
+- Nodes: desktop `5654:6312`, mobile `5654:53417` (file key `g3gxO3mhrniJOYTHNmotAu`)
+- **Divergence: HIGH** — DOM + visual treatment differ per card. Dual-DOM per card at `md:` (1024). Ui-agent must build desktop + mobile as separate snippets; toggle via `tw-hidden md:tw-block` / `md:tw-hidden` on wrappers (mirrors `promo-test.liquid` precedent).
 
----
+## Schema plan
+Flat section settings. No blocks — two cards are structurally different and fixed (not merchant-reorderable / not repeatable).
 
-## 2. Design reference
+| ID | Type | Label | Notes |
+|---|---|---|---|
+| `heading` | text | Section Heading | H2, default `Easy Monthly Payments` |
+| `subheading` | textarea | Section Subheading | default per figma-context Copy table; supports newline |
+| `card_1_eyebrow` | text | Card 1 Eyebrow (desktop only) | default `MEMBER PRICING UNLOCKED`; blank hides |
+| `card_1_title` | text | Card 1 Title | default `Prices Too Low to Show Publicly` |
+| `card_1_body` | textarea | Card 1 Body | default per figma-context |
+| `card_1_cta_label` | text | Card 1 CTA Label | default `Learn More` |
+| `card_1_cta_link` | url | Card 1 CTA Link | blank → render as non-interactive `<div>` |
+| `card_1_desktop_bg_image` | image_picker | Card 1 Desktop Background | composite (product + callout + decorative SVG baked in by merchant) |
+| `card_1_mobile_bg_image` | image_picker | Card 1 Mobile Background | composite mobile variant |
+| `card_2_title` | text | Card 2 Title | default `Flexible Payments, Made Easy` |
+| `card_2_body` | textarea | Card 2 Body | default per figma-context |
+| `card_2_cta_label` | text | Card 2 CTA Label | default `Learn More` |
+| `card_2_cta_link` | url | Card 2 CTA Link | blank → render as non-interactive `<div>` |
+| `card_2_logos_image` | image_picker | Card 2 Partner Logos (desktop only) | renders inside white panel bottom-left of desktop card 2; blank → hide panel OR render empty panel (ui-agent decides) |
+| `card_2_mobile_bg_image` | image_picker | Card 2 Mobile Full-Cover Background | mobile-only full-card bg image |
 
-Source of truth — do NOT duplicate values:
+Inline decorations NOT in schema (hard-coded visual treatment of desktop card 2):
+- Cyan inner layer `#6bc4e8`
+- Vertical bars `#0033a1` + `#f75200` (decorative)
+- White logos panel chrome (border + bottom-left radius 8)
 
-- `features/payment-banner/figma-context.md` — all typography, color hex, spacing px, copy strings, token names, per-breakpoint deltas
-- `features/payment-banner/qa/figma-desktop.png` — 1440-wide desktop reference
-- `features/payment-banner/qa/figma-mobile.png` — 390-wide mobile reference
+## File plan
 
-Figma nodes: desktop `5654:6312`, mobile `5654:53417` (file `g3gxO3mhrniJOYTHNmotAu`).
-
-**Divergence: HIGH.** The two breakpoints differ in:
-- Overall layout (horizontal row ↔ vertical stack)
-- Card 1 eyebrow: present on desktop, absent on mobile
-- Card 1 title color: `#0b1e3d` desktop vs `#000000` mobile
-- Card 2 background treatment: **solid cyan + decorative bars + white logos panel** on desktop vs **full-cover marketing image** on mobile (fundamentally different DOM content)
-- Card 2 CTA height: 38 desktop vs 48 mobile
-
-**Directive to ui-agent:** Use **dual-DOM** per card, toggled at `md:` (1024px) per project convention. Single-DOM + CSS-only responsive cannot cleanly swap card-2's bg from "cyan + inline SVG bars + nested logos panel" to "full-cover image" without structural branching.
-
----
-
-## 3. Schema plan
-
-Flat section settings, no blocks. The two cards are structurally distinct (different visual treatments, different content roles) and the template is fixed at 2 cards — not a repeatable pattern.
-
-### 3.1 Intro
-| Setting ID | Type | Purpose |
+| Action | Path | Purpose |
 |---|---|---|
-| `heading` | text | Section H2 |
-| `subheading` | textarea | Two-line subhead under H2 |
+| CREATE | `sections/payment-banner.liquid` | Section entry: intro + dual-DOM wrappers per card + schema + section-scoped `<style>` |
+| CREATE | `snippets/payment-banner-card-1-desktop.liquid` | Card 1 desktop: composite bg image + absolute-positioned text overlay (eyebrow + title + body + pill CTA, height 48) |
+| CREATE | `snippets/payment-banner-card-1-mobile.liquid` | Card 1 mobile: composite bg image + text overlay (no eyebrow, title + body + pill CTA height 48) |
+| CREATE | `snippets/payment-banner-card-2-desktop.liquid` | Card 2 desktop: cyan inner + decorative bars + white logos panel + absolute-positioned text overlay (title + body + pill CTA height 38) |
+| CREATE | `snippets/payment-banner-card-2-mobile.liquid` | Card 2 mobile: full-cover merchant bg image + text overlay (title + body + pill CTA height 48) |
+| APPEND | `templates/page.test.json` | Add `payment-banner` section to existing shared page test template (alongside `collection-grid-test`, `promo-test`); also append to `order` array |
+| REUSE | `snippets/shopify-responsive-image.liquid` | Responsive image rendering with srcset + lazyload for all 4 image_picker fields |
+| SKIP | `js/sections/payment-banner.js` | JS=NO (see JavaScript decision) |
+| SKIP | `scss/sections/payment-banner.scss` | Section-scoped `<style>` block inline in liquid (mirrors `promo-test` precedent); escalate to SCSS only if ui-agent hits a limitation |
 
-### 3.2 Card 1 — Pricing (text)
-| Setting ID | Type | Purpose |
+## Reuse scan
+
+| Candidate | Fit | Recommendation |
 |---|---|---|
-| `card_1_eyebrow` | text | All-caps eyebrow above card-1 title. **Desktop-only** — blank string hides the element; also hidden on mobile regardless of value |
-| `card_1_title` | text | Card-1 H3 |
-| `card_1_body` | textarea | Card-1 body paragraph |
-| `card_1_cta_label` | text | Pill CTA label |
-| `card_1_cta_link` | url | Pill CTA href |
+| `sections/promo-test.liquid` | Structural precedent: intro block with dual-subhead, scoped `<style>` for cross-breakpoint bg overrides, section wrapper + inner max-width, schema shape. | REFERENCE pattern — do not render, but mirror structure |
+| `snippets/promo-test-card-desktop.liquid` | Precedent for: anchor/div fallback when `cta_link == blank`, `role="presentation"` branch, focus-visible ring (`focus-visible:tw-outline focus-visible:tw-outline-2 focus-visible:tw-outline-offset-2 focus-visible:tw-outline-[#027db3]`), absolute text overlay over image, inline `<span>` pill CTA (not nested anchor), composite image via `shopify-responsive-image` with `image_aspect_ratio` float. | MIRROR pattern for all 4 card snippets |
+| `snippets/promo-test-card-mobile.liquid` | Precedent for mobile card content pattern (text + pill). | MIRROR for card 1 mobile (text-overlay variant differs — card 1 mobile uses overlay, not image-above-text) |
+| `snippets/shopify-responsive-image.liquid` | Takes `image`, `image_id`, `image_aspect_ratio` (float), `image_alt`, `image_class`, `wrapper_class`, `crop: true`. Handles srcset + lazyload. | REUSE for all 4 image_picker fields (`card_1_desktop_bg_image`, `card_1_mobile_bg_image`, `card_2_logos_image`, `card_2_mobile_bg_image`) |
+| `snippets/image.liquid` | Full/icon layout wrapper; already uses `tw-hidden md:tw-block` / `tw-block md:tw-hidden` dual-DOM pattern with `shopify-responsive-image` inside. | NOT IDEAL here — we need absolute-positioned text overlays; `image.liquid` produces a div-only structure without the overlay scaffolding. Use `shopify-responsive-image` directly inside our card snippets instead. |
+| `sections/hero-banner.liquid` | Precedent for inline-style-scoped approach (already read via main context). | REFERENCE if ui-agent needs additional scoped-style idioms |
+| `snippets/button.liquid` | Potentially produces anchor markup. | REJECT — CTAs are inline `<span>` pills inside the card `<a>` to avoid nested anchors (matches `promo-test` card precedent) |
+| `snippets/heading.liquid` / `subheading.liquid` | Generic heading components. | REJECT — bespoke sizes (48/52.8, 28/33.6) + specific color per breakpoint don't match these helpers; inline Tailwind is cleaner |
 
-### 3.3 Card 1 — Pricing (imagery)
-| Setting ID | Type | Purpose |
+## Variants
+
+| Variant | Trigger | Behavior |
 |---|---|---|
-| `card_1_product_image` | image_picker | Product shot behind/beside content |
-| `card_1_callout_image` | image_picker | Small callout graphic, top-right area (optional) |
+| Default | all fields populated, both cta_links present | Renders anchors; all copy + images shown |
+| Blank eyebrow | `card_1_eyebrow == blank` | Eyebrow `<p>` omitted on desktop; mobile unaffected (never renders) |
+| Blank cta_link | `card_X_cta_link == blank` | Card wrapper renders as `<div role="presentation">` instead of `<a>`; pill still renders as inline `<span>` for visual parity |
+| Blank cta_label | `card_X_cta_label == blank` | Pill `<span>` omitted; card remains clickable if link present |
+| Blank card_1 image_pickers | either desktop or mobile composite blank | Fallback solid `#f2f0f1` (card-1 bg from figma) with overlay content still rendered; ui-agent decides exact fallback markup |
+| Blank card_2 logos_image | desktop only | Logos panel chrome still renders (border + radius) with empty interior — or panel hides entirely; ui-agent decides |
+| Blank card_2 mobile bg | mobile only | Fallback solid cyan `#6bc4e8` (matching desktop inner) with overlay content still rendered |
 
-### 3.4 Card 2 — Financing (text)
-| Setting ID | Type | Purpose |
-|---|---|---|
-| `card_2_title` | text | Card-2 H3 |
-| `card_2_body` | textarea | Card-2 body paragraph |
-| `card_2_cta_label` | text | Pill CTA label |
-| `card_2_cta_link` | url | Pill CTA href |
+## A11y
+- **Mode: skip** (decorative marketing section; manual baseline only — no axe gate)
+- Baseline:
+  - `<h2>` for section heading; `<h3>` for each card title
+  - Eyebrow rendered as `<p>` or `<span>` (NOT a heading — it's a label above the H3)
+  - Single `<a>` per card wrapping full card content (when `cta_link` present); otherwise `<div role="presentation">`
+  - Inline `<span>` pill CTA inside card anchor (never nested `<a>`)
+  - `aria-label` on card anchor = card title (`block.settings.cardX_title | escape`)
+  - Decorative SVG bars + logos panel chrome + gradient overlays marked `aria-hidden="true"`
+  - Partner logos image requires meaningful `alt` (e.g. merchant-uploaded alt OR fallback "Financing partner logos")
+  - Composite bg images treated as decorative (`alt=""`) when text is rendered in DOM as overlay — all critical copy is in liquid text nodes, not baked into the image. Ui-agent confirms.
+  - Focus-visible ring on card anchors: 2px offset, color `#027db3` (matches promo-test precedent)
+  - Color contrast baseline checks: `#f4f6f8` on `#027db3` (card 1 CTA), `#000` on `#f4f6f8` (card 2 CTA), `#fff` on cyan `#6bc4e8` (card 2 mobile title needs visual QA verification since cyan+white borderline)
 
-### 3.5 Card 2 — Financing (imagery, breakpoint-specific)
-| Setting ID | Type | Purpose |
-|---|---|---|
-| `card_2_logos_image` | image_picker | Partner-logos image inside the white bottom-left panel. **Desktop-only** — not rendered in mobile DOM |
-| `card_2_mobile_bg_image` | image_picker | Full-cover marketing image background. **Mobile-only** — desktop uses inline cyan bg + SVG bars instead |
+## JavaScript decision
+**NO** — section is fully static:
+- No state machine, no interactive toggles
+- Two anchor CTAs are native link navigation
+- No fetch, no API, no client-side data
+- No cross-section events
+- No animations beyond CSS-native hover/focus
 
-### 3.6 Aspect ratio
-No `aspect_ratio` settings. Each image_picker slot is naturally per-breakpoint-assigned (not the desktop/mobile/ratio triplet case described in `reference_image_stack.md`) — aspect is dictated by the fixed card geometry. ui-agent hardcodes container proportions.
+Skip `js/sections/payment-banner.js`. Test-agent skips functional + integration specs; only UI spec.
 
-### 3.7 Inline decorative elements (NO schema)
-Built in code by ui-agent — merchant cannot edit:
-- **Card 1 desktop:** decorative SVG vector (437×216, upper-right) — inline SVG
-- **Card 2 desktop:** dark-blue vertical bar (`#0033a1` 21×400) + orange bar (`#f75200` 21×178) — Tailwind-utility divs or inline SVG
+## Copy
+Reference `features/payment-banner/figma-context.md` "Copy table" section. Do NOT duplicate here. Test-agent sources ground-truth strings from that table.
 
-### 3.8 Preset
-Single preset `Payment Banner`. Enabled on `page` templates. `presets` block in schema.
+## Success criteria
+- Visual match to Figma at both breakpoints (pixelmatch threshold TBD by visual-qa-agent)
+- Schema editable in theme customizer — merchant can override every heading, body, CTA label, CTA link, and image
+- `card_X_cta_link` blank → renders non-interactive `<div role="presentation">` (anchor NOT rendered with empty `href`)
+- `card_1_eyebrow` blank → eyebrow `<p>` omitted from desktop DOM
+- Dual-DOM swap clean at `md:` (1024px) — desktop snippet + mobile snippet never both visible; no layout shift at breakpoint boundary
+- Copy matches figma-context Copy table exactly (spacing, punctuation, newlines)
+- DM Sans applied globally (from theme); no local font load required
+- Section passes `shopify-dev-mcp.validate_theme` (main-invoked after ui-agent)
+
+## Constraints
+- Template: `page` (standalone — not embedded in product/collection)
+- Render context: section (theme editor, merchant-draggable)
+- No cross-section events — isolated
+- DM Sans assumed globally loaded from theme font stack (confirm with ui-agent; no `font_picker` setting)
+- Decorative color bars (`#0033a1`, `#f75200`) on desktop card 2 are NOT merchant-editable — they're brand-fixed visual treatment
+- Cyan inner `#6bc4e8` on desktop card 2 is NOT merchant-editable
+- Partner logos panel chrome (border, radius, dimensions) NOT merchant-editable — only the logos image is merchant-uploaded
+- Assumption: merchant uploads composite images (card 1 desktop+mobile + card 2 mobile) with product + callout + decorative SVG baked in — we do NOT render separate product/callout layers
+- Assumption: section-scoped inline `<style>` is sufficient; ui-agent escalates to `scss/sections/payment-banner.scss` ONLY if Tailwind + inline style cannot express a required CSS rule
 
 ---
 
-## 4. Variants and states
+## As-built DOM
 
-| Variant | Trigger | Visual behavior |
+### Desktop (md: 1024px+)
+
+```html
+<section class="payment-banner ..." data-section-type="payment-banner" data-section-id="...">
+  <div class="payment-banner__inner tw-max-w-[1340px] tw-mx-auto tw-flex tw-flex-col tw-gap-[24px]">
+
+    <!-- Intro -->
+    <div class="payment-banner__intro tw-flex tw-flex-col tw-gap-[8px] md:tw-gap-[12px] md:tw-max-w-[591px]">
+      <h2 class="payment-banner__heading ...">Easy Monthly Payments</h2>
+      <p class="payment-banner__subhead ...">Affordable monthly payments made simple.<br>Get instant...</p>
+    </div>
+
+    <!-- Card row -->
+    <div class="payment-banner__card-row tw-flex tw-flex-col tw-gap-[20px] tw-items-center md:tw-flex-row md:tw-gap-[30px] md:tw-items-start">
+
+      <!-- Card 1 desktop wrapper (visible md:+) -->
+      <div class="payment-banner__card-1-wrap tw-hidden md:tw-block">
+        <!-- snippets/payment-banner-card-1-desktop.liquid -->
+        <a class="payment-banner-card-1 payment-banner-card-1--desktop tw-relative tw-overflow-hidden tw-rounded-2xl tw-block tw-w-[920px] tw-h-[573px] tw-bg-[#f2f0f1] ..." aria-label="Prices Too Low...">
+          <!-- shopify-responsive-image (absolute fill, decorative alt="") -->
+          <div class="payment-banner-card-1__content tw-absolute tw-left-[40px] tw-top-[40px] tw-w-[420px] tw-flex tw-flex-col tw-gap-[32px]">
+            <div class="payment-banner-card-1__text tw-flex tw-flex-col tw-gap-[16px]">
+              <p class="payment-banner-card-1__eyebrow ...">MEMBER PRICING UNLOCKED</p>  <!-- omitted if blank -->
+              <h3 class="payment-banner-card-1__title tw-w-[411px] ...">Prices Too Low to Show Publicly</h3>
+              <p class="payment-banner-card-1__body ...">Due to manufacturer...</p>
+            </div>
+            <span class="payment-banner-card-1__cta ...">Learn More</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Card 1 mobile wrapper (hidden md:+) -->
+      <div class="payment-banner__card-1-wrap--mobile md:tw-hidden">
+        <!-- snippets/payment-banner-card-1-mobile.liquid — not rendered desktop -->
+      </div>
+
+      <!-- Card 2 desktop wrapper (visible md:+) -->
+      <div class="payment-banner__card-2-wrap tw-hidden md:tw-block">
+        <!-- snippets/payment-banner-card-2-desktop.liquid -->
+        <a class="payment-banner-card-2 payment-banner-card-2--desktop tw-relative tw-overflow-hidden tw-rounded-2xl tw-block tw-w-[390px] tw-h-[573px] ..." aria-label="Flexible Payments...">
+          <div class="payment-banner-card-2__cyan tw-absolute tw-inset-0 tw-bg-[#6bc4e8]" aria-hidden="true"></div>
+          <div class="payment-banner-card-2__bar-blue tw-absolute tw-top-0 tw-left-[369px] tw-w-[21px] tw-h-[400px] tw-bg-[#0033a1]" aria-hidden="true"></div>
+          <div class="payment-banner-card-2__bar-orange tw-absolute tw-top-[400px] tw-left-[369px] tw-w-[21px] tw-h-[178px] tw-bg-[#f75200]" aria-hidden="true"></div>
+          <div class="payment-banner-card-2__logos-panel tw-absolute tw-left-0 tw-top-[400px] tw-w-[369px] tw-h-[173px] tw-bg-white tw-border tw-border-[#6bc4e8] tw-rounded-bl-lg tw-overflow-hidden tw-flex tw-items-center tw-justify-center" aria-hidden="true">
+            <!-- shopify-responsive-image logos at 298×79 (if logos_image present) -->
+          </div>
+          <div class="payment-banner-card-2__content tw-absolute tw-left-[40px] tw-top-[40px] tw-w-[300px] tw-flex tw-flex-col tw-gap-[32px]">
+            <div class="payment-banner-card-2__text tw-flex tw-flex-col tw-gap-[12px]">
+              <h3 class="payment-banner-card-2__title ...">Flexible Payments, Made Easy</h3>
+              <p class="payment-banner-card-2__body ...">Get approved for...</p>
+            </div>
+            <span class="payment-banner-card-2__cta tw-h-[38px] ...">Learn More</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Card 2 mobile wrapper (hidden md:+) -->
+      <div class="payment-banner__card-2-wrap--mobile md:tw-hidden">
+        <!-- snippets/payment-banner-card-2-mobile.liquid — not rendered desktop -->
+      </div>
+
+    </div>
+  </div>
+</section>
+```
+
+### Mobile (base, below md: 1024px)
+Card 1 mobile snippet: `tw-w-[358px] tw-h-[409px] tw-rounded-lg` — overlay anchored bottom-left (bottom-30/left-20), no eyebrow, body font-semibold text-[#515151].
+Card 2 mobile snippet: `tw-w-[370px] tw-h-[409px] tw-rounded-lg` — cyan fallback bg, overlay anchored bottom-left, white text, pill h-48.
+
+---
+
+## Selector catalogue
+
+| Selector | Element | Purpose |
 |---|---|---|
-| Default | All fields populated | Both cards render as per figma-context.md |
-| Blank eyebrow | `card_1_eyebrow` empty | Desktop card-1 hides eyebrow line; vertical rhythm collapses to title-first. Mobile unaffected (already hidden). |
-| Blank cta_link | `card_X_cta_link` empty | Render CTA pill as non-interactive element (no `<a>` wrapper, or `<span>`) — no dead link |
-| Blank cta_label | `card_X_cta_label` empty | Suppress entire CTA pill — no empty pill shown |
-| Blank `card_1_product_image` | image_picker empty | Hide product-image slot. Card-1 still readable (text-only layout degrades gracefully) |
-| Blank `card_1_callout_image` | image_picker empty | Hide callout slot. Decorative SVG still renders (it's inline, not from schema) |
-| Blank `card_2_logos_image` | image_picker empty | Hide partner-logos image inside the white panel (panel itself still renders desktop-side) |
-| Blank `card_2_mobile_bg_image` | image_picker empty | **Fallback required** — this is the only bg on mobile for card 2. ui-agent uses fallback solid color `#6bc4e8` (card-2 desktop cyan token) so text stays readable. No broken-image placeholder. |
-
-No JS-driven states. All variant logic is Liquid conditionals.
-
----
-
-## 5. Accessibility
-
-**Mode: skip** (not required). Planner still records baseline expectations for ui-agent / visual-qa:
-
-- `<h2>` for intro heading, `<h3>` for each card title
-- Eyebrow (`card_1_eyebrow`) is **not** a heading — render as `<p>` or `<span>` styled uppercase
-- Single `<a>` per CTA wrapping a `<span>` pill (or `<button>`-less, anchor-only — no JS)
-- Decorative SVG vector + colored bars: `aria-hidden="true"`, `role="presentation"`
-- `card_1_product_image` / `card_1_callout_image`: descriptive alt from Shopify `alt` metadata (fallback empty for purely decorative)
-- `card_2_logos_image`: descriptive alt (e.g. "Accepted financing partners") — meaningful content
-- `card_2_mobile_bg_image`: `alt=""` if purely atmospheric, or descriptive alt if it carries info; ui-agent decides based on actual asset
-- Focus-visible ring on CTAs using project's focus utility
-
----
-
-## 6. JavaScript
-
-**NO.** Section is static display. Two anchor CTAs are native HTML links. No state machine, no events, no fetch, no DOM manipulation. js-agent is not needed in the pipeline for this section.
-
----
-
-## 7. Copy
-
-Canonical strings live in `figma-context.md` § "Source-of-truth copy table". test-agent reads that table directly; ui-agent uses those strings as schema `default` values.
-
-Per-breakpoint copy differences: none. All text fields are identical desktop ↔ mobile; only styling (size/color/weight) diverges. Card-1 eyebrow is the sole element that exists on one breakpoint and not the other.
+| `[data-section-type="payment-banner"]` | `<section>` | Section root / JS mount |
+| `.payment-banner__inner` | `<div>` | Max-width centering container |
+| `.payment-banner__intro` | `<div>` | Intro text group |
+| `.payment-banner__heading` | `<h2>` | Section heading |
+| `.payment-banner__subhead` | `<p>` | Section subheading |
+| `.payment-banner__card-row` | `<div>` | Card flex row |
+| `.payment-banner__card-1-wrap` | `<div>` | Desktop card 1 wrapper (tw-hidden md:tw-block) |
+| `.payment-banner__card-1-wrap--mobile` | `<div>` | Mobile card 1 wrapper (md:tw-hidden) |
+| `.payment-banner__card-2-wrap` | `<div>` | Desktop card 2 wrapper (tw-hidden md:tw-block) |
+| `.payment-banner__card-2-wrap--mobile` | `<div>` | Mobile card 2 wrapper (md:tw-hidden) |
+| `.payment-banner-card-1` | `<a>` or `<div>` | Card 1 root |
+| `.payment-banner-card-1--desktop` | `<a>` or `<div>` | Card 1 desktop variant |
+| `.payment-banner-card-1--mobile` | `<a>` or `<div>` | Card 1 mobile variant |
+| `.payment-banner-card-1__content` | `<div>` | Card 1 text overlay container |
+| `.payment-banner-card-1__text` | `<div>` | Card 1 text stack |
+| `.payment-banner-card-1__eyebrow` | `<p>` | Card 1 eyebrow label (desktop only, conditional) |
+| `.payment-banner-card-1__title` | `<h3>` | Card 1 heading |
+| `.payment-banner-card-1__body` | `<p>` | Card 1 body copy |
+| `.payment-banner-card-1__cta` | `<span>` | Card 1 pill CTA |
+| `.payment-banner-card-2` | `<a>` or `<div>` | Card 2 root |
+| `.payment-banner-card-2--desktop` | `<a>` or `<div>` | Card 2 desktop variant |
+| `.payment-banner-card-2--mobile` | `<a>` or `<div>` | Card 2 mobile variant |
+| `.payment-banner-card-2__cyan` | `<div>` | Card 2 cyan bg layer (aria-hidden) |
+| `.payment-banner-card-2__bar-blue` | `<div>` | Card 2 dark-blue decorative bar (aria-hidden) |
+| `.payment-banner-card-2__bar-orange` | `<div>` | Card 2 orange decorative bar (aria-hidden) |
+| `.payment-banner-card-2__logos-panel` | `<div>` | Card 2 white logos panel (aria-hidden) |
+| `.payment-banner-card-2__content` | `<div>` | Card 2 text overlay container |
+| `.payment-banner-card-2__text` | `<div>` | Card 2 text stack |
+| `.payment-banner-card-2__title` | `<h3>` | Card 2 heading |
+| `.payment-banner-card-2__body` | `<p>` | Card 2 body copy |
+| `.payment-banner-card-2__cta` | `<span>` | Card 2 pill CTA |
 
 ---
 
-## 8. Data sources
+## Data attributes
 
-| Source | Usage |
+| Attribute | Element | Values | Meaning | Set by |
+|---|---|---|---|---|
+| `data-section-type` | `<section>` | `"payment-banner"` | Section identity / JS mount selector | Liquid (static) |
+| `data-section-id` | `<section>` | Shopify section ID | Instance isolation | Liquid (static) |
+
+No JS-dynamic `data-state` attributes. Section is fully static.
+
+---
+
+## Schema settings (final)
+
+### Section settings
+| ID | Type | Default | Purpose |
+|---|---|---|---|
+| `heading` | text | `Easy Monthly Payments` | H2 section heading |
+| `subheading` | textarea | `Affordable monthly payments made simple.\nGet instant decisions and upgrade your comfort without paying upfront.` | Section subheading (supports newline_to_br) |
+| `card_1_eyebrow` | text | `MEMBER PRICING UNLOCKED` | Desktop-only eyebrow; blank = omit |
+| `card_1_title` | text | `Prices Too Low to Show Publicly` | Card 1 H3 |
+| `card_1_body` | textarea | `Due to manufacturer restrictions...` | Card 1 body |
+| `card_1_cta_label` | text | `Learn More` | Card 1 pill label; blank = omit pill |
+| `card_1_cta_link` | url | `/collections/all` | Card 1 link; blank = div role="presentation" |
+| `card_1_desktop_bg_image` | image_picker | — | Card 1 desktop composite bg (decorative) |
+| `card_1_mobile_bg_image` | image_picker | — | Card 1 mobile composite bg (decorative) |
+| `card_2_title` | text | `Flexible Payments, Made Easy` | Card 2 H3 |
+| `card_2_body` | textarea | `Get approved for lease-to-own...` | Card 2 body |
+| `card_2_cta_label` | text | `Learn More` | Card 2 pill label; blank = omit pill |
+| `card_2_cta_link` | url | `/collections/all` | Card 2 link; blank = div role="presentation" |
+| `card_2_logos_image` | image_picker | — | Card 2 partner logos (desktop logos panel only) |
+| `card_2_mobile_bg_image` | image_picker | — | Card 2 mobile full-cover bg (decorative) |
+
+### Schema settings the test template must populate
+| Setting ID | Type | Recommended test value |
+|---|---|---|
+| `heading` | text | `Easy Monthly Payments` |
+| `subheading` | textarea | `Affordable monthly payments made simple.\nGet instant decisions and upgrade your comfort without paying upfront.` |
+| `card_1_eyebrow` | text | `MEMBER PRICING UNLOCKED` |
+| `card_1_title` | text | `Prices Too Low to Show Publicly` |
+| `card_1_body` | textarea | `Due to manufacturer restrictions, we can't advertise these wholesale rates. Add any system to your cart to instantly reveal your true price.` |
+| `card_1_cta_label` | text | `Learn More` |
+| `card_1_cta_link` | url | `/collections/all` |
+| `card_2_title` | text | `Flexible Payments, Made Easy` |
+| `card_2_body` | textarea | `Get approved for lease-to-own financing with no credit needed.\nQuick application, instant decisions, and flexible payment options.` |
+| `card_2_cta_label` | text | `Learn More` |
+| `card_2_cta_link` | url | `/collections/all` |
+
+---
+
+## CSS custom properties
+
+None. All tokens expressed as Tailwind arbitrary values; no CSS custom properties authored in this section.
+
+---
+
+## Figma variants implemented
+
+| Variant | Implementation |
 |---|---|
-| `section.settings` | All content — intro text, card text, CTA labels/links, image_picker slots |
-| `section.settings.*_image` (via Shopify image object) | Src + alt for each image_picker slot, at responsive widths chosen by ui-agent |
-| page context / metafields | None |
-| fetch / API | None |
+| Default (all fields populated) | Full anchors, all copy, pill CTAs rendered |
+| Blank eyebrow (`card_1_eyebrow == blank`) | `{%- if card_1_eyebrow != blank -%}` gate — eyebrow `<p>` omitted from desktop DOM |
+| Blank cta_link | `{%- if cta_link != blank -%}` → renders `<div role="presentation">` instead of `<a>` |
+| Blank cta_label | `{%- if cta_label != blank -%}` gate — pill `<span>` omitted |
+| Blank card_1 bg image | Fallback `<div class="tw-absolute tw-inset-0 tw-bg-[#f2f0f1]">` — outer bg color provides same appearance |
+| Blank card_2 logos_image | Logos panel chrome (border + radius) still renders; interior empty |
+| Blank card_2 mobile bg | Outer `tw-bg-[#6bc4e8]` provides solid cyan fallback (no image rendered) |
+| Dual-DOM breakpoint toggle | `tw-hidden md:tw-block` / `md:tw-hidden` on wrapper divs — never both visible |
 
 ---
 
-## 9. Success criteria
+## Figma variants NOT implemented
 
-- Desktop renders side-by-side layout matching `qa/figma-desktop.png` within visual-qa pixelmatch threshold (project default)
-- Mobile renders stacked layout matching `qa/figma-mobile.png` within threshold
-- Dual-DOM swap happens cleanly at `md:` (1024px) — no flash of wrong-breakpoint content, no both-DOMs-visible window
-- All schema settings editable in theme editor; preview updates without theme reload
-- Blank-field variants (§4) degrade gracefully — no empty pills, no broken-image icons, no dead links
-- HTML parses without Liquid validation errors (main runs `shopify-dev-mcp.validate_theme` loop)
+None — all brief variants implemented.
 
 ---
 
-## 10. Constraints and assumptions
+## DEVIATIONS
 
-- **Template:** `page` only. Section presets enabled on `page` template; not auto-included in `product` / `collection`.
-- **Standalone.** No cross-section event contracts, no shared state, no inter-section dependencies. Architect does not need to build a cross-section contract table for this section.
-- **Fonts:** DM Sans (Bold / Medium / Regular / SemiBold) assumed loaded globally by theme. ui-agent does not add `@font-face` — font loading is out of scope per project convention.
-- **Tailwind-first:** All styling via `tw-` prefixed utilities using tokens in `tailwind.config.js`. SCSS escape hatch only if Tailwind cannot express a value — ui-agent's call.
-- **No asset bundling:** All photographic imagery is `image_picker` — merchant-owned, not checked into `/assets/`. Inline decorative shapes (SVG vector, colored bars) are code, not assets.
-- **No JS bundle:** js-agent skipped. No entry in `js/sections/`. No `assets/payment-banner.js`.
-- **Reuse:** Architect scans for reusable pill-CTA snippet, image_picker-with-fallback helper, and intro-block pattern from prior sections. Planner flags `snippets/` and `js/components/` as likely homes for any extraction — architect owns that decision.
+- Content overlay on mobile cards anchored bottom-left (`tw-absolute tw-left-[20px] tw-bottom-[30px]`) rather than top-left — Figma mobile shows text stacked at bottom of card where image pushes content down; this ensures content stays in viewport at fixed card height.
+- Card widths rounded to integer px (`tw-w-[358px]`, `tw-w-[370px]`) from Figma's sub-pixel values (358.4, 370.4) — sub-pixel CSS widths have no rendering effect.
+- Card heights rounded to integer px (`tw-h-[409px]`) from Figma's 408.89 — same rationale.
+- Card 1 mobile pill `px-[32px]` used (Figma: 31.8px, rounded to nearest integer for CSS clarity).
+- Card 2 mobile pill `px-[32px]` used (Figma: 31.8px, same rationale).
+- No inline `<style>` block required — all visual treatment expressible via Tailwind arbitrary values (including decorative bars via absolute positioning with Tailwind utilities). SCSS skipped per brief.
+
+---
+
+## JS handoff
+
+**Section JS: NONE.** Section is fully static. All interactivity via native `<a>` anchor navigation. No custom elements, no event contracts, no fetches, no state machine. test-agent: no functional or integration specs needed (brief §JavaScript decision = NO).

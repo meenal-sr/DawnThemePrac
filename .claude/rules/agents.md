@@ -3,32 +3,33 @@
 ## Architecture
 Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot access MCP servers, cannot call the Skill tool, and should not load memory independently — only built-in tools (Read, Write, Edit, Glob, Grep, Bash, Agent).
 
-**Role split (2026-04 refactor, updated 2026-04-19):**
-- **planner** — design intent, data sources, schema (section + blocks), variants, a11y decision, design content reference. Produces `brief.md` ONLY. No test authorship, no test-template populate, no file paths, no codebase scan.
-- **architect** — codebase archaeology. Scans repo for reuse targets, produces `architecture.md` — explicit file plan (create vs reuse) + shared-snippet contract + cross-section event contracts. Mandatory on every build.
-- **ui-agent** — two-phase, writes to a single consolidated `ui-plan.md`. Phase 1: Intent sections (layout strategy, token map, responsive, SCSS decision, font loading, variant mapping, questions). Phase 2: appends As-built DOM + BEM/selector catalogue + data attributes + schema settings + CSS custom properties + variants implemented + DEVIATIONS + `## JS handoff` (stub or full content).
-- **js-agent** — JS class + events + state machine. Reads `ui-plan.md` Phase 2 sections; fills in `## JS handoff` section of that same file (replaces the ui-agent's stub).
-- **test-agent** — owns `test-scenarios.md` authorship + `templates/*.test.json` populate + all spec files. Inputs: `brief.md` (intent + design content reference) + `ui-plan.md` (Phase 2 as-built selectors + state contract + `## JS handoff` in full mode).
+**Role split (simplified flow, 2026-04-19):**
+- **planner** — design intent, data sources, schema, variants, a11y decision, **file plan**, **reuse scan**, JS decision. Single upfront doc. Writes `features/<name>/brief.md`. Absorbs the file-plan + codebase-scan role that architect previously owned — no separate architecture.md.
+- **ui-agent** — single-phase. Reads `brief.md` + `figma-context.md`. Writes `.liquid` files. Appends `## As-built DOM`, `## Selector catalogue`, `## Schema settings (final)`, `## DEVIATIONS`, `## JS handoff` (stub if JS=YES, full content if JS=NO) to the bottom of the same `brief.md`. No `ui-plan.md` — everything lives in brief.md.
+- **js-agent** — conditional (only when brief says JS=YES). Reads brief.md (intent + as-built selectors + JS handoff stub). Writes JS file(s). Replaces `## JS handoff` stub in brief.md with full content.
+- **test-agent** — owns `test-scenarios.md` authorship + APPENDs to shared `templates/<type>.test.json` + all spec files. Reads brief.md (intent + as-built + copy ground truth via figma-context.md).
+- **visual-qa-agent** — reads brief.md tokens, compares figma/live PNGs, writes `qa/visual-qa-report.md`.
+- **code-reviewer** — reviews source files only. Never passed the feature folder (planning docs are out of scope).
 
 **Main prefetches everything → passes into agent prompts:**
 1. **MCP data** — Figma design context, screenshots, Shopify API shapes, library docs
 2. **Skill output** — main invokes skills relevant to the agent's task, embeds output in prompt
-3. **Filtered memory** — main loads `MEMORY.md` once per session and embeds the `type: reference` subset relevant to the agent (see Skill/Memory Routing below)
-4. **Project reference rules** — main reads every file matching `.claude/memory/reference_*.md` at session start and embeds the full contents of any file whose scope overlaps the agent's task. These files are committed to the repo and are BINDING canonical engineering conventions (e.g. `reference_image_stack.md` defines the mandatory image-schema triplet and three-layer image stack; `reference_new_theme.md` covers broader theme-side conventions). They take precedence over defaults in the agent spec itself when they conflict. Do NOT skip them — every planner/architect/ui-agent/js-agent/code-reviewer invocation must receive the reference files relevant to its scope verbatim (not summaries). The architect specifically must also treat files referenced by these docs (e.g. `snippets/image.liquid`) as first-class reuse candidates in the codebase scan.
+3. **Filtered memory** — main loads `MEMORY.md` once per session and embeds `type: reference` entries relevant to the agent
+4. **Project reference rules** — main reads `.claude/memory/reference_*.md` at session start and embeds any file whose scope overlaps the agent's task. These files are committed to the repo and are BINDING canonical engineering conventions. Do NOT skip them. Planner specifically must receive all relevant reference files — e.g. `reference_image_stack.md` so the file plan reuses `snippets/image.liquid` / `snippets/shopify-responsive-image.liquid` correctly.
 
 ## Cache-friendly prompt structure (CRITICAL for token efficiency)
 
-Anthropic's automatic prompt caching grants a 90% token discount on cached prefixes > 1024 tokens. To maximize cache hits across agent invocations within a session, EVERY agent prompt main builds MUST order content STABLE-FIRST → DYNAMIC-LAST:
+Anthropic's automatic prompt caching grants a 90% token discount on cached prefixes > 1024 tokens. EVERY agent prompt main builds MUST order content STABLE-FIRST → DYNAMIC-LAST:
 
 **Section 1 — STABLE PREFIX (cacheable, identical across invocations of the same agent type within a session):**
-- Role reminder / mode directive (e.g. "PHASE=2", "Mode: ui-only")
+- Role reminder / mode directive (e.g. "Mode: ui-only")
 - Skill output (same per-agent-type per-session)
 - Memory subset (same per-agent-type per-session)
 - Hard rules applicable to this agent (e.g. "never write outside features/<name>/")
 
 **Section 2 — SEMI-STABLE (changes per-feature, cacheable across fix cycles of the same feature):**
 - Workspace path
-- Contents of brief.md + architecture.md + ui-plan.md (as applicable)
+- Full contents of `brief.md` (grows as agents append)
 - Figma design context JSON (embedded from `figma.get_design_context`)
 
 **Section 3 — DYNAMIC (task-specific, never cached):**
@@ -37,21 +38,19 @@ Anthropic's automatic prompt caching grants a 90% token discount on cached prefi
 - Pixelmatch results (for visual-qa-agent)
 - Lint diagnostics (for js-agent retries)
 
-Never interleave dynamic content into the stable prefix. A single dynamic token in the first 1024 tokens invalidates the cache for the whole run. Put "Mode: ui-only" and memory subset FIRST; put "Previous cycle mismatches" LAST.
+Never interleave dynamic content into the stable prefix.
 
 ## Main Prefetch Contract (single source of truth)
 
-Subagents cannot call MCPs or skills. Main prefetches and embeds everything in the agent's prompt. Each agent file references this table instead of repeating the contract per agent.
+Subagents cannot call MCPs or skills. Main prefetches and embeds everything in the agent's prompt.
 
 | Agent | MCPs main calls first | Skills main invokes first | Memory subset embedded | Post-handoff checks (main) |
 |---|---|---|---|---|
-| planner | `figma.get_design_context`, `figma.get_screenshot` | `plan` | Shopify section/snippet architecture, Tailwind organization, a11y patterns, schema conventions | — (brief.md only) |
-| architect | `shopify-dev-mcp.search_docs_chunks` (on demand), `sequential-thinking` (cross-section deps) | `plan` | Shopify architecture, proven theme patterns, shared-snippet conventions | — |
-| ui-agent Phase 1 (plan) | `figma.get_design_context`, `figma.get_screenshot` | `web-design-guidelines` | Tailwind organization, responsive+a11y patterns | Main gate — read `ui-plan.md`, resolve Questions with human |
-| ui-agent Phase 2 (code) | — (Figma + architecture.md already embedded) | — | Liquid best practices, section/snippet architecture | `shopify-dev-mcp.learn_shopify_api` + `validate_theme` (loop max 3) |
-| js-agent | `shopify-dev-mcp.search_docs_chunks` (on demand), `context7` (libs) | `modern-javascript-patterns`, `vercel-react-best-practices` (only for `.jsx`/React islands) | JS class/component patterns, Shopify section architecture, DOM lifecycle | `ide.getDiagnostics` + `yarn lint` per file (loop max 3) |
+| planner | `figma.get_design_context`, `figma.get_variable_defs` | `plan` | Shopify section/snippet architecture, Tailwind organization, a11y patterns, schema conventions, shared-snippet conventions, image-stack rules | — (brief.md only) |
+| ui-agent | — (Figma + brief.md already embedded) | `web-design-guidelines` | Liquid best practices, section/snippet architecture, Tailwind organization, responsive+a11y patterns | `shopify-dev-mcp.learn_shopify_api` + `validate_theme` (loop max 3) |
+| js-agent | `shopify-dev-mcp.search_docs_chunks` (on demand), `context7` (libs) | `modern-javascript-patterns`, `vercel-react-best-practices` (only for `.jsx`) | JS class/component patterns, Shopify section architecture, DOM lifecycle | `ide.getDiagnostics` + `yarn lint` per file (loop max 3) |
 | test-agent | — | — | Playwright structure for Shopify storefronts, test scenario patterns, Shopify template JSON shape (blocks = map + block_order) | `yarn playwright:test features/[name]/*.spec.js --reporter=list` |
-| visual-qa-agent | `pixelmatch.compare` (diff each figma-*.png vs live-*.png per breakpoint, writes `qa/diff-*.png` + mismatch %). `node pixelmatch-config/figma-mcp-screenshot.js <nodeId> <path>` only if `qa/figma-*.png` missing. No Figma MCP tool call — typography/color tokens come from `figma-context.md`. | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
+| visual-qa-agent | `pixelmatch.compare` (diff each figma-*.png vs live-*.png per breakpoint, writes `qa/diff-*.png` + mismatch %) | `web-design-guidelines` | Visual QA patterns, pixelmatch threshold conventions | — |
 | code-reviewer | `ide.getDiagnostics`, `github.get_pull_request*` (PR context) | `modern-javascript-patterns`, `vercel-react-best-practices` (gated), `web-design-guidelines` | JS patterns, Shopify architecture, Tailwind organization, Playwright structure | — |
 
 Workflow checkpoints (`simplify`, `refactor-clean`) are main-invoked **between agent runs**, not during. Never declared in agent skill lists.
@@ -61,53 +60,58 @@ Located in `.claude/agents/`:
 
 | Agent | Purpose | Tools beyond defaults | MCP needed? | When to Use |
 |-------|---------|-----------------------|-------------|-------------|
-| planner | Design intent + data + schema → `brief.md` ONLY | — | Figma (main prefetches) | Start of any feature |
-| architect | Codebase scan → `architecture.md` (file plan + reuse + cross-section contracts) | Read, Grep, Glob | None | Mandatory, after planner |
-| ui-agent | Phase 1: Intent sections of `ui-plan.md`. Phase 2: Liquid + Tailwind (+ optional SCSS) + appends As-built + BEM/selector catalogue + data attributes + schema settings + `## JS handoff` stub to SAME `ui-plan.md` | — | Figma (main prefetches) | After architect |
-| test-agent | Owns `test-scenarios.md` + `templates/*.test.json` populate + all Playwright spec files. Reads `ui-plan.md` Phase 2 sections | — | None (writes specs, main runs) | After UI agent (ui-only) AND after JS agent (full) |
-| visual-qa-agent | Analyze test results + screenshots | — | None (main provides data) | After test run |
-| js-agent | JavaScript behavior. Fills `## JS handoff` section in `ui-plan.md` | — | None | After visual QA PASS |
-| code-reviewer | Code quality review | — | None | After writing code |
+| planner | Design intent + data + schema + file plan + reuse scan + JS decision → `brief.md` ONLY | Read, Grep, Glob | Figma (main prefetches) | Start of any feature |
+| ui-agent | Writes Liquid + Tailwind (+ optional SCSS) + appends As-built / Selectors / Schema / DEVIATIONS / JS handoff to `brief.md` | — | Figma (main prefetches) | After planner |
+| js-agent | JavaScript behavior. Replaces `## JS handoff` stub in `brief.md` with full content | — | None | Conditional — only when brief §JS says YES |
+| test-agent | `test-scenarios.md` + APPEND to `templates/<type>.test.json` + all Playwright spec files | — | None (writes specs, main runs) | After ui-agent (ui-only mode) AND after js-agent (full mode) |
+| visual-qa-agent | Analyze test results + screenshots → `qa/visual-qa-report.md` | — | None (main provides pixelmatch + tokens) | After test run |
+| code-reviewer | Code quality review on source files | — | None | After writing code |
 
 ## Execution Flow (single section)
 See `.claude/commands/build-section.md` for full details.
 ```
-Main: Figma prefetch + human Q&A
-  → planner (with Figma + answers) → brief.md
-  → architect (codebase scan, reads brief) → architecture.md
-  → ui-agent Phase 1 (with Figma + brief + architecture) → ui-plan.md
-  → Main gate: read ui-plan.md, resolve Questions with human
-  → ui-agent Phase 2 → liquid + tailwind (+ optional scss) + appends As-built + selectors + state contract + `## JS handoff` stub to ui-plan.md
+Main: Figma prefetch + human Q&A + figma-context.md write + figma-*.png persist
+  → planner (brief = intent + schema + file plan + reuse scan + JS decision)
+  → ui-agent (reads brief) → Liquid files + appends as-built/selectors/schema/deviations/JS-handoff to brief.md
   → Main: validate_theme loop
-  → test-agent ui-only (with brief + ui-plan.md Phase 2 sections) → test-scenarios.md + templates/[type].test.json populated + [name].spec.js
-  → Main: run specs, save Figma screenshots
+  → test-agent ui-only (reads brief) → test-scenarios.md + APPEND page.test.json + [name].spec.js
+  → Main: run specs
   → visual-qa-agent → qa report
-  → js-agent → JavaScript + fills `## JS handoff` section of ui-plan.md
-  → test-agent full → test-scenarios.md updated + [name].functional.spec.js + [name].integration.spec.js
+  → [conditional] js-agent (only if brief §JS=YES) → JS file + replaces JS handoff stub in brief.md
+  → [conditional] test-agent full mode → .functional.spec.js + .integration.spec.js
   → Main: run specs
 ```
 
 ## Parallel Execution
-Spawn multiple agents in a SINGLE message for parallel work:
-```
-Agent({ subagent_type: "ui-agent", prompt: "Build hero-banner..." })
-Agent({ subagent_type: "ui-agent", prompt: "Build product-card..." })
-```
-Both run simultaneously. Only parallelize independent work — never agents that depend on each other's output.
-
-## Immediate Agent Usage
-No user prompt needed:
-1. Complex feature requests → **planner** agent
-2. Code just written/modified → **code-reviewer** agent
-3. File plan / reuse question on an existing codebase → **architect** agent (standalone invocation)
+Spawn multiple agents in a SINGLE message for parallel work. Only parallelize independent work — never agents that depend on each other's output.
 
 ## Mandatory Liquid Validation (main conversation)
 Subagents have no MCP access — validation is main's job.
 
-After the UI agent finishes writing/updating any `.liquid` files, **main** MUST:
+After ui-agent finishes writing/updating any `.liquid` files, **main** MUST:
 1. Call `shopify-dev-mcp.learn_shopify_api(api: "liquid")` to get a `conversationId`
 2. Call `shopify-dev-mcp.validate_theme` with all created/updated `.liquid` files
-3. If errors: feed them back to the UI agent with the exact file paths + error messages, re-run Step 2 on the updated files
+3. If errors: feed them back to ui-agent with the exact file paths + error messages, re-run Step 2 on the updated files
 4. Loop until clean (max 3 cycles → escalate to human)
 
 Never skip this step for Liquid files.
+
+## Document flow (single file — brief.md grows through the pipeline)
+
+`features/<name>/brief.md` is the single authoritative doc. Each agent appends its section to the bottom in order:
+
+| Section | Written by | When |
+|---|---|---|
+| `# brief.md — <name>` + `## Intent` + `## Design reference` + `## Schema plan` + `## File plan (Create + Reuse + APPEND)` + `## Reuse scan` + `## Variants` + `## A11y` + `## JavaScript decision` + `## Copy` + `## Success criteria` + `## Constraints` | planner | Step 1 (upfront) |
+| `## As-built DOM` + `## Selector catalogue` + `## Data attributes` + `## Schema settings (final)` + `## CSS custom properties` + `## Figma variants implemented/not` + `## DEVIATIONS` + `## JS handoff` (stub OR full) | ui-agent | After Liquid written |
+| `## JS handoff` (replaces stub with full content) | js-agent | Conditional — only if brief §JS decision = YES |
+
+Companion files (NOT in brief.md):
+- `features/<name>/figma-context.md` — canonical design values (typography, colors, spacing, copy strings, tokens, cross-breakpoint deltas). Written by main during `/plan-feature` prefetch.
+- `features/<name>/qa/figma-*.png` — design reference screenshots. Written by main.
+- `features/<name>/qa/live-*.png` — live screenshots. Written by test-agent specs.
+- `features/<name>/qa/diff-*.png` — pixelmatch outputs. Written by main.
+- `features/<name>/qa/visual-qa-report.md` — written by visual-qa-agent.
+- `features/<name>/test-scenarios.md` — written by test-agent.
+- `features/<name>/<name>.spec.js` — written by test-agent.
+- `features/<name>/<name>.functional.spec.js` / `.integration.spec.js` — written by test-agent in full mode.

@@ -10,12 +10,11 @@ You are main conversation. Execute verbatim.
 - `$1` = feature name
 
 Verify:
-- `features/<feature-name>/brief.md` exists
-- `features/<feature-name>/ui-plan.md` exists
+- `features/<feature-name>/brief.md` exists with both planner sections AND ui-agent as-built sections appended (`## As-built DOM`, `## Selector catalogue`, `## Schema settings (final)`)
 
 Note: `test-scenarios.md` is produced by test-agent in THIS command (first step of its work). Do NOT require it as a prerequisite.
 
-If either missing: `BLOCKED: Run /plan-feature + /build-ui first.`
+If missing or incomplete: `BLOCKED: Run /plan-feature + /build-ui first.`
 
 ## Step 2 — Memory prefetch
 Per Main Prefetch Contract → test-agent row:
@@ -46,29 +45,36 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 **SEMI-STABLE (per-feature):**
 3. Workspace: `features/<feature-name>/`
-4. Contents of `brief.md` (source of design content reference)
-5. Contents of `ui-plan.md` (Phase 2 sections — authoritative selectors + schema setting IDs + block structure)
+4. Full contents of `brief.md` — single authoritative doc (planner sections + ui-agent's appended as-built / selector catalogue / schema settings / JS handoff stub)
 
 **DYNAMIC (this invocation only):**
-6. Fix-cycle context from prior visual-qa-report (if re-invoked after a failure)
+5. Fix-cycle context from prior visual-qa-report (if re-invoked after a failure)
 
 Expected outputs (in order, produced by test-agent):
 1. `features/<feature-name>/test-scenarios.md` (A/B/C/D/E scenario contract)
-2. `templates/<type>.test.json` section entry populated with every setting + blocks (map + block_order shape)
+2. `templates/<type>.test.json` — APPEND section entry (preserve existing sections + update `order` array). NEVER overwrite, NEVER create per-feature filename.
 3. `features/<feature-name>/<feature-name>.spec.js`
 
-## Step 5 — Run specs
-Run via Bash:
+## Step 5 — Run specs (D-group only — screenshot capture)
+Run via Bash — filter to D-group tests only (screenshot captures). The full spec stays on disk as a manual-debug artifact; B (typography+color parity), C (layout integrity at intermediates), E (content placement), and any other groups are NOT executed in the pipeline. They exist for ad-hoc debugging via `yarn playwright:test features/<feature-name>/<feature-name>.spec.js --grep "^B-"` etc.
+
 ```
-yarn playwright:test features/<feature-name>/<feature-name>.spec.js --reporter=list
+yarn playwright:test features/<feature-name>/<feature-name>.spec.js --grep "A-|D-" --reporter=list
 ```
 
-Screenshots auto-land in `features/<feature-name>/qa/`.
+(Note: Playwright's `--grep` is a substring/regex match against the concatenated describe+test title — start-anchor `^` does NOT match because describe titles come first. Use the non-anchored alternation `A-|D-`.)
+
+`A-` = content-completeness gate (fails fast if test fixture is missing required values).
+`D-` = screenshot capture. Produces `live-mobile.png` + `live-desktop.png` in `features/<feature-name>/qa/`.
+
+**Rationale:** token parity (typography, color, width) lives in `figma-context.md` (SOT); ui-agent writes utility classes mechanically from that SOT; visual-qa catches any gross drift via pixelmatch + multimodal PNG inspection. Running per-element computed-style assertions (B/C/E) on every pipeline run is redundant + slow. They're preserved for manual debugging when something DOES drift.
+
+If the A-group gate fails, stop and re-run test-agent — fixture is incomplete.
 
 ## Step 6 — Report
 Capture:
-- Test pass/fail counts
+- A + D pass counts
 - Paths of screenshots saved in `features/<feature-name>/qa/`
-- Full test output for visual-qa-agent
+- Mention full spec path is available for manual debug: `features/<feature-name>/<feature-name>.spec.js` (B/C/E groups + optional a11y)
 
-> "test-scenarios.md + <feature-name>.spec.js written. Specs: X passed, Y failed. Screenshots in features/<feature-name>/qa/. Ready for `/visual-qa <feature-name>`."
+> "test-scenarios.md + <feature-name>.spec.js written (B/C/E groups authored but pipeline-skipped — manual-debug only). Pipeline run: X passed (A-gate + D-screenshots). Screenshots in features/<feature-name>/qa/. Ready for `/visual-qa <feature-name>`."

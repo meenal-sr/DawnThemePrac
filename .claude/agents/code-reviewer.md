@@ -24,12 +24,12 @@ Treat embedded reference patterns as the project standard — deviations are rev
 - Config files only when the feature changes them: `tailwind.config.js`, `webpack.config.js`, etc.
 
 **Out of scope — DO NOT review:**
-- `features/<name>/*.md` (brief, architecture, ui-plan, test-scenarios, visual-qa-report — these are planning docs owned by other agents)
+- `features/<name>/*.md` (brief, figma-context, test-scenarios, visual-qa-report — planning docs owned by other agents)
 - `features/<name>/*.spec.js` (Playwright specs owned by test-agent; review only if explicitly invoked as a test-code review)
 - `features/<name>/qa/*` (test artifacts)
 - `templates/*.test.json` (test fixtures populated by test-agent)
 
-Main invokes code-reviewer with an explicit path list — respect the list. If the path is a feature folder (`features/<name>/`), expand it to the SOURCE files listed in `features/<name>/ui-plan.md` Phase 2 "File targets" + `## JS handoff` — NOT every .md/.spec.js under the folder.
+Main invokes code-reviewer with an explicit path list — respect the list. If the path is a feature folder (`features/<name>/`), expand it to the SOURCE files listed in `features/<name>/brief.md` `## File plan` → CREATE rows — NOT every .md/.spec.js under the folder.
 
 ---
 

@@ -129,7 +129,7 @@
           },
           {
             "type": "command",
-            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); if [[ \"$FILE\" == *brief.md || \"$FILE\" == *test-scenarios.md || \"$FILE\" == *visual-qa-report.md || \"$FILE\" == *task-log.md || \"$FILE\" == *ui-plan.md || \"$FILE\" == *reuse-map.md ]]; then afplay /System/Library/Sounds/Glass.aiff 2>/dev/null; fi",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); if [[ \"$FILE\" == *brief.md || \"$FILE\" == *test-scenarios.md || \"$FILE\" == *visual-qa-report.md || \"$FILE\" == *task-log.md || \"$FILE\" == *figma-context.md || \"$FILE\" == *reuse-map.md ]]; then afplay /System/Library/Sounds/Glass.aiff 2>/dev/null; fi",
             "async": true
           }
         ]
