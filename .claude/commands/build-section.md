@@ -25,7 +25,7 @@ Halt if planner returns a `BLOCKED:` state. Ask the human before proceeding.
 ### Step 2 — UI
 Run `/build-ui $1`
 
-The ui-agent may surface `## Questions` in `component-structure.md`. If any are blocking, stop and ask the human to resolve before continuing to Step 3.
+The ui-agent may surface `## Questions` in `ui-plan.md`. If any are blocking, stop and ask the human to resolve before continuing to Step 3.
 
 ### Step 3 — UI tests
 Run `/test-ui $1`
@@ -55,8 +55,7 @@ ls -la features/$1/qa/
 Required (always):
 - `features/$1/brief.md` (planner)
 - `features/$1/architecture.md` (architect)
-- `features/$1/ui-plan.md` (ui-agent Phase 1)
-- `features/$1/component-structure.md` (ui-agent Phase 2 as-built)
+- `features/$1/ui-plan.md` — Phase 1 + Phase 2 sections populated (ui-agent). Phase 1 contains Intent + Layout strategy + Responsive + Token map + SCSS decision + Font loading + Variant mapping + Reuse refs + Questions. Phase 2 contains As-built DOM + BEM/selector catalogue + Data attributes + Schema settings + CSS custom properties + Variants implemented/not + DEVIATIONS + `## JS handoff` stub or full content.
 - `features/$1/test-scenarios.md` (test-agent — ui-only mode)
 - `features/$1/ui.spec.js` (test-agent — ui-only mode)
 - `features/$1/qa/visual-qa-report.md` ← MANDATORY. Must contain `Status: PASS`.
@@ -65,7 +64,7 @@ Required (always):
 - `features/$1/qa/diff-*.png` (matching breakpoints)
 
 Required IF brief says JS needed:
-- `features/$1/component-api.md`
+- `features/$1/ui-plan.md` — `## JS handoff` section filled with real content (not the "see js-agent append" stub)
 - `features/$1/functional.spec.js`
 - `features/$1/integration.spec.js`
 
@@ -76,17 +75,17 @@ If ANY required artifact is missing → do NOT proceed. Spawn the owning agent (
 |---|---|---|
 | brief.md | planner | `/plan-feature $1 <figma-url>` |
 | architecture.md | architect | `/plan-feature $1 <figma-url>` (re-runs chain) |
-| ui-plan.md | ui-agent Phase 1 | `/build-ui $1` |
-| component-structure.md | ui-agent Phase 2 | `/build-ui $1` |
+| ui-plan.md Phase 1 sections | ui-agent Phase 1 | `/build-ui $1` |
+| ui-plan.md Phase 2 sections (As-built + selectors + state contract + JS handoff stub) | ui-agent Phase 2 | `/build-ui $1` |
 | test-scenarios.md / ui.spec.js / templates/*.test.json populate | test-agent ui-only | `/test-ui $1` |
 | qa/*.png, qa/visual-qa-report.md | visual-qa-agent | `/visual-qa $1` |
-| component-api.md | js-agent | `/build-js $1` |
+| `ui-plan.md` → `## JS handoff` section (stub → filled) | js-agent | `/build-js $1` |
 | functional.spec.js, integration.spec.js | test-agent full | `/test-full $1` |
 
 ### Step 8 — Review
 Run `/review-files features/$1/`
 
-Plus review the source files the ui-agent and js-agent wrote (`sections/<name>.liquid`, `js/sections/<name>.js`, etc. — determine from `component-structure.md` + `component-api.md`).
+Plus review the source files the ui-agent and js-agent wrote (`sections/<name>.liquid`, `js/sections/<name>.js`, etc. — determine from `ui-plan.md` Phase 2 sections + `## JS handoff`).
 
 ### Step 9 — Checkpoint skills (main-invoked)
 After all agents clear:
@@ -99,4 +98,4 @@ Only after code-reviewer approves:
 
 ## Report
 Final status to human — MUST enumerate the verified artifact paths from Step 7:
-> "Section `$1` build complete. Verified artifacts: features/$1/{brief.md, architecture.md, ui-plan.md, component-structure.md, test-scenarios.md, ui.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, component-api.md, functional.spec.js, integration.spec.js]. Source files per architecture.md → Create list. Ready for review/merge."
+> "Section `$1` build complete. Verified artifacts: features/$1/{brief.md, architecture.md, ui-plan.md (Phase 1 + Phase 2 + `## JS handoff` if JS=YES), test-scenarios.md, ui.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, functional.spec.js, integration.spec.js]. Source files per architecture.md → Create list. Ready for review/merge."

@@ -1,5 +1,5 @@
 ---
-description: Two-phase ui-agent run. Phase 1 writes ui-plan.md; main gates on Questions; Phase 2 writes Liquid + optional SCSS + component-structure.md; main validates Liquid. Argument — $1 feature name.
+description: Two-phase ui-agent run on a single consolidated ui-plan.md. Phase 1 writes Intent sections + Questions; main gates on Questions; Phase 2 writes Liquid + optional SCSS + appends As-built + selector catalogue + state contract + JS handoff stub to the same ui-plan.md; main validates Liquid. Argument — $1 feature name.
 ---
 
 # Build UI: $ARGUMENTS
@@ -93,8 +93,8 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 Expected outputs (per `architecture.md` → Create + `ui-plan.md` → File targets):
 - `sections/<name>.liquid` and/or `snippets/<filename>.liquid` (one per file listed)
-- `scss/sections/<name>.scss` (only if `ui-plan.md` declared SCSS: YES)
-- `features/<feature-name>/component-structure.md` (as-built handoff doc)
+- `scss/sections/<name>.scss` (only if `ui-plan.md` Phase 1 declared SCSS: YES)
+- `features/<feature-name>/ui-plan.md` — Phase 2 sections appended in place (As-built DOM + BEM/selector catalogue + Data attributes + Schema settings + CSS custom properties + Variants implemented/not + DEVIATIONS + `## JS handoff` stub)
 
 ## Step 8 — Validate Liquid (loop, max 3 cycles)
 Per `.claude/rules/agents.md` Mandatory Liquid Validation:
@@ -108,4 +108,4 @@ Per `.claude/rules/agents.md` Mandatory Liquid Validation:
 
 ## Step 9 — Report
 Confirm completion:
-> "UI built per ui-plan.md. Liquid at `sections/<name>.liquid` + snippets. Component structure at `features/<feature-name>/component-structure.md`. Ready for `/test-ui <feature-name>`."
+> "UI built per Phase 1 + Phase 2 of ui-plan.md. Liquid at `sections/<name>.liquid` + snippets. Ready for `/test-ui <feature-name>`."

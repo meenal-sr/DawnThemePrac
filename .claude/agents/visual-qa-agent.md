@@ -80,7 +80,7 @@ You do not run pixelmatch or axe yourself — main invokes them before spawning 
 | File | Source |
 |---|---|
 | `brief.md` | Planner |
-| `component-structure.md` | UI Agent |
+| `ui-plan.md` (Phase 2 as-built + `## JS handoff` when js-agent has run) | UI Agent / JS Agent |
 | `test-scenarios.md` | Planner |
 | `ui.spec.js` | Test Agent |
 | `qa/*.png` | Playwright test run (screenshots, diffs) |

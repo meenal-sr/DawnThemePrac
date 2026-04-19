@@ -13,9 +13,9 @@ You write Playwright JavaScript tests for Shopify components. You work in two mo
 ## External Inputs
 MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Main runs the tests via `yarn playwright:test` and passes results back if needed. Inputs vary by mode — see below.
 
-**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + design content reference) + `component-structure.md` (as-built selectors + state contract). You also populate `templates/[type].test.json` in the same step. Only after the scenarios + template are in place do you translate them into `ui.spec.js`.
+**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + design content reference) + `ui-plan.md` (as-built selectors + state contract). You also populate `templates/[type].test.json` in the same step. Only after the scenarios + template are in place do you translate them into `ui.spec.js`.
 
-In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augment it with functional/integration scenarios sourced from `component-api.md` before writing `functional.spec.js` / `integration.spec.js`.
+In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augment it with functional/integration scenarios sourced from `the `## JS handoff` section of ui-plan.md` before writing `functional.spec.js` / `integration.spec.js`.
 
 ---
 
@@ -24,20 +24,19 @@ In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augm
 ### Mode: `ui-only` (invoked after UI Agent)
 **Inputs:**
 - `[workspace]/brief.md` (planner — intent + design content reference)
-- `[workspace]/component-structure.md` (ui-agent — as-built selectors, state contract, schema settings)
+- `[workspace]/ui-plan.md` (ui-agent — as-built selectors, state contract, schema settings)
 
 **Outputs (in this order):**
 1. `[workspace]/test-scenarios.md` — authoritative A/B/C/D/E scenario contract
 2. `templates/[type].test.json` — section entry + every schema setting populated from brief's "Design content reference"
 3. `[workspace]/ui.spec.js` — Playwright translation of scenarios
 
-Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need component-api.md or JavaScript behavior to exist.
+Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need the `## JS handoff` section of ui-plan.md or JavaScript behavior to exist.
 
 ### Mode: `full` (invoked after JS Agent)
 **Inputs:**
 - `[workspace]/brief.md`
-- `[workspace]/component-structure.md`
-- `[workspace]/component-api.md`
+- `[workspace]/ui-plan.md` (read all sections including `## JS handoff` — filled by js-agent in this mode)
 - `[workspace]/test-scenarios.md` (from ui-only mode — you append functional + integration scenarios here)
 - `[workspace]/mock-map.md` (if exists)
 
@@ -66,7 +65,7 @@ Screenshots land in `features/[name]/qa/` via the helpers below.
 
 ## Authoring rules (honor on every spec)
 
-- **`test-scenarios.md` is the contract — and you own it.** In ui-only mode, write `test-scenarios.md` first from brief + component-structure. Then emit exactly those scenarios in `ui.spec.js` — no extras, no omissions. If something is unclear (e.g. ambiguous mobile behavior, blocking design question), add it under a `## Questions` heading in `test-scenarios.md` and ask main before writing specs.
+- **`test-scenarios.md` is the contract — and you own it.** In ui-only mode, write `test-scenarios.md` first from brief + ui-plan.md (Phase 2 sections). Then emit exactly those scenarios in `ui.spec.js` — no extras, no omissions. If something is unclear (e.g. ambiguous mobile behavior, blocking design question), add it under a `## Questions` heading in `test-scenarios.md` and ask main before writing specs.
 - **Playwright fixture signature:** `testInfo` is the SECOND argument, not destructured with `page`: `async ({ page }, testInfo) => {}`. Writing `async ({ page, testInfo }) => {}` throws `Test has unknown parameter "testInfo"`.
 - No standalone DOM-presence group (section root exists, heading exists, CTA href non-empty), no conditional-rendering group, no `No console errors on load` test. `test-scenarios.md` is authored with these exclusions baked in; do not add them back.
 - DO emit the content-completeness gate (`A-1` below) as the first test — it validates template settings, not DOM presence, and is required on every spec.
@@ -125,8 +124,7 @@ Name live screenshots `live-<project>.png` (`live-mobile.png`, `live-desktop.png
 
 ### Step 1 — Read inputs
 1. `[workspace]/brief.md` — template type (page/product/collection), accessibility flag, variants, schema settings, design content reference, typography tokens
-2. `[workspace]/component-structure.md` — authoritative selectors (BEM + data-attrs), block structure, state contract, schema setting IDs
-3. `[workspace]/ui-plan.md` — (optional context) responsive strategy + token map for understanding BP-specific assertions
+2. `[workspace]/ui-plan.md` — authoritative selectors (BEM + data-attrs), block structure, state contract, schema setting IDs (Phase 2 sections) + responsive strategy + token map (Phase 1 sections, for BP-specific assertions)
 
 ### Step 2 — Write `test-scenarios.md`
 Enumerate exactly what `ui.spec.js` must emit — five groups A / B / C / D / E:
@@ -168,7 +166,7 @@ Relevant authoring rules:
 - yarn playwright:test ... --reporter=list.
 
 ## Section under test
-- Type / URL helper / Template / Section selector (from component-structure.md)
+- Type / URL helper / Template / Section selector (from ui-plan.md)
 
 ## Required template content
 <every design-required setting + minimum block count>
@@ -240,7 +238,7 @@ Translate each scenario from your `test-scenarios.md` into a Playwright `test(..
 
 At the module top you always need:
 1. Required imports (`@playwright/test`, `fs`, `path`, helpers from `playwright-config/helpers.js`).
-2. `SECTION`, `SECTION_SELECTOR`, `SECTION_TYPE` constants sourced from `component-structure.md` + `brief.md`.
+2. `SECTION`, `SECTION_SELECTOR`, `SECTION_TYPE` constants sourced from `ui-plan.md` + `brief.md`.
 3. The a11y gate (marker file OR axe import) per the section above.
 4. A `waitForSectionImages(page, selector)` helper inlined in the file when Group D (screenshots) is in the scenarios — prevents half-loaded images skewing pixelmatch.
 5. A `test.beforeEach` that navigates via `sectionTestUrl(SECTION_TYPE)` with `{ waitUntil: 'domcontentloaded' }`, waits for the section root to attach, and awaits `document.fonts.ready`.
@@ -266,11 +264,11 @@ Each subsequent `test(...)` block mirrors one scenario in `test-scenarios.md`. T
 
 ## Functional tests (`functional.spec.js`) — full mode
 
-**Source of truth:** `test-scenarios.md` interactive/data sections + `component-api.md`.
+**Source of truth:** `test-scenarios.md` interactive/data sections + `the `## JS handoff` section of ui-plan.md`.
 
 What to emit:
 - Every scenario in `test-scenarios.md` (interactive states, data edge cases).
-- State transitions from `component-api.md` Data-State Transitions table.
+- State transitions from `the `## JS handoff` section of ui-plan.md` Data-State Transitions table.
 - Custom events emitted — use `page.evaluate` to listen.
 - Error states — use `mock-map.md` fixtures if available.
 - Edge cases explicitly listed in `test-scenarios.md`.
@@ -298,7 +296,7 @@ Each test reads like a user story — navigate, assert initial state, act, asser
 
 ## When to skip full mode
 
-If `brief.md` says "No JavaScript needed", there is no `component-api.md` and no functional/integration specs to write. Report: `SKIP: No JS behavior — functional/integration specs not needed.`
+If `brief.md` says "No JavaScript needed", there is no `the `## JS handoff` section of ui-plan.md` and no functional/integration specs to write. Report: `SKIP: No JS behavior — functional/integration specs not needed.`
 
 ---
 

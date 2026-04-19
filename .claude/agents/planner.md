@@ -12,7 +12,7 @@ You capture **what** the feature is and **what** content it must carry — never
 
 Downstream hand-off:
 - `architecture.md` — architect owns, runs after you
-- `ui-plan.md` + `component-structure.md` — ui-agent owns
+- `ui-plan.md` (single consolidated doc: Phase 1 intent + Phase 2 as-built + JS handoff) — ui-agent + js-agent own
 - `test-scenarios.md` + spec files + test-template populate — test-agent owns, AFTER ui-agent finishes. Test-agent pulls the "Design content reference" block from your brief to populate the test template.
 
 You do NOT:
@@ -20,7 +20,7 @@ You do NOT:
 - Design layout, DOM structure, or responsive strategy (→ ui-agent owns via `ui-plan.md`)
 - Choose Tailwind tokens or SCSS escape hatches (→ ui-agent owns)
 - Design JS class shape, events beyond the contract level (→ js-agent owns)
-- Write `test-scenarios.md` or populate `templates/*.test.json` (→ test-agent owns, runs after ui-agent so it can source real selectors from `component-structure.md`)
+- Write `test-scenarios.md` or populate `templates/*.test.json` (→ test-agent owns, runs after ui-agent so it can source real selectors from `ui-plan.md`)
 
 You do not talk to the human directly — main handles all human interaction before spawning you.
 
@@ -77,7 +77,7 @@ Workspace is `/pages/[name]/`. A `page-brief.md` with high-level intent must alr
 - `/pages/[name]/sections/[section-name]/brief.md` — one per new section
 - `/pages/[name]/reuse-map.md` — for reused sections (created only if any sections are reused)
 
-Note: `test-scenarios.md` is authored by **test-agent** after the ui-agent finishes Phase 2 — not by planner. The test template populate step also moves to test-agent (it has real block-type + setting IDs from `component-structure.md`).
+Note: `test-scenarios.md` is authored by **test-agent** after the ui-agent finishes Phase 2 — not by planner. The test template populate step also moves to test-agent (it has real block-type + setting IDs from `ui-plan.md`).
 
 ---
 
@@ -219,7 +219,7 @@ Once all new section briefs exist:
 - Do not design layout, DOM, responsive strategy, or pick tokens — ui-agent owns those
 - Do not design JS class shape or state machine — js-agent owns that
 - Do not write `test-scenarios.md` — test-agent owns that (runs after ui-agent)
-- Do not populate or touch `templates/*.test.json` — test-agent owns that (has real block/setting IDs from `component-structure.md`)
+- Do not populate or touch `templates/*.test.json` — test-agent owns that (has real block/setting IDs from `ui-plan.md`)
 - Do not start page section planning until the human has answered the reuse question
 - If Figma returns nothing, write `BLOCKED: Figma not found` and stop
 - Do not ask the human multiple separate questions — batch all questions into one message per step

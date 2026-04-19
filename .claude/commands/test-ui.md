@@ -11,11 +11,11 @@ You are main conversation. Execute verbatim.
 
 Verify:
 - `features/<feature-name>/brief.md` exists
-- `features/<feature-name>/component-structure.md` exists
+- `features/<feature-name>/ui-plan.md` exists
 
 Note: `test-scenarios.md` is produced by test-agent in THIS command (first step of its work). Do NOT require it as a prerequisite.
 
-If brief/component-structure missing: `BLOCKED: Run /plan-feature + /build-ui first.`
+If either missing: `BLOCKED: Run /plan-feature + /build-ui first.`
 
 ## Step 2 — Memory prefetch
 Per Main Prefetch Contract → test-agent row:
@@ -47,7 +47,7 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 **SEMI-STABLE (per-feature):**
 3. Workspace: `features/<feature-name>/`
 4. Contents of `brief.md` (source of design content reference)
-5. Contents of `component-structure.md` (authoritative selectors + schema setting IDs + block structure)
+5. Contents of `ui-plan.md` (Phase 2 sections — authoritative selectors + schema setting IDs + block structure)
 
 **DYNAMIC (this invocation only):**
 6. Fix-cycle context from prior visual-qa-report (if re-invoked after a failure)

@@ -6,9 +6,9 @@ Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot acc
 **Role split (2026-04 refactor, updated 2026-04-19):**
 - **planner** — design intent, data sources, schema (section + blocks), variants, a11y decision, design content reference. Produces `brief.md` ONLY. No test authorship, no test-template populate, no file paths, no codebase scan.
 - **architect** — codebase archaeology. Scans repo for reuse targets, produces `architecture.md` — explicit file plan (create vs reuse) + shared-snippet contract + cross-section event contracts. Mandatory on every build.
-- **ui-agent** — two-phase. Phase 1: `ui-plan.md` — INTENT (DOM outline, Tailwind token map, responsive strategy, SCSS decision, font loading, questions). Phase 2: Liquid + (conditional) SCSS + as-built `component-structure.md` — AUTHORITATIVE selectors + data-attrs + state contract + schema setting IDs for downstream agents.
-- **js-agent** — JS class + events + state machine + `component-api.md`. Consumes `component-structure.md` selectors + JS handoff notes.
-- **test-agent** — owns `test-scenarios.md` authorship + `templates/*.test.json` populate + all spec files. Inputs: `brief.md` (intent + design content reference) + `component-structure.md` (as-built selectors + state contract).
+- **ui-agent** — two-phase, writes to a single consolidated `ui-plan.md`. Phase 1: Intent sections (layout strategy, token map, responsive, SCSS decision, font loading, variant mapping, questions). Phase 2: appends As-built DOM + BEM/selector catalogue + data attributes + schema settings + CSS custom properties + variants implemented + DEVIATIONS + `## JS handoff` (stub or full content). No separate `component-structure.md` file.
+- **js-agent** — JS class + events + state machine. Reads `ui-plan.md` Phase 2 sections; fills in `## JS handoff` section of that same file (replaces the ui-agent's stub). No separate `component-api.md` file.
+- **test-agent** — owns `test-scenarios.md` authorship + `templates/*.test.json` populate + all spec files. Inputs: `brief.md` (intent + design content reference) + `ui-plan.md` (Phase 2 as-built selectors + state contract + `## JS handoff` in full mode).
 
 **Main prefetches everything → passes into agent prompts:**
 1. **MCP data** — Figma design context, screenshots, Shopify API shapes, library docs
@@ -27,7 +27,7 @@ Anthropic's automatic prompt caching grants a 90% token discount on cached prefi
 
 **Section 2 — SEMI-STABLE (changes per-feature, cacheable across fix cycles of the same feature):**
 - Workspace path
-- Contents of brief.md + architecture.md + component-structure.md (as applicable)
+- Contents of brief.md + architecture.md + ui-plan.md (as applicable)
 - Figma design context JSON (embedded from `figma.get_design_context`)
 
 **Section 3 — DYNAMIC (task-specific, never cached):**
@@ -62,10 +62,10 @@ Located in `.claude/agents/`:
 |-------|---------|-----------------------|-------------|-------------|
 | planner | Design intent + data + schema → `brief.md` ONLY | — | Figma (main prefetches) | Start of any feature |
 | architect | Codebase scan → `architecture.md` (file plan + reuse + cross-section contracts) | Read, Grep, Glob | None | Mandatory, after planner |
-| ui-agent | Phase 1 `ui-plan.md` (intent: DOM outline + tokens + responsive) then Phase 2 Liquid + Tailwind (+ optional SCSS) + `component-structure.md` (as-built: authoritative selectors + state contract) | — | Figma (main prefetches) | After architect |
-| test-agent | Owns `test-scenarios.md` + `templates/*.test.json` populate + all Playwright spec files | — | None (writes specs, main runs) | After UI agent (ui-only) AND after JS agent (full) |
+| ui-agent | Phase 1: Intent sections of `ui-plan.md`. Phase 2: Liquid + Tailwind (+ optional SCSS) + appends As-built + BEM/selector catalogue + data attributes + schema settings + `## JS handoff` stub to SAME `ui-plan.md` | — | Figma (main prefetches) | After architect |
+| test-agent | Owns `test-scenarios.md` + `templates/*.test.json` populate + all Playwright spec files. Reads `ui-plan.md` Phase 2 sections | — | None (writes specs, main runs) | After UI agent (ui-only) AND after JS agent (full) |
 | visual-qa-agent | Analyze test results + screenshots | — | None (main provides data) | After test run |
-| js-agent | JavaScript behavior + `component-api.md` | — | None | After visual QA PASS |
+| js-agent | JavaScript behavior. Fills `## JS handoff` section in `ui-plan.md` (no separate component-api.md) | — | None | After visual QA PASS |
 | code-reviewer | Code quality review | — | None | After writing code |
 
 ## Execution Flow (single section)
@@ -76,12 +76,12 @@ Main: Figma prefetch + human Q&A
   → architect (codebase scan, reads brief) → architecture.md
   → ui-agent Phase 1 (with Figma + brief + architecture) → ui-plan.md
   → Main gate: read ui-plan.md, resolve Questions with human
-  → ui-agent Phase 2 → liquid + tailwind (+ optional scss) + component-structure.md
+  → ui-agent Phase 2 → liquid + tailwind (+ optional scss) + appends As-built + selectors + state contract + `## JS handoff` stub to ui-plan.md
   → Main: validate_theme loop
-  → test-agent ui-only (with brief + component-structure) → test-scenarios.md + templates/[type].test.json populated + ui.spec.js
+  → test-agent ui-only (with brief + ui-plan.md Phase 2 sections) → test-scenarios.md + templates/[type].test.json populated + ui.spec.js
   → Main: run specs, save Figma screenshots
   → visual-qa-agent → qa report
-  → js-agent → JavaScript + component-api.md
+  → js-agent → JavaScript + fills `## JS handoff` section of ui-plan.md
   → test-agent full → test-scenarios.md updated + functional.spec.js + integration.spec.js
   → Main: run specs
 ```

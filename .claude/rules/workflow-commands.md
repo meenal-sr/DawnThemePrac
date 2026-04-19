@@ -44,10 +44,10 @@ What are you doing?
 |---|---|---|
 | `/plan-feature` | New section, Figma link in hand, want brief first | `/plan-feature testimonials https://figma.com/design/abc/?node-id=1:42` |
 | `/build-ui` | brief.md exists, ready to write liquid | `/build-ui testimonials` |
-| `/test-ui` | component-structure.md exists, want DOM/responsive specs | `/test-ui testimonials` |
+| `/test-ui` | ui-plan.md Phase 2 sections filled, want DOM/responsive specs | `/test-ui testimonials` |
 | `/visual-qa` | specs ran, want PASS/NEEDS_FIX report vs Figma | `/visual-qa testimonials` |
 | `/build-js` | visual QA passed, brief says JS needed | `/build-js testimonials` |
-| `/test-full` | component-api.md exists, want functional + integration specs | `/test-full testimonials` |
+| `/test-full` | ui-plan.md `## JS handoff` filled, want functional + integration specs | `/test-full testimonials` |
 | `/review-files` | all files written, want quality review | `/review-files features/testimonials/` |
 | `/build-section` | want everything chained automatically | `/build-section testimonials https://figma.com/design/abc/?node-id=1:42` |
 
