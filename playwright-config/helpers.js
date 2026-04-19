@@ -48,7 +48,7 @@ function loadTemplate(type) {
   const { template } = TEST_CONFIG[type];
   const filePath = path.join(process.cwd(), 'templates', `${template}.json`);
   const raw = fs.readFileSync(filePath, 'utf8');
-  const stripped = raw.replace(/^\s*\/\*[\s\S]*?\*\/\s*/, '');
+  const stripped = raw.replace(/^(?:\s*\/\*[\s\S]*?\*\/\s*)+/, '');
   return JSON.parse(stripped);
 }
 
