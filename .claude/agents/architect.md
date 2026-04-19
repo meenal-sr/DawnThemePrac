@@ -74,6 +74,8 @@ For every candidate reuse target, record:
 
 **Create list:** new files this feature must produce. One section file per feature. One snippet file per distinct card/component variant (Theme Block boundary — never conditional logic in a single file). SCSS decision is deferred to ui-agent (marked `TBD by ui-agent`).
 
+**Test fixture rule (CRITICAL):** Never put test fixtures under per-feature filenames. `templates/page.test.json`, `templates/product.test.json`, and `templates/collection.test.json` are **shared** — one file per template type, across every feature. The file plan row for the test fixture MUST use `APPEND` (not `CREATE`) with the path `templates/<type>.test.json` where `<type>` is the brief's template type. test-agent will APPEND a new section entry + update the `order` array of that shared file; it never writes `templates/<feature-name>-<type>.test.json`. If a feature needs multiple fixture states (e.g. nav-on vs nav-off), author them as additional section keys inside the same shared file, not as separate files.
+
 **Reuse list:** existing files the new code will render / import. Every entry needs (need, file, how).
 
 **Shared-with-siblings list** (page mode only): snippets being built in another section this sprint and imported here. Note the dependency — ui-agent must not rebuild them.

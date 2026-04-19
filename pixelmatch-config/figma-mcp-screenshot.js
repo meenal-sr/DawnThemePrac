@@ -3,23 +3,40 @@
 // Bypasses the Figma REST API (no rate limit) because the image is rendered by the running Figma Desktop app.
 //
 // Usage:
-//   node pixelmatch-config/figma-mcp-screenshot.js <nodeId> <outputPath>
+//   node pixelmatch-config/figma-mcp-screenshot.js <nodeId> <outputPath> [--width <N>]
 //   nodeId format: "123:456" or "123-456". Colons and dashes are both accepted.
+//   --width <N>: optional post-export resize to width N px (preserves aspect). macOS `sips` required.
+//                Use this to match live Playwright viewport widths so pixelmatch dims align.
+//                Project convention: desktop = 1440, mobile = 390.
 //
 // Requires Figma Desktop running with the Dev Mode MCP server enabled (default endpoint http://127.0.0.1:3845/mcp).
 // No Figma token needed.
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 
 const ENDPOINT = process.env.FIGMA_MCP_URL || 'http://127.0.0.1:3845/mcp';
 
 function usage() {
-  console.error('Usage: node figma-mcp-screenshot.js <nodeId> <outputPath>');
+  console.error('Usage: node figma-mcp-screenshot.js <nodeId> <outputPath> [--width <N>]');
   process.exit(2);
 }
 
-const [, , nodeIdRaw, outputPathRaw] = process.argv;
+const args = process.argv.slice(2);
+const widthIdx = args.indexOf('--width');
+let targetWidth = null;
+if (widthIdx !== -1) {
+  const raw = args[widthIdx + 1];
+  targetWidth = Number.parseInt(raw, 10);
+  if (!Number.isFinite(targetWidth) || targetWidth <= 0) {
+    console.error(`Invalid --width value: ${raw}`);
+    process.exit(2);
+  }
+  args.splice(widthIdx, 2);
+}
+
+const [nodeIdRaw, outputPathRaw] = args;
 if (!nodeIdRaw || !outputPathRaw) usage();
 
 const nodeId = nodeIdRaw.replace('-', ':');
@@ -115,8 +132,17 @@ async function main() {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, Buffer.from(image.data, 'base64'));
 
+  if (targetWidth !== null) {
+    try {
+      execFileSync('sips', ['--resampleWidth', String(targetWidth), outputPath, '--out', outputPath], { stdio: 'pipe' });
+    } catch (err) {
+      throw new Error(`sips resize to width ${targetWidth} failed: ${err.message}. Ensure macOS sips is available on PATH.`);
+    }
+  }
+
   const bytes = fs.statSync(outputPath).size;
-  console.log(`Wrote ${outputPath} (${bytes} bytes, ${image.mimeType})`);
+  const suffix = targetWidth !== null ? `, resized to width ${targetWidth}` : '';
+  console.log(`Wrote ${outputPath} (${bytes} bytes, ${image.mimeType}${suffix})`);
 }
 
 main().catch((err) => {

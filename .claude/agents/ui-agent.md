@@ -417,10 +417,42 @@ Follow these rules:
 - Use the `aspect-ratio` CSS property to reserve image space — never pixel-fixed dimensions on image containers
 
 **Responsive rules:**
-- Mobile-first: base utilities target mobile (smallest viewport). Larger breakpoints use `md:`/`lg:`/`2xl:` prefixes on utilities.
-- If layout differs between mobile and desktop and cannot be achieved with utility variant overrides alone (e.g. element order changes, fundamentally different DOM structure), create two separate elements — one shown on mobile, one on desktop — and toggle visibility via breakpoint utility classes (`tw-hidden md:tw-block` / `md:tw-hidden`)
+- Mobile-first: base utilities target mobile (smallest viewport). Larger breakpoints use `md-small:`/`md:`/`lg:`/`2xl:` prefixes on utilities.
 - Never use desktop-first queries (`max-*:` variants or `max-width` media). Always use `min-width` / unprefixed→prefixed overrides.
 - Only reach for SCSS breakpoint mixins (`@include breakpoints.up(md)`) inside an SCSS escape hatch (Step 5), never as the primary responsive mechanism.
+
+**Dual-DOM pattern (when breakpoints diverge too heavily for overrides):**
+
+The default responsive strategy is a single DOM with breakpoint-prefix overrides (mobile base → `md-small:` / `md:` desktop adjustments). This works when the divergence is typography/spacing/color tweaks.
+
+When the desktop and mobile designs diverge so heavily that breakpoint overrides would require fighting the layout engine — layout flips, element order swaps, structurally different content blocks, content-over-image vs content-below-image, text-color inversion that depends on bg-color swap — author **two DOM branches** toggled via Tailwind visibility utilities instead. Cleaner separation than contorting one DOM with 20+ overrides and `!important` tricks.
+
+**When to dual-DOM (check ALL — if any applies, dual-DOM is warranted):**
+- Element order changes between breakpoints (mobile: heading → image → body; desktop: image → heading → body)
+- Content absolute-positioned over image on one breakpoint, stacked normally below on the other
+- Fundamentally different background / text color scheme per breakpoint (light-on-dark vs dark-on-light card bodies)
+- Copy text differs per breakpoint (e.g. desktop subhead reads "Choose your system type…" but mobile reads "Shop top HVAC systems…")
+- Card count variability driving different layout modes per breakpoint (scroll carousel vs static grid)
+
+**When NOT to dual-DOM:**
+- Typography size + weight changes only — use `md-small:tw-text-[48px]` etc.
+- Spacing/padding/gap tweaks — use breakpoint-prefixed arbitrary values
+- Same DOM with different flex direction or grid template — use `md-small:tw-flex-row` etc.
+
+**How to dual-DOM:**
+- Author two distinct snippet files (`<feature>-<variant>-desktop.liquid` + `<feature>-<variant>-mobile.liquid`) — each snippet owns its own DOM, classes, and content for its target breakpoint
+- In the consumer (section or parent snippet), wrap each snippet in a visibility-toggle div:
+  ```liquid
+  <div class="tw-hidden md:tw-block">
+    {%- render '<feature>-<variant>-desktop', block: block -%}
+  </div>
+  <div class="md:tw-hidden">
+    {%- render '<feature>-<variant>-mobile', block: block -%}
+  </div>
+  ```
+- Pick the toggle breakpoint (`md-small:` at 768px or `md:` at 1024px) based on where the design actually wants the swap to occur. If the desktop variant uses absolute positioning with fixed pixel values (e.g. `top: 240px` on a 420px card), use `md:` to guarantee card width is sufficient; `md-small:` causes overflow on tablets.
+- Document the dual-DOM choice in `ui-plan.md` Phase 2 DEVIATIONS with the specific breakpoint picked and why.
+- Both snippets still use the `{%- render %}` pattern — never duplicate logic inside a single file via `{% if %}`.
 
 **Image rules:**
 - Never write a raw `<img>` tag for images — always use `{% render 'snippet-name', ... %}` with the snippet confirmed by the Orchestrator in Step 1

@@ -1,5 +1,5 @@
 ---
-description: Prefetch Figma data + skill output + memory subset, spawn planner agent to produce brief.md, then spawn architect agent to produce architecture.md. Arguments — $1 feature name (kebab-case), $2 Figma URL.
+description: Prefetch Figma data + skill output + memory subset, spawn planner agent to produce brief.md, then spawn architect agent to produce architecture.md. Arguments — $1 feature name (kebab-case), $2 desktop Figma URL, $3 mobile Figma URL (optional).
 ---
 
 # Plan Feature: $ARGUMENTS
@@ -8,21 +8,25 @@ You are main conversation. Execute this recipe verbatim — do not skip steps.
 
 ## Step 1 — Parse arguments
 - `$1` = feature name (kebab-case, e.g. `hero-banner`)
-- `$2` = Figma URL (format: `figma.com/design/<fileKey>/<fileName>?node-id=<nodeId>`)
+- `$2` = desktop Figma URL (format: `figma.com/design/<fileKey>/<fileName>?node-id=<nodeId>`)
+- `$3` = mobile Figma URL (optional — same format). If omitted, ask the human before proceeding whether a mobile frame exists. Responsive behavior from a single desktop node is a last resort — always prefer explicit mobile nodes.
 
-Extract:
+Extract per URL:
 - `fileKey` from URL
 - `nodeId` from URL (convert `-` to `:` in nodeId)
 
-If either argument is missing, stop and ask the human for the missing value.
+If `$1` or `$2` is missing, stop and ask the human for the missing value.
+
+**Build convention (bake into planner + ui-agent prompts): mobile-first Tailwind.** Base utility classes target mobile; desktop styling applied via breakpoint-prefixed overrides (`md-small:`, `md:`, `lg:`, `2xl:`). When desktop + mobile diverge too heavily for overrides (layout flips, element order swaps, structurally distinct content), author two DOM branches toggled via `hidden md:block` / `md:hidden`, documented in ui-plan.md Phase 2 DEVIATIONS.
 
 ## Step 2 — Gather human context (batch, one message)
-Ask the human in a single message:
+Ask the human in a single message using `AskUserQuestion`:
 1. Template type: `page` | `product` | `collection`
 2. Data sources (product, collection, metafields, section settings only?)
 3. Render context (section in editor, snippet, or block?)
 4. Purpose — why build this?
 5. Reuse — existing components to reuse?
+6. If `$3` (mobile URL) was NOT supplied: ask for it, OR confirm the desktop node's responsive behavior covers mobile. Default expectation = mobile frame exists.
 
 Wait for answers before proceeding.
 
@@ -51,12 +55,17 @@ This file is the SINGLE SOURCE OF TRUTH for design data. `brief.md`, `ui-plan.md
 
 If the designer updates Figma, regenerate only `figma-context.md` — downstream artifacts stay valid.
 
-Then persist reference PNGs to disk via the MCP script (talks to the local Figma Desktop MCP server):
+Then persist reference PNGs to disk via the MCP script (talks to the local Figma Desktop MCP server). Pass `--width` per breakpoint to match Playwright viewport widths so pixelmatch dims align without manual post-processing:
 ```bash
-node pixelmatch-config/figma-mcp-screenshot.js <desktopNodeId> features/<feature-name>/qa/figma-desktop.png
-node pixelmatch-config/figma-mcp-screenshot.js <mobileNodeId>  features/<feature-name>/qa/figma-mobile.png
+node pixelmatch-config/figma-mcp-screenshot.js <desktopNodeId> features/<feature-name>/qa/figma-desktop.png --width 1440
+# Only if $3 mobile URL supplied — otherwise skip:
+node pixelmatch-config/figma-mcp-screenshot.js <mobileNodeId>  features/<feature-name>/qa/figma-mobile.png  --width 390
 ```
+`--width` values mirror the project's Playwright `desktop` viewport (1440) and `mobile` viewport (390) — so figma and live PNGs share width dims out of the box. The script uses macOS `sips` to resample post-export (aspect preserved).
+
 Requires Figma Desktop running with the Dev Mode MCP server enabled (default `http://127.0.0.1:3845/mcp`). Override the endpoint with `FIGMA_MCP_URL` env var if needed. No Figma token required.
+
+If both desktop + mobile PNGs exist, the build is dual-breakpoint (mobile-first Tailwind base + desktop overrides). If only desktop exists, document in brief.md that responsive behavior is inferred and visual-qa will compare desktop only.
 
 ## Step 4 — Memory + skill prefetch
 Per the Main Prefetch Contract in `.claude/rules/agents.md` → planner row:

@@ -1,5 +1,5 @@
 ---
-description: Full section build — runs plan-feature → build-ui → test-ui → visual-qa → build-js (if needed) → test-full. Arguments — $1 feature name, $2 Figma URL.
+description: Full section build — runs plan-feature → build-ui → test-ui → visual-qa → build-js (if needed) → test-full. Arguments — $1 feature name, $2 desktop Figma URL, $3 mobile Figma URL (optional).
 ---
 
 # Build Section: $ARGUMENTS
@@ -7,7 +7,9 @@ description: Full section build — runs plan-feature → build-ui → test-ui �
 You are main conversation. This is the umbrella command — it chains the per-agent commands in the canonical section-build order.
 
 ## Pre-flight
-Parse `$1` = feature name, `$2` = Figma URL. Both required.
+Parse `$1` = feature name, `$2` = desktop Figma URL, `$3` = mobile Figma URL (optional). `$1` + `$2` required; `$3` strongly recommended — without it, responsive behavior is inferred from the desktop node alone.
+
+**Build convention: mobile-first Tailwind.** Base utility classes target mobile; desktop styling applied via breakpoint-prefixed overrides (`md-small:`, `md:`, `lg:`, `2xl:`). When the two designs diverge too heavily for overrides (layout flips, element order swaps, structurally different content), author **two DOM branches** toggled via `hidden md:block` / `md:hidden`. Document the choice in `ui-plan.md` Phase 2 DEVIATIONS.
 
 ## Discipline rules (enforce at every step)
 1. **playwright-mcp mandatory** for visual QA browser work. Any sub-command that runs browser interactions must route through `playwright-mcp` server.
@@ -18,7 +20,7 @@ Parse `$1` = feature name, `$2` = Figma URL. Both required.
 Each step below is a hard dependency on the previous — never parallelize.
 
 ### Step 1 — Plan
-Run `/plan-feature $1 $2`
+Run `/plan-feature $1 $2 $3` (pass mobile URL through if provided)
 
 Halt if planner returns a `BLOCKED:` state. Ask the human before proceeding.
 

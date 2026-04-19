@@ -67,7 +67,8 @@ module.exports = defineConfig({
       grepInvert: /\[desktop\]|\[tablet\]|\[tablet-lg\]/,
       use: {
         ...devices['iPhone 13'],
-        viewport: { width: 375, height: 812 },
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 1,
       },
     },
   ],

@@ -211,6 +211,15 @@ Pulled from brief — for test-template populate step + visual QA reference.
 ### Step 3 — Populate `templates/[type].test.json`
 Based on brief template type → map to `page.test.json` / `product.test.json` / `collection.test.json`. Read via helper semantics (strip `/* ... */` block-comment prefix before `JSON.parse`).
 
+**APPEND, do NOT overwrite (CRITICAL):** `templates/<type>.test.json` is a **shared** fixture hosting every feature's section on that template type. Do NOT replace the file content. Do NOT create a per-feature filename like `promo-test-page.test.json`. Instead:
+1. Read the existing file (strip the `/* ... */` header before parsing).
+2. Insert your new section key under `sections` — use the section's type name as the key (e.g. `"promo-test"`), or a suffixed variant key if multiple states needed (e.g. `"promo-test-4blocks"`).
+3. Append that key to the `order` array.
+4. Preserve every pre-existing section + its order. Never delete or mutate other sections' entries.
+5. Serialize back, preserving the `/*! Test template */` comment header (Shopify's JSON-with-comments format — the helper `loadTemplate()` strips `/* ... */` before parsing).
+
+If your architect mis-wrote the file plan with a per-feature `templates/<name>-<type>.test.json` row, treat it as an instruction bug — use the shared shared `templates/<type>.test.json` instead and flag the mistake in `test-scenarios.md` → "Questions".
+
 For every setting in the section schema, emit a dummy value. Copy strings and exact Figma-derived values come from `features/<name>/figma-context.md` (canonical); schema defaults come from `brief.md`:
 - text → Figma copy string (from `figma-context.md`)
 - richtext → `<p>…</p>` wrapping a Figma copy string (from `figma-context.md`)

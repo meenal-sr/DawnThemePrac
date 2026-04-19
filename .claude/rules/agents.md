@@ -14,6 +14,7 @@ Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot acc
 1. **MCP data** — Figma design context, screenshots, Shopify API shapes, library docs
 2. **Skill output** — main invokes skills relevant to the agent's task, embeds output in prompt
 3. **Filtered memory** — main loads `MEMORY.md` once per session and embeds the `type: reference` subset relevant to the agent (see Skill/Memory Routing below)
+4. **Project reference rules** — main reads every file matching `.claude/memory/reference_*.md` at session start and embeds the full contents of any file whose scope overlaps the agent's task. These files are committed to the repo and are BINDING canonical engineering conventions (e.g. `reference_image_stack.md` defines the mandatory image-schema triplet and three-layer image stack; `reference_new_theme.md` covers broader theme-side conventions). They take precedence over defaults in the agent spec itself when they conflict. Do NOT skip them — every planner/architect/ui-agent/js-agent/code-reviewer invocation must receive the reference files relevant to its scope verbatim (not summaries). The architect specifically must also treat files referenced by these docs (e.g. `snippets/image.liquid`) as first-class reuse candidates in the codebase scan.
 
 ## Cache-friendly prompt structure (CRITICAL for token efficiency)
 
