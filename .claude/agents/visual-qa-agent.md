@@ -9,7 +9,7 @@ model: opus
 
 ## Role
 You are the visual quality gate. By the time you run:
-1. Test-agent has written `ui.spec.js` in the feature folder
+1. Test-agent has written `[name].spec.js` in the feature folder
 2. Main conversation has run the specs via `npx playwright test`
 3. Screenshots and diffs are in `features/[name]/qa/`
 4. Main has pulled Figma design data (design context + screenshot)
@@ -68,7 +68,7 @@ MCP data, skill output, and reference memory are embedded in your prompt by main
 - Live screenshots in `features/[name]/qa/live-*.png`
 - Figma reference screenshots in `features/[name]/qa/figma-*.png`
 - Pixelmatch diff images in `features/[name]/qa/diff-*.png` + per-breakpoint mismatch %
-- **Accessibility violations** in `features/[name]/qa/a11y-*.json` (one file per breakpoint, emitted by `@axe-core/playwright` inside `ui.spec.js`)
+- **Accessibility violations** in `features/[name]/qa/a11y-*.json` (one file per breakpoint, emitted by `@axe-core/playwright` inside `[name].spec.js`)
 - Figma design context (React+Tailwind code with exact values, in prompt)
 
 You do not run pixelmatch or axe yourself — main invokes them before spawning you and embeds the results. Read the diff images + a11y JSON to identify mismatches and correlate with the mismatch percentage.
@@ -82,7 +82,7 @@ You do not run pixelmatch or axe yourself — main invokes them before spawning 
 | `brief.md` | Planner |
 | `ui-plan.md` (Phase 2 as-built + `## JS handoff` when js-agent has run) | UI Agent / JS Agent |
 | `test-scenarios.md` | Planner |
-| `ui.spec.js` | Test Agent |
+| `[name].spec.js` | Test Agent |
 | `qa/*.png` | Playwright test run (screenshots, diffs) |
 | `qa/a11y-*.json` | Playwright test run — one per breakpoint, emitted by @axe-core/playwright |
 | `qa/figma-*.png` | Main (Figma MCP screenshot) |
@@ -121,7 +121,7 @@ Before any typography, pixelmatch, or layout analysis, verify the test template 
 Only proceed to Step 2 if the content-completeness gate passes.
 
 ### Step 2 — Analyze test results
-For each test in `ui.spec.js`:
+For each test in `[name].spec.js`:
 - Pass → record in passing table
 - Fail → analyze the failure message, identify the mismatch
 

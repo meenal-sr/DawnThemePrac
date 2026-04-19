@@ -57,7 +57,7 @@ Required (always):
 - `features/$1/architecture.md` (architect)
 - `features/$1/ui-plan.md` — Phase 1 + Phase 2 sections populated (ui-agent). Phase 1 contains Intent + Layout strategy + Responsive + Token map + SCSS decision + Font loading + Variant mapping + Reuse refs + Questions. Phase 2 contains As-built DOM + BEM/selector catalogue + Data attributes + Schema settings + CSS custom properties + Variants implemented/not + DEVIATIONS + `## JS handoff` stub or full content.
 - `features/$1/test-scenarios.md` (test-agent — ui-only mode)
-- `features/$1/ui.spec.js` (test-agent — ui-only mode)
+- `features/$1/$1.spec.js` (test-agent — ui-only mode)
 - `features/$1/qa/visual-qa-report.md` ← MANDATORY. Must contain `Status: PASS`.
 - `features/$1/qa/figma-*.png` (at least one breakpoint)
 - `features/$1/qa/live-*.png` (matching breakpoints)
@@ -65,8 +65,8 @@ Required (always):
 
 Required IF brief says JS needed:
 - `features/$1/ui-plan.md` — `## JS handoff` section filled with real content (not the "see js-agent append" stub)
-- `features/$1/functional.spec.js`
-- `features/$1/integration.spec.js`
+- `features/$1/$1.functional.spec.js`
+- `features/$1/$1.integration.spec.js`
 
 If ANY required artifact is missing → do NOT proceed. Spawn the owning agent (re-run the relevant sub-command) to produce the missing file, then re-run this gate. Do not skip to Step 8.
 
@@ -77,15 +77,17 @@ If ANY required artifact is missing → do NOT proceed. Spawn the owning agent (
 | architecture.md | architect | `/plan-feature $1 <figma-url>` (re-runs chain) |
 | ui-plan.md Phase 1 sections | ui-agent Phase 1 | `/build-ui $1` |
 | ui-plan.md Phase 2 sections (As-built + selectors + state contract + JS handoff stub) | ui-agent Phase 2 | `/build-ui $1` |
-| test-scenarios.md / ui.spec.js / templates/*.test.json populate | test-agent ui-only | `/test-ui $1` |
+| test-scenarios.md / $1.spec.js / templates/*.test.json populate | test-agent ui-only | `/test-ui $1` |
 | qa/*.png, qa/visual-qa-report.md | visual-qa-agent | `/visual-qa $1` |
 | `ui-plan.md` → `## JS handoff` section (stub → filled) | js-agent | `/build-js $1` |
-| functional.spec.js, integration.spec.js | test-agent full | `/test-full $1` |
+| $1.functional.spec.js, $1.integration.spec.js | test-agent full | `/test-full $1` |
 
 ### Step 8 — Review
-Run `/review-files features/$1/`
+Read `features/$1/ui-plan.md` and extract the SOURCE file paths from the Phase 2 "File targets" section + `## JS handoff` (section `.liquid`, optional `.js/.jsx`, optional `.scss`). Invoke `/review-files` with those explicit paths — NOT the feature folder itself.
 
-Plus review the source files the ui-agent and js-agent wrote (`sections/<name>.liquid`, `js/sections/<name>.js`, etc. — determine from `ui-plan.md` Phase 2 sections + `## JS handoff`).
+Example: `/review-files sections/$1.liquid js/sections/$1.js scss/sections/$1.scss`
+
+Never pass `features/$1/` to `/review-files` — that folder contains planning docs and test specs which are out of code-reviewer scope per `.claude/agents/code-reviewer.md` Scope rules.
 
 ### Step 9 — Checkpoint skills (main-invoked)
 After all agents clear:
@@ -98,4 +100,4 @@ Only after code-reviewer approves:
 
 ## Report
 Final status to human — MUST enumerate the verified artifact paths from Step 7:
-> "Section `$1` build complete. Verified artifacts: features/$1/{brief.md, architecture.md, ui-plan.md (Phase 1 + Phase 2 + `## JS handoff` if JS=YES), test-scenarios.md, ui.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, functional.spec.js, integration.spec.js]. Source files per architecture.md → Create list. Ready for review/merge."
+> "Section `$1` build complete. Verified artifacts: features/$1/{brief.md, architecture.md, ui-plan.md (Phase 1 + Phase 2 + `## JS handoff` if JS=YES), test-scenarios.md, $1.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, $1.functional.spec.js, $1.integration.spec.js]. Source files per architecture.md → Create list. Ready for review/merge."

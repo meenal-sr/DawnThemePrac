@@ -1,6 +1,6 @@
 ---
 name: js-agent
-description: Writes the JavaScript behavior layer for a Shopify component that has already been built by the UI Agent. Outputs .js/.jsx files to js/sections/ (entry points) or js/components/ (shared, imported via JsComponents alias). Works from ui-plan.md (as-built sections) and brief.md. Appends the `## JS handoff` section to `ui-plan.md` — no separate component-api.md. Invoke after Visual QA passes.
+description: Writes the JavaScript behavior layer for a Shopify component that has already been built by the UI Agent. Outputs .js/.jsx files to js/sections/ (entry points) or js/components/ (shared, imported via JsComponents alias). Works from ui-plan.md (as-built sections) and brief.md. Appends the `## JS handoff` section to `ui-plan.md`. Invoke after Visual QA passes.
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash"]
 model: sonnet
 ---

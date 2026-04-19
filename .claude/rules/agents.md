@@ -6,8 +6,8 @@ Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot acc
 **Role split (2026-04 refactor, updated 2026-04-19):**
 - **planner** — design intent, data sources, schema (section + blocks), variants, a11y decision, design content reference. Produces `brief.md` ONLY. No test authorship, no test-template populate, no file paths, no codebase scan.
 - **architect** — codebase archaeology. Scans repo for reuse targets, produces `architecture.md` — explicit file plan (create vs reuse) + shared-snippet contract + cross-section event contracts. Mandatory on every build.
-- **ui-agent** — two-phase, writes to a single consolidated `ui-plan.md`. Phase 1: Intent sections (layout strategy, token map, responsive, SCSS decision, font loading, variant mapping, questions). Phase 2: appends As-built DOM + BEM/selector catalogue + data attributes + schema settings + CSS custom properties + variants implemented + DEVIATIONS + `## JS handoff` (stub or full content). No separate `component-structure.md` file.
-- **js-agent** — JS class + events + state machine. Reads `ui-plan.md` Phase 2 sections; fills in `## JS handoff` section of that same file (replaces the ui-agent's stub). No separate `component-api.md` file.
+- **ui-agent** — two-phase, writes to a single consolidated `ui-plan.md`. Phase 1: Intent sections (layout strategy, token map, responsive, SCSS decision, font loading, variant mapping, questions). Phase 2: appends As-built DOM + BEM/selector catalogue + data attributes + schema settings + CSS custom properties + variants implemented + DEVIATIONS + `## JS handoff` (stub or full content).
+- **js-agent** — JS class + events + state machine. Reads `ui-plan.md` Phase 2 sections; fills in `## JS handoff` section of that same file (replaces the ui-agent's stub).
 - **test-agent** — owns `test-scenarios.md` authorship + `templates/*.test.json` populate + all spec files. Inputs: `brief.md` (intent + design content reference) + `ui-plan.md` (Phase 2 as-built selectors + state contract + `## JS handoff` in full mode).
 
 **Main prefetches everything → passes into agent prompts:**
@@ -65,7 +65,7 @@ Located in `.claude/agents/`:
 | ui-agent | Phase 1: Intent sections of `ui-plan.md`. Phase 2: Liquid + Tailwind (+ optional SCSS) + appends As-built + BEM/selector catalogue + data attributes + schema settings + `## JS handoff` stub to SAME `ui-plan.md` | — | Figma (main prefetches) | After architect |
 | test-agent | Owns `test-scenarios.md` + `templates/*.test.json` populate + all Playwright spec files. Reads `ui-plan.md` Phase 2 sections | — | None (writes specs, main runs) | After UI agent (ui-only) AND after JS agent (full) |
 | visual-qa-agent | Analyze test results + screenshots | — | None (main provides data) | After test run |
-| js-agent | JavaScript behavior. Fills `## JS handoff` section in `ui-plan.md` (no separate component-api.md) | — | None | After visual QA PASS |
+| js-agent | JavaScript behavior. Fills `## JS handoff` section in `ui-plan.md` | — | None | After visual QA PASS |
 | code-reviewer | Code quality review | — | None | After writing code |
 
 ## Execution Flow (single section)
@@ -78,11 +78,11 @@ Main: Figma prefetch + human Q&A
   → Main gate: read ui-plan.md, resolve Questions with human
   → ui-agent Phase 2 → liquid + tailwind (+ optional scss) + appends As-built + selectors + state contract + `## JS handoff` stub to ui-plan.md
   → Main: validate_theme loop
-  → test-agent ui-only (with brief + ui-plan.md Phase 2 sections) → test-scenarios.md + templates/[type].test.json populated + ui.spec.js
+  → test-agent ui-only (with brief + ui-plan.md Phase 2 sections) → test-scenarios.md + templates/[type].test.json populated + [name].spec.js
   → Main: run specs, save Figma screenshots
   → visual-qa-agent → qa report
   → js-agent → JavaScript + fills `## JS handoff` section of ui-plan.md
-  → test-agent full → test-scenarios.md updated + functional.spec.js + integration.spec.js
+  → test-agent full → test-scenarios.md updated + [name].functional.spec.js + [name].integration.spec.js
   → Main: run specs
 ```
 

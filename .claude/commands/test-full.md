@@ -42,12 +42,12 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 9. Test failures from prior cycle (if re-invoked)
 
 Expected outputs:
-- `features/<feature-name>/functional.spec.js`
-- `features/<feature-name>/integration.spec.js`
+- `features/<feature-name>/<feature-name>.functional.spec.js`
+- `features/<feature-name>/<feature-name>.integration.spec.js`
 
 ## Step 4 — Run specs
 ```
-yarn playwright:test features/<feature-name>/functional.spec.js features/<feature-name>/integration.spec.js --reporter=list
+yarn playwright:test features/<feature-name>/<feature-name>.functional.spec.js features/<feature-name>/<feature-name>.integration.spec.js --reporter=list
 ```
 
 ## Step 5 — Report

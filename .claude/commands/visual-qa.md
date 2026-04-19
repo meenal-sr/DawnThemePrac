@@ -10,7 +10,7 @@ You are main conversation. Execute verbatim.
 - `$1` = feature name
 
 Verify:
-- `features/<feature-name>/ui.spec.js` exists
+- `features/<feature-name>/<feature-name>.spec.js` exists
 - `features/<feature-name>/qa/` contains `live-*.png` from test run
 - `features/<feature-name>/qa/figma-*.png` exist (main should have saved them in `/plan-feature` Step 3 or `/build-ui` Step 3)
 
@@ -26,7 +26,7 @@ Per Main Prefetch Contract → visual-qa-agent row:
 - Memory subset: visual QA patterns, pixelmatch threshold conventions
 
 ## Step 3 — Capture test output
-Re-read the output of `yarn playwright:test features/<feature-name>/ui.spec.js` from the previous run. If stale, re-run it.
+Re-read the output of `yarn playwright:test features/<feature-name>/<feature-name>.spec.js` from the previous run. If stale, re-run it.
 
 If the re-run exits non-zero, halt with the failure report — do not proceed to Step 4.
 

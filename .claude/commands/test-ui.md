@@ -55,12 +55,12 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 Expected outputs (in order, produced by test-agent):
 1. `features/<feature-name>/test-scenarios.md` (A/B/C/D/E scenario contract)
 2. `templates/<type>.test.json` section entry populated with every setting + blocks (map + block_order shape)
-3. `features/<feature-name>/ui.spec.js`
+3. `features/<feature-name>/<feature-name>.spec.js`
 
 ## Step 5 — Run specs
 Run via Bash:
 ```
-yarn playwright:test features/<feature-name>/ui.spec.js --reporter=list
+yarn playwright:test features/<feature-name>/<feature-name>.spec.js --reporter=list
 ```
 
 Screenshots auto-land in `features/<feature-name>/qa/`.
@@ -71,4 +71,4 @@ Capture:
 - Paths of screenshots saved in `features/<feature-name>/qa/`
 - Full test output for visual-qa-agent
 
-> "test-scenarios.md + ui.spec.js written. Specs: X passed, Y failed. Screenshots in features/<feature-name>/qa/. Ready for `/visual-qa <feature-name>`."
+> "test-scenarios.md + <feature-name>.spec.js written. Specs: X passed, Y failed. Screenshots in features/<feature-name>/qa/. Ready for `/visual-qa <feature-name>`."

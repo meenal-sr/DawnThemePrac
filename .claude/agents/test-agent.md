@@ -13,9 +13,9 @@ You write Playwright JavaScript tests for Shopify components. You work in two mo
 ## External Inputs
 MCP data, skill output, and reference memory are embedded in your prompt by main per the **Main Prefetch Contract** in `.claude/rules/agents.md`. Main runs the tests via `yarn playwright:test` and passes results back if needed. Inputs vary by mode — see below.
 
-**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + design content reference) + `ui-plan.md` (as-built selectors + state contract). You also populate `templates/[type].test.json` in the same step. Only after the scenarios + template are in place do you translate them into `ui.spec.js`.
+**You own `test-scenarios.md`.** The planner does NOT write it. In ui-only mode, your FIRST step is to author `test-scenarios.md` from `brief.md` (intent + design content reference) + `ui-plan.md` (as-built selectors + state contract). You also populate `templates/[type].test.json` in the same step. Only after the scenarios + template are in place do you translate them into `[name].spec.js`.
 
-In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augment it with functional/integration scenarios sourced from `the `## JS handoff` section of ui-plan.md` before writing `functional.spec.js` / `integration.spec.js`.
+In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augment it with functional/integration scenarios sourced from `the `## JS handoff` section of ui-plan.md` before writing `[name].functional.spec.js` / `[name].integration.spec.js`.
 
 ---
 
@@ -29,7 +29,7 @@ In full mode, `test-scenarios.md` already exists (you wrote it in ui-only). Augm
 **Outputs (in this order):**
 1. `[workspace]/test-scenarios.md` — authoritative A/B/C/D/E scenario contract
 2. `templates/[type].test.json` — section entry + every schema setting populated from brief's "Design content reference"
-3. `[workspace]/ui.spec.js` — Playwright translation of scenarios
+3. `[workspace]/[name].spec.js` — Playwright translation of scenarios
 
 Tests DOM structure, responsive breakpoints, accessibility, and visual screenshots. Does NOT need the `## JS handoff` section of ui-plan.md or JavaScript behavior to exist.
 
@@ -42,8 +42,8 @@ Tests DOM structure, responsive breakpoints, accessibility, and visual screensho
 
 **Outputs:**
 - `[workspace]/test-scenarios.md` — updated with interactive/data/user-journey sections
-- `[workspace]/functional.spec.js`
-- `[workspace]/integration.spec.js`
+- `[workspace]/[name].functional.spec.js`
+- `[workspace]/[name].integration.spec.js`
 
 Tests state transitions, custom events, API calls, full user journeys. Only written when the component has JavaScript behavior.
 
@@ -51,13 +51,15 @@ Tests state transitions, custom events, API calls, full user journeys. Only writ
 
 ## Workspace & output paths
 
-Workspace is `features/[name]/`. All spec files go directly in the workspace root:
+Workspace is `features/[name]/`. All spec files go directly in the workspace root and MUST be prefixed with the feature name for unambiguous Playwright reporting and grep-friendly filtering:
 ```
 features/hero-banner/
-  ui.spec.js            ← ui-only mode
-  functional.spec.js    ← full mode
-  integration.spec.js   ← full mode
+  hero-banner.spec.js              ← ui-only mode (UI/content/a11y)
+  hero-banner.functional.spec.js   ← full mode (JS behavior)
+  hero-banner.integration.spec.js  ← full mode (end-to-end flows)
 ```
+
+Replace `hero-banner` with the current feature name. Never emit generic unprefixed filenames (`ui.spec.js`, `functional.spec.js`, `integration.spec.js`).
 
 Screenshots land in `features/[name]/qa/` via the helpers below.
 
@@ -65,7 +67,7 @@ Screenshots land in `features/[name]/qa/` via the helpers below.
 
 ## Authoring rules (honor on every spec)
 
-- **`test-scenarios.md` is the contract — and you own it.** In ui-only mode, write `test-scenarios.md` first from brief + ui-plan.md (Phase 2 sections). Then emit exactly those scenarios in `ui.spec.js` — no extras, no omissions. If something is unclear (e.g. ambiguous mobile behavior, blocking design question), add it under a `## Questions` heading in `test-scenarios.md` and ask main before writing specs.
+- **`test-scenarios.md` is the contract — and you own it.** In ui-only mode, write `test-scenarios.md` first from brief + ui-plan.md (Phase 2 sections). Then emit exactly those scenarios in `[name].spec.js` — no extras, no omissions. If something is unclear (e.g. ambiguous mobile behavior, blocking design question), add it under a `## Questions` heading in `test-scenarios.md` and ask main before writing specs.
 - **Playwright fixture signature:** `testInfo` is the SECOND argument, not destructured with `page`: `async ({ page }, testInfo) => {}`. Writing `async ({ page, testInfo }) => {}` throws `Test has unknown parameter "testInfo"`.
 - No standalone DOM-presence group (section root exists, heading exists, CTA href non-empty), no conditional-rendering group, no `No console errors on load` test. `test-scenarios.md` is authored with these exclusions baked in; do not add them back.
 - DO emit the content-completeness gate (`A-1` below) as the first test — it validates template settings, not DOM presence, and is required on every spec.
@@ -107,7 +109,7 @@ Name live screenshots `live-<project>.png` (`live-mobile.png`, `live-desktop.png
 ## A11y gating — exactly two branches
 
 **Brief says `Accessibility: skip` (or omits the field):**
-- At module load in ui.spec.js, ensure `features/[name]/qa/a11y-skipped.marker` exists (write it if missing). visual-qa-agent reads this to confirm the skip was deliberate.
+- At module load in [name].spec.js, ensure `features/[name]/qa/a11y-skipped.marker` exists (write it if missing). visual-qa-agent reads this to confirm the skip was deliberate.
 - Do NOT `require('@axe-core/playwright')`. Do NOT emit any a11y `test(...)` blocks.
 
 **Brief says `Accessibility: required`:**
@@ -127,7 +129,7 @@ Name live screenshots `live-<project>.png` (`live-mobile.png`, `live-desktop.png
 2. `[workspace]/ui-plan.md` — authoritative selectors (BEM + data-attrs), block structure, state contract, schema setting IDs (Phase 2 sections) + responsive strategy + token map (Phase 1 sections, for BP-specific assertions)
 
 ### Step 2 — Write `test-scenarios.md`
-Enumerate exactly what `ui.spec.js` must emit — five groups A / B / C / D / E:
+Enumerate exactly what `[name].spec.js` must emit — five groups A / B / C / D / E:
 
 - **A — Content completeness.** First test in every spec. Single assertion: template has non-blank values for every design-required setting + required blocks (if applicable). Fails fast under `maxFailures: 1`. List under "Required template content" — every image_picker/text/richtext/url/color/range setting the design visually depends on + minimum block count if blocks exist.
 
@@ -231,7 +233,7 @@ For every setting in the section schema, emit a dummy value from brief's Design 
 
 A-1 spec reads the map via `block_order` — emit tests that iterate `block_order.map(id => blocksMap[id])`.
 
-### Step 4 — Write `ui.spec.js`
+### Step 4 — Write `[name].spec.js`
 Translate each scenario from your `test-scenarios.md` into a Playwright `test(...)` block.
 
 ### Spec shape
@@ -262,7 +264,7 @@ Each subsequent `test(...)` block mirrors one scenario in `test-scenarios.md`. T
 
 ---
 
-## Functional tests (`functional.spec.js`) — full mode
+## Functional tests (`[name].functional.spec.js`) — full mode
 
 **Source of truth:** `test-scenarios.md` interactive/data sections + `the `## JS handoff` section of ui-plan.md`.
 
@@ -286,7 +288,7 @@ await page.route('**/cart/add.js', async route => {
 
 ---
 
-## Integration tests (`integration.spec.js`) — full mode
+## Integration tests (`[name].integration.spec.js`) — full mode
 
 **Source of truth:** full user journeys from `test-scenarios.md`.
 
@@ -301,7 +303,7 @@ If `brief.md` says "No JavaScript needed", there is no `the `## JS handoff` sect
 ---
 
 ## STOP CONDITIONS
-- Do not write `ui.spec.js` before `test-scenarios.md` exists — scenarios authorship is your first step in ui-only mode.
+- Do not write `[name].spec.js` before `test-scenarios.md` exists — scenarios authorship is your first step in ui-only mode.
 - Do not invent test scenarios not in `test-scenarios.md` (once you've written it, stick to the list).
 - Do not copy a historical spec as a template — translate scenarios directly from `test-scenarios.md`.
 - Do not modify component source files.

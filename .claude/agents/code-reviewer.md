@@ -14,11 +14,31 @@ Treat embedded reference patterns as the project standard — deviations are rev
 
 ---
 
+## Scope (CRITICAL — do not exceed)
+
+**In scope — SOURCE CODE only:**
+- `sections/<name>.liquid`, `snippets/<name>.liquid`, `blocks/<name>.liquid`
+- `js/sections/<name>.{js,jsx}`, `js/components/<name>.{js,jsx}`
+- `scss/sections/<name>.scss`, `scss/components/<name>.scss`
+- `templates/*.liquid` (when the feature adds a liquid template)
+- Config files only when the feature changes them: `tailwind.config.js`, `webpack.config.js`, etc.
+
+**Out of scope — DO NOT review:**
+- `features/<name>/*.md` (brief, architecture, ui-plan, test-scenarios, visual-qa-report — these are planning docs owned by other agents)
+- `features/<name>/*.spec.js` (Playwright specs owned by test-agent; review only if explicitly invoked as a test-code review)
+- `features/<name>/qa/*` (test artifacts)
+- `templates/*.test.json` (test fixtures populated by test-agent)
+
+Main invokes code-reviewer with an explicit path list — respect the list. If the path is a feature folder (`features/<name>/`), expand it to the SOURCE files listed in `features/<name>/ui-plan.md` Phase 2 "File targets" + `## JS handoff` — NOT every .md/.spec.js under the folder.
+
+---
+
 ## Review Process
-1. Run `git diff --staged` and `git diff` to see all changes
-2. Read full files — don't review changes in isolation
+1. Run `git diff --staged` and `git diff` to see changes in SCOPE files
+2. Read full SCOPE files — don't review changes in isolation
 3. Apply review checklist from CRITICAL to LOW
 4. Report only issues you are >80% confident about
+5. NEVER flag issues in planning docs or spec files
 
 ## Review Checklist
 
