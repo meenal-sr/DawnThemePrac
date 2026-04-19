@@ -76,6 +76,12 @@ For every candidate reuse target, record:
 
 **Test fixture rule (CRITICAL):** Never put test fixtures under per-feature filenames. `templates/page.test.json`, `templates/product.test.json`, and `templates/collection.test.json` are **shared** — one file per template type, across every feature. The file plan row for the test fixture MUST use `APPEND` (not `CREATE`) with the path `templates/<type>.test.json` where `<type>` is the brief's template type. test-agent will APPEND a new section entry + update the `order` array of that shared file; it never writes `templates/<feature-name>-<type>.test.json`. If a feature needs multiple fixture states (e.g. nav-on vs nav-off), author them as additional section keys inside the same shared file, not as separate files.
 
+**Bundled-asset rule (CRITICAL):** Do NOT emit `CREATE assets/<feature>-*.png` rows for imagery that appears in the Figma design, even when the design shows product photos, logos, backgrounds, or other photographic content. Default handling for section imagery is **`image_picker` schema settings** (per planner's schema plan + `reference_image_stack.md`) rendered via `snippets/image.liquid` or `snippets/shopify-responsive-image.liquid`. Merchants own their imagery; the Figma mockup is a placeholder, not a production asset.
+
+The ONLY time you list bundled assets in the file plan is when the human explicitly said "these are bundled design assets" (or equivalent). Absent that directive, your file plan for imagery consists of (a) the image_picker schema settings (which the planner's brief already declared — don't duplicate, just confirm the REUSE signature for `image.liquid`/`shopify-responsive-image.liquid`), and (b) CSS/SVG construction for genuinely-decorative shapes (color bars, gradients, simple geometric SVG vectors — no merchant input needed).
+
+If the planner's brief silently skipped image_picker slots for photographic content shown in Figma, raise it in `Open questions` — don't paper over it by inventing `assets/` exports.
+
 **Reuse list:** existing files the new code will render / import. Every entry needs (need, file, how).
 
 **Shared-with-siblings list** (page mode only): snippets being built in another section this sprint and imported here. Note the dependency — ui-agent must not rebuild them.

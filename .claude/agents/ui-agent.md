@@ -475,6 +475,18 @@ When the design places content (text, buttons) overlaid on top of a background i
 - Every legitimate image_picker slot (one per truly-independent asset) gets the FULL triplet: `<name>_desktop` + `<name>_mobile` + `<name>_aspect_ratio_desktop` + `<name>_aspect_ratio_mobile`. No exceptions.
 - When in doubt, ask the human via `## Questions` in `ui-plan.md` — "is the <x> layer a separate uploadable image, or part of the composite background?". Never guess from Figma layer names.
 
+**Never bundle Figma imagery into `/assets/` (CRITICAL):**
+Photographic imagery from a Figma design (product shots, partner logos, marketing backgrounds, lifestyle photos) is merchant-owned content. Production merchants swap in their actual brand imagery — the Figma mockup is a placeholder. Default handling:
+1. Planner exposes `image_picker` settings in the schema (per the discipline above).
+2. Architect's file plan references `snippets/image.liquid` or `snippets/shopify-responsive-image.liquid` as the reuse path — NOT a CREATE row under `assets/`.
+3. ui-agent renders merchant-uploaded images via those snippets, fed from the image_picker settings.
+
+Do NOT write `<img src="{{ 'feature-product.png' | asset_url }}">` referencing bundled files that don't exist. Do NOT ask main to run `node pixelmatch-config/figma-mcp-screenshot.js <nodeId> assets/<name>.png`. That export path is reserved for cases where the human explicitly told main "these are bundled design assets" during intake — a phrase that, absent its presence, means the default image_picker flow applies.
+
+**Exception — genuinely-decorative shapes (not photographic content):** SVG vectors, colored bars, gradients, simple geometric motifs are pure design constructs, not merchant content. Build these with inline SVG or Tailwind utilities (`tw-bg-[#f75200]`, `tw-absolute`, `tw-rotate-[-165deg]`). No image_picker, no asset export, no merchant upload. If a "decorative SVG" is actually a complex branded illustration that the merchant might want to swap, treat it like a photograph — image_picker.
+
+If during Phase 2 you realize a figma-context.md image was miscategorized (planner called it decorative but the merchant should really be able to swap it), stop and raise a `## Question` in `ui-plan.md` — do NOT silently export to `/assets/` as a workaround.
+
 **Reuse precedence (applies to EVERY rule in this agent — layout, spacing, image schema, markup shape, etc.):**
 
 When `brief.md` → "Shared components/snippets to reuse" lists an existing section, snippet, or file reference, that reference OVERRIDES every rule in this document. Workflow when a reference is given:
