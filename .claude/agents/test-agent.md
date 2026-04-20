@@ -90,7 +90,29 @@ Screenshots land in `features/[name]/qa/` via the helpers below.
 
 ## Test URL + helpers
 
-Use `sectionTestUrl(type)` from `playwright-config/helpers.js`. Determine `type` from `brief.md` (`page` | `product` | `collection`):
+**HARD RULE — no exceptions:** The test URL MUST be produced by `sectionTestUrl(type)` from `playwright-config/helpers.js`. Never construct it yourself.
+
+Forbidden patterns (these break because Shopify pages don't exist at the template filename path — alt-templates are selected via `?view=<suffix>`):
+- ❌ `` `/pages/${process.env.TEST_PAGE_TEMPLATE}` ``
+- ❌ `` `${process.env.GLOBAL_PAGE_PATH}?view=test` `` (hardcoded suffix)
+- ❌ Any manual splitting of `TEST_PAGE_TEMPLATE` in the spec file
+
+Canonical spec shape (copy this — do not re-derive):
+
+```js
+const { sectionTestUrl } = require('../../playwright-config/helpers');
+const SECTION_TYPE = 'page';                    // or 'product' | 'collection' — from brief.md
+const PAGE_PATH = sectionTestUrl(SECTION_TYPE); // includes ?view=<suffix>&preview_theme_id=<id>
+```
+
+The helper already does the right thing:
+1. Reads `basePath` (real page URL, e.g. `GLOBAL_PAGE_PATH=/pages/contact`) + `template` (e.g. `TEST_PAGE_TEMPLATE=page.test`).
+2. Derives view suffix via `template.split('.').slice(1).join('.')` → `test`.
+3. Returns `https://<STORE_URL><basePath>?view=<suffix>&preview_theme_id=<THEME_ID>`.
+
+This rule isolates templating-convention changes (e.g. renaming `page.test` → `page.qa`) to one helper file instead of every spec.
+
+Determine `type` from `brief.md` (`page` | `product` | `collection`):
 
 | Type | Env var | Template | Base path env |
 |---|---|---|---|
