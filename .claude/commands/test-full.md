@@ -10,10 +10,9 @@ You are main conversation. Execute verbatim.
 - `$1` = feature name
 
 Verify:
-- `features/<feature-name>/brief.md` contains a filled `## JS handoff` section (js-agent has run — look for real content, not the stub "js-agent appends")
-- `features/<feature-name>/test-scenarios.md` exists
+- `features/<feature-name>/test-scenarios.md` exists AND contains `## Functional scenarios` + `## Integration scenarios` sections (js-agent has appended them)
 
-If `## JS handoff` is unfilled because brief says "No JavaScript needed":
+If `test-scenarios.md` has no functional/integration sections because brief says "No JavaScript needed":
 > Report `SKIP: No JS behavior — functional/integration specs not applicable.` and stop.
 
 Otherwise `BLOCKED: Run /build-js first.`
@@ -33,12 +32,13 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 **SEMI-STABLE (per-feature):**
 3. Workspace: `features/<feature-name>/`
-4. Full contents of `brief.md` — all sections including ui-agent's appended as-built + js-agent's filled `## JS handoff`
-5. Contents of `test-scenarios.md`
-6. `mock-map.md` if it exists
+4. Full contents of `test-scenarios.md` — self-contained (ui-agent A/B/C/D/E + js-agent functional/integration + mock fixtures)
+5. `mock-map.md` if it exists
+
+test-agent does NOT read `brief.md` in full mode.
 
 **DYNAMIC (this invocation only):**
-9. Test failures from prior cycle (if re-invoked)
+6. Test failures from prior cycle (if re-invoked)
 
 Expected outputs:
 - `features/<feature-name>/<feature-name>.functional.spec.js`

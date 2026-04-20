@@ -44,7 +44,7 @@ What are you doing?
 |---|---|---|
 | `/plan-feature` | New section, Figma link in hand, want brief first | `/plan-feature testimonials https://figma.com/design/abc/?node-id=1:42` |
 | `/build-ui` | brief.md exists, ready to write liquid | `/build-ui testimonials` |
-| `/test-ui` | brief.md as-built sections appended by ui-agent, want DOM/responsive specs | `/test-ui testimonials` |
+| `/test-ui` | test-scenarios.md written by ui-agent, want DOM/responsive specs | `/test-ui testimonials` |
 | `/visual-qa` | specs ran, want PASS/NEEDS_FIX report vs Figma | `/visual-qa testimonials` |
 | `/build-js` | visual QA passed, brief says JS needed | `/build-js testimonials` |
 | `/test-full` | brief.md `## JS handoff` filled by js-agent, want functional + integration specs | `/test-full testimonials` |

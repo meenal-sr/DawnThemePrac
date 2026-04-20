@@ -32,10 +32,10 @@ Per Main Prefetch Contract → visual-qa-agent row:
 
 If A-group fails, halt and re-run test-agent — fixture is incomplete.
 
-## Step 4 — Pass figma-context.md reference to agent (no computed-style extraction)
-Do NOT extract typography/color tables from the brief. The agent reads `features/<feature-name>/figma-context.md` directly for canonical token values, then does multimodal PNG inspection (figma-*.png vs live-*.png) to grade visual parity.
+## Step 4 — Design tokens live in brief.md (no separate figma-context.md)
+Do NOT extract typography/color tables yourself. The agent reads `features/<feature-name>/brief.md` → `## Design tokens` + `## Copy` directly for canonical values, then does multimodal PNG inspection (figma-*.png vs live-*.png) to grade visual parity.
 
-Just verify `figma-context.md` exists. If missing, halt and re-run `/plan-feature` — the prefetch was incomplete.
+Just verify `brief.md` has a `## Design tokens` section. If missing, halt and re-run `/plan-feature` — the planner didn't distill the Figma payload correctly.
 
 ## Step 4b — Read axe-core accessibility results
 
@@ -70,7 +70,7 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 **SEMI-STABLE (per-feature):**
 3. Workspace: `features/<feature-name>/`
-4. Typography + color tokens extracted from `brief.md` Design content reference (Step 4)
+4. Pointer: "Read `brief.md` → `## Design tokens` + `## Copy` (planner's frozen plan) + `test-scenarios.md` → `## DEVIATIONS` (ui-agent's documented departures). A DEVIATIONS entry is the only pre-approval path — if a mismatch isn't listed there, flag as defect."
 5. Paths of `qa/figma-*.png`, `qa/live-*.png`, `qa/diff-*.png`, `qa/a11y-*.json`
 
 **DYNAMIC (this invocation only):**

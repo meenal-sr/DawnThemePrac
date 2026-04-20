@@ -9,7 +9,7 @@ You are main conversation. This umbrella command chains the per-agent commands i
 ## Pre-flight
 Parse `$1` = feature name, `$2` = desktop Figma URL, `$3` = mobile Figma URL (optional). `$1` + `$2` required; `$3` strongly recommended.
 
-**Build convention: mobile-first Tailwind.** Base utility classes target mobile; desktop via `md-small:` / `md:` / `lg:` / `2xl:` prefix overrides. When designs diverge heavily, author dual-DOM branches toggled via `hidden md:block` / `md:hidden`. ui-agent documents the choice in brief §DEVIATIONS.
+**Build convention: mobile-first Tailwind.** Base utility classes target mobile; desktop via `md-small:` / `md:` / `lg:` / `2xl:` prefix overrides. When designs diverge heavily, author dual-DOM branches toggled via `hidden md:block` / `md:hidden`. ui-agent documents the choice in `test-scenarios.md` → `## DEVIATIONS`.
 
 ## Discipline rules
 1. **playwright-mcp mandatory** for visual QA browser work.
@@ -46,9 +46,8 @@ ls -la features/$1/qa/
 ```
 
 Required (always):
-- `features/$1/brief.md` (planner + ui-agent + js-agent appended — single authoritative doc)
-- `features/$1/figma-context.md` (main wrote during prefetch)
-- `features/$1/test-scenarios.md` (test-agent ui-only)
+- `features/$1/brief.md` (planner's frozen plan — intent + `## Design tokens` + `## Copy` + schema + file plan + reuse scan + a11y + JS decision)
+- `features/$1/test-scenarios.md` (ui-agent's build-execution doc — selectors + DEVIATIONS + A/B/C/D/E + JS handoff stub/full)
 - `features/$1/$1.spec.js` (test-agent ui-only)
 - `features/$1/qa/visual-qa-report.md` — MUST contain `Status: PASS`
 - `features/$1/qa/figma-*.png` (at least one breakpoint)
@@ -56,7 +55,7 @@ Required (always):
 - `features/$1/qa/diff-*.png` (matching breakpoints)
 
 Required IF brief §JavaScript decision = YES:
-- `features/$1/brief.md` → `## JS handoff` section filled with real content (js-agent replaced ui-agent's stub)
+- `features/$1/test-scenarios.md` → `## JS handoff` filled + `## Functional scenarios` + `## Integration scenarios` + `## Mock fixtures` appended (js-agent)
 - `features/$1/$1.functional.spec.js`
 - `features/$1/$1.integration.spec.js`
 
@@ -65,11 +64,11 @@ If ANY missing → re-run the owning sub-command, then re-run this gate.
 **Owner map for missing-artifact recovery:**
 | Missing | Owner | Recovery command |
 |---|---|---|
-| brief.md (planner sections missing) | planner | `/plan-feature $1 <figma-url>` |
-| brief.md (ui-agent as-built sections missing) | ui-agent | `/build-ui $1` |
-| test-scenarios.md / $1.spec.js / templates/*.test.json APPEND | test-agent ui-only | `/test-ui $1` |
+| brief.md | planner | `/plan-feature $1 <figma-url>` |
+| test-scenarios.md (A/B/C/D/E + Selectors + DEVIATIONS + JS handoff stub) | ui-agent | `/build-ui $1` |
+| test-scenarios.md (JS handoff full + Functional/Integration/Mock) | js-agent | `/build-js $1` |
+| $1.spec.js / templates/*.test.json APPEND | test-agent ui-only | `/test-ui $1` |
 | qa/*.png, qa/visual-qa-report.md | visual-qa-agent | `/visual-qa $1` |
-| brief.md → `## JS handoff` section (stub → filled) | js-agent | `/build-js $1` |
 | $1.functional.spec.js, $1.integration.spec.js | test-agent full | `/test-full $1` |
 
 ### Step 7 — Review
@@ -90,4 +89,4 @@ Only after code-reviewer approves:
 
 ## Report
 Final status — enumerate verified artifact paths:
-> "Section `$1` build complete. Verified: features/$1/{brief.md, figma-context.md, test-scenarios.md, $1.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, $1.functional.spec.js, $1.integration.spec.js]. Source files per brief §File plan → CREATE list. Ready for review/merge."
+> "Section `$1` build complete. Verified: features/$1/{brief.md, test-scenarios.md, $1.spec.js, qa/visual-qa-report.md (Status: PASS), qa/figma-*.png, qa/live-*.png, qa/diff-*.png}[, $1.functional.spec.js, $1.integration.spec.js]. Source files per brief §File plan → CREATE list. Ready for review/merge."

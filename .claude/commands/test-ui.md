@@ -10,11 +10,9 @@ You are main conversation. Execute verbatim.
 - `$1` = feature name
 
 Verify:
-- `features/<feature-name>/brief.md` exists with both planner sections AND ui-agent as-built sections appended (`## As-built DOM`, `## Selector catalogue`, `## Schema settings (final)`)
+- `features/<feature-name>/test-scenarios.md` exists (ui-agent authored it after writing Liquid — `test-agent` reads this as its sole input)
 
-Note: `test-scenarios.md` is produced by test-agent in THIS command (first step of its work). Do NOT require it as a prerequisite.
-
-If missing or incomplete: `BLOCKED: Run /plan-feature + /build-ui first.`
+If missing: `BLOCKED: Run /build-ui first — ui-agent authors test-scenarios.md.`
 
 ## Step 2 — Memory prefetch
 Per Main Prefetch Contract → test-agent row:
@@ -45,15 +43,16 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 **SEMI-STABLE (per-feature):**
 3. Workspace: `features/<feature-name>/`
-4. Full contents of `brief.md` — single authoritative doc (planner sections + ui-agent's appended as-built / selector catalogue / schema settings / JS handoff stub)
+4. Full contents of `test-scenarios.md` — self-contained (ui-agent authored it; test-agent does NOT open brief.md)
 
 **DYNAMIC (this invocation only):**
 5. Fix-cycle context from prior visual-qa-report (if re-invoked after a failure)
 
 Expected outputs (in order, produced by test-agent):
-1. `features/<feature-name>/test-scenarios.md` (A/B/C/D/E scenario contract)
-2. `templates/<type>.test.json` — APPEND section entry (preserve existing sections + update `order` array). NEVER overwrite, NEVER create per-feature filename.
-3. `features/<feature-name>/<feature-name>.spec.js`
+1. `templates/<type>.test.json` — APPEND section entry (preserve existing sections + update `order` array). NEVER overwrite, NEVER create per-feature filename.
+2. `features/<feature-name>/<feature-name>.spec.js`
+
+test-agent does NOT author `test-scenarios.md` — ui-agent wrote it.
 
 ## Step 5 — Run specs (D-group only — screenshot capture)
 Run via Bash — filter to D-group tests only (screenshot captures). The full spec stays on disk as a manual-debug artifact; B (typography+color parity), C (layout integrity at intermediates), E (content placement), and any other groups are NOT executed in the pipeline. They exist for ad-hoc debugging via `yarn playwright:test features/<feature-name>/<feature-name>.spec.js --grep "^B-"` etc.
@@ -67,7 +66,7 @@ yarn playwright:test features/<feature-name>/<feature-name>.spec.js --grep "A-|D
 `A-` = content-completeness gate (fails fast if test fixture is missing required values).
 `D-` = screenshot capture. Produces `live-mobile.png` + `live-desktop.png` in `features/<feature-name>/qa/`.
 
-**Rationale:** token parity (typography, color, width) lives in `figma-context.md` (SOT); ui-agent writes utility classes mechanically from that SOT; visual-qa catches any gross drift via pixelmatch + multimodal PNG inspection. Running per-element computed-style assertions (B/C/E) on every pipeline run is redundant + slow. They're preserved for manual debugging when something DOES drift.
+**Rationale:** token parity (typography, color, width) lives in `brief.md` → `## Design tokens` (SOT); ui-agent writes utility classes mechanically from that SOT; visual-qa catches any gross drift via pixelmatch + multimodal PNG inspection. Running per-element computed-style assertions (B/C/E) on every pipeline run is redundant + slow. They're preserved for manual debugging when something DOES drift.
 
 If the A-group gate fails, stop and re-run test-agent — fixture is incomplete.
 

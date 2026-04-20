@@ -30,7 +30,7 @@ Ask the human via `AskUserQuestion`:
 
 Wait for answers before proceeding.
 
-## Step 3 — Figma prefetch + write figma-context.md
+## Step 3 — Figma prefetch (pull inline; no separate file)
 
 Create feature directory: `mkdir -p features/<feature-name>/qa`
 
@@ -38,7 +38,7 @@ For each breakpoint/variant node:
 - `figma.get_design_context(fileKey, nodeId)` → layout + typography + colors + copy
 - `figma.get_variable_defs(fileKey, nodeId)` → Figma variable tokens
 
-Write `features/<feature-name>/figma-context.md` — canonical design reference. Capture VALUES per breakpoint (typography, colors, spacing, copy strings, tokens, cross-breakpoint delta). Do NOT prescribe DOM structure — ui-agent decides.
+**Do NOT write a `figma-context.md` file.** Hold the raw MCP responses — you pass them inline in planner's prompt (Step 5 SEMI-STABLE block). Planner distills them into the brief's `## Design tokens` + `## Copy` sections. `brief.md` is the sole authoritative design doc.
 
 Persist reference PNGs via the MCP script at the project's Playwright viewport widths:
 ```bash
@@ -65,10 +65,13 @@ Embed (stable-first ordering per cache-friendly rule):
 
 **SEMI-STABLE:**
 3. Feature name + workspace path
-4. Instruction: "Read `features/<feature-name>/figma-context.md` for full design data. Scan codebase for reuse candidates (snippets/, sections/, js/components/, tailwind.config.js, reference docs). Write a single `brief.md` covering intent + schema + **file plan** + **reuse scan** + variants + a11y + JS decision."
+4. **Figma MCP payload — embed inline per breakpoint**:
+   - Desktop: full `get_design_context` response + full `get_variable_defs` response for the desktop nodeId
+   - Mobile: same for mobile nodeId (if `$3` supplied)
+5. Instruction: "DISTILL the embedded Figma MCP output into brief.md `## Design tokens` (typography / color / spacing tables per breakpoint) + `## Copy` (verbatim strings). Do NOT write a separate `figma-context.md`. Scan codebase for reuse candidates (snippets/, sections/, js/components/, tailwind.config.js, reference docs). Write a single `brief.md` covering intent + design tokens + copy + schema + **file plan** + **reuse scan** + variants + a11y + JS decision."
 
 **DYNAMIC:**
-5. Template type + human answers from Step 2
+6. Template type + human answers from Step 2
 
 Expected output: `features/<feature-name>/brief.md` ONLY. Planner now owns the file plan + reuse scan (previously architect's role — architect has been removed from the flow).
 

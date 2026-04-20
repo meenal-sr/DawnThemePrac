@@ -24,7 +24,7 @@ Treat embedded reference patterns as the project standard — deviations are rev
 - Config files only when the feature changes them: `tailwind.config.js`, `webpack.config.js`, etc.
 
 **Out of scope — DO NOT review:**
-- `features/<name>/*.md` (brief, figma-context, test-scenarios, visual-qa-report — planning docs owned by other agents)
+- `features/<name>/*.md` (brief, test-scenarios, visual-qa-report — planning docs owned by other agents)
 - `features/<name>/*.spec.js` (Playwright specs owned by test-agent; review only if explicitly invoked as a test-code review)
 - `features/<name>/qa/*` (test artifacts)
 - `templates/*.test.json` (test fixtures populated by test-agent)

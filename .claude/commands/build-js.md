@@ -1,5 +1,5 @@
 ---
-description: Prefetch skills + memory, spawn js-agent to write JavaScript behavior layer + fill the `## JS handoff` section of brief.md (replaces ui-agent stub), then run lint loop. Argument — $1 feature name.
+description: Prefetch skills + memory, spawn js-agent to write JavaScript behavior layer + fill the `## JS handoff` stub in test-scenarios.md + append functional/integration/mock sections. Does NOT modify brief.md. Lint loop follows. Argument — $1 feature name.
 ---
 
 # Build JS: $ARGUMENTS
@@ -42,7 +42,7 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 **SEMI-STABLE (per-feature):**
 3. Feature name + workspace path
 4. Contents of `brief.md`
-5. Contents of `brief.md`
+5. Contents of `features/<feature-name>/test-scenarios.md` (so js-agent knows where to append functional/integration sections)
 6. MCP docs from Step 3 (shopify-dev-mcp + context7, if fetched)
 
 **DYNAMIC (this invocation only):**
@@ -50,7 +50,11 @@ Embed in prompt (stable-first ordering per cache-friendly rule in `.claude/rules
 
 Expected outputs:
 - `js/sections/<name>.js` (entry) and/or `js/components/<name>.js` (shared)
-- Updated `features/<feature-name>/brief.md` — `## JS handoff` section filled (replaces the ui-agent stub)
+- Updated `features/<feature-name>/test-scenarios.md`:
+  1. `## JS handoff` stub → full handoff content (replaces ui-agent's stub in test-scenarios.md)
+  2. Appended `## Functional scenarios`, `## Integration scenarios`, `## Mock fixtures` sections (test-agent reads these in full mode)
+
+js-agent does NOT modify `brief.md` — it stays frozen as planner's upfront plan.
 
 ## Step 5 — Lint loop (max 3 cycles)
 After each file js-agent writes:
@@ -63,4 +67,4 @@ After each file js-agent writes:
 5. Escalate if still failing.
 
 ## Step 6 — Report
-> "JS built at `js/sections/<name>.js`. JS handoff filled at `features/<feature-name>/brief.md → ## JS handoff`. Ready for `/test-full <feature-name>`."
+> "JS built at `js/sections/<name>.js`. test-scenarios.md JS handoff filled + appended with functional + integration scenarios. Ready for `/test-full <feature-name>`."

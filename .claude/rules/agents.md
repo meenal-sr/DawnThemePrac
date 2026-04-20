@@ -3,12 +3,12 @@
 ## Architecture
 Main conversation = orchestrator + MCP/Skill/Memory bridge. Subagents cannot access MCP servers, cannot call the Skill tool, and should not load memory independently — only built-in tools (Read, Write, Edit, Glob, Grep, Bash, Agent).
 
-**Role split (simplified flow, 2026-04-19):**
-- **planner** — design intent, data sources, schema, variants, a11y decision, **file plan**, **reuse scan**, JS decision. Single upfront doc. Writes `features/<name>/brief.md`. Absorbs the file-plan + codebase-scan role that architect previously owned — no separate architecture.md.
-- **ui-agent** — single-phase. Reads `brief.md` + `figma-context.md`. Writes `.liquid` files. Appends `## As-built DOM`, `## Selector catalogue`, `## Schema settings (final)`, `## DEVIATIONS`, `## JS handoff` (stub if JS=YES, full content if JS=NO) to the bottom of the same `brief.md`. No `ui-plan.md` — everything lives in brief.md.
-- **js-agent** — conditional (only when brief says JS=YES). Reads brief.md (intent + as-built selectors + JS handoff stub). Writes JS file(s). Replaces `## JS handoff` stub in brief.md with full content.
-- **test-agent** — owns `test-scenarios.md` authorship + APPENDs to shared `templates/<type>.test.json` + all spec files. Reads brief.md (intent + as-built + copy ground truth via figma-context.md).
-- **visual-qa-agent** — reads brief.md tokens, compares figma/live PNGs, writes `qa/visual-qa-report.md`.
+**Role split (simplified flow, 2026-04-20):**
+- **planner** — design intent, data sources, schema, variants, a11y decision, **file plan**, **reuse scan**, JS decision, **AND design tokens** (typography / colors / spacing / copy tables — distilled from Figma MCP output main passes inline). Single upfront doc. Writes `features/<name>/brief.md`. `brief.md` is now the sole authoritative design doc — no separate `figma-context.md`, no separate `architecture.md`.
+- **ui-agent** — single-phase. Reads `brief.md` (planner's upfront plan) ONLY — does NOT modify it. Writes `.liquid` files + **authors `features/<name>/test-scenarios.md`** — the self-contained build-execution doc: Section under test, Required template content, Selector catalogue, Block fixture data, Design tokens (inlined from brief), A/B/C/D/E scenarios, Accessibility mode, Design content reference, DEVIATIONS, JS handoff (stub if JS=YES, full content if JS=NO).
+- **js-agent** — conditional (only when brief says JS=YES). Reads `brief.md` (planner's §JavaScript decision + File plan) + `test-scenarios.md` (ui-agent's Selector catalogue + JS handoff stub). Writes JS file(s). REPLACES `## JS handoff` stub in `test-scenarios.md` with full content + APPENDS `## Functional scenarios`, `## Integration scenarios`, `## Mock fixtures` sections. Does NOT touch `brief.md`.
+- **test-agent** — pure translator. Reads `test-scenarios.md` ONLY. APPENDs section entry to shared `templates/<type>.test.json` + writes `[name].spec.js` (ui-only) or `.functional.spec.js` + `.integration.spec.js` (full). Never opens `brief.md`.
+- **visual-qa-agent** — reads `brief.md` §Design tokens (planner's frozen plan) + `test-scenarios.md` §DEVIATIONS (ui-agent's documented departures) + figma/live PNGs, writes `qa/visual-qa-report.md`.
 - **code-reviewer** — reviews source files only. Never passed the feature folder (planning docs are out of scope).
 
 **Main prefetches everything → passes into agent prompts:**
@@ -70,9 +70,9 @@ Located in `.claude/agents/`:
 ## Execution Flow (single section)
 See `.claude/commands/build-section.md` for full details.
 ```
-Main: Figma prefetch + human Q&A + figma-context.md write + figma-*.png persist
-  → planner (brief = intent + schema + file plan + reuse scan + JS decision)
-  → ui-agent (reads brief) → Liquid files + appends as-built/selectors/schema/deviations/JS-handoff to brief.md
+Main: Figma prefetch (MCP pull passed inline) + human Q&A + figma-*.png persist
+  → planner (brief = intent + schema + file plan + reuse scan + JS decision + design tokens — frozen after this step)
+  → ui-agent (reads brief) → Liquid files + writes test-scenarios.md (selectors + deviations + JS handoff stub + A/B/C/D/E)
   → Main: validate_theme loop
   → test-agent ui-only (reads brief) → test-scenarios.md + APPEND page.test.json + [name].spec.js
   → Main: run specs
@@ -107,8 +107,7 @@ Never skip this step for Liquid files.
 | `## JS handoff` (replaces stub with full content) | js-agent | Conditional — only if brief §JS decision = YES |
 
 Companion files (NOT in brief.md):
-- `features/<name>/figma-context.md` — canonical design values (typography, colors, spacing, copy strings, tokens, cross-breakpoint deltas). Written by main during `/plan-feature` prefetch.
-- `features/<name>/qa/figma-*.png` — design reference screenshots. Written by main.
+- `features/<name>/qa/figma-*.png` — design reference screenshots. Written by main during `/plan-feature` prefetch.
 - `features/<name>/qa/live-*.png` — live screenshots. Written by test-agent specs.
 - `features/<name>/qa/diff-*.png` — pixelmatch outputs. Written by main.
 - `features/<name>/qa/visual-qa-report.md` — written by visual-qa-agent.

@@ -22,7 +22,7 @@ Only send these paths to code-reviewer:
 - `tailwind.config.js`, `webpack.config.js`, `playwright.config.js` (only when changed)
 
 Reject (do NOT send):
-- `features/**/*.md` (briefs, test-scenarios, visual-qa-report, figma-context)
+- `features/**/*.md` (briefs, test-scenarios, visual-qa-report)
 - `features/**/*.spec.js` (Playwright specs — test-agent's territory)
 - `features/**/qa/**` (test artifacts)
 - `templates/*.test.json` (test fixtures)
